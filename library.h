@@ -1,5 +1,4 @@
-/* $Id: library.h 344 2007-06-02 16:09:57Z mark $
- *
+/*
  * Copyright (C) 2007 Mark Hills <mark@pogo.org.uk>
  *
  * This program is free software; you can redistribute it and/or

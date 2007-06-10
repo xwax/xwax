@@ -1,5 +1,4 @@
-/* $Id: timecoder.c 354 2007-06-08 23:49:48Z mark $
- *
+/*
  * Copyright (C) 2007 Mark Hills <mark@pogo.org.uk>
  *
  * This program is free software; you can redistribute it and/or

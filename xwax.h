@@ -1,5 +1,4 @@
-/* $Id: xwax.h 355 2007-06-10 17:47:45Z mark $
- *
+/*
  * Copyright (C) 2007 Mark Hills <mark@pogo.org.uk>
  *
  * This program is free software; you can redistribute it and/or

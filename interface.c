@@ -1,5 +1,4 @@
-/* $Id: interface.c 350 2007-06-02 18:41:33Z mark $
- *
+/*
  * Copyright (C) 2007 Mark Hills <mark@pogo.org.uk>
  *
  * This program is free software; you can redistribute it and/or
