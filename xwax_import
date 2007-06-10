@@ -12,6 +12,16 @@ TYPE=`echo "$FILE" | sed -e 's/^.*\.//'`
 
 case "$TYPE" in
 
+'ogg')
+    echo "Calling Ogg decoder..." >&2
+    exec oggdec --bits 16 --endianness 0 --sign 1 --raw --output - "$FILE"
+    ;;
+
+'aac')
+    echo "Calling AAC decoder..." >&2
+    exec faad -b 1 -f 2 -w "$FILE"
+    ;;
+
 'cdaudio')
     echo "Calling CD extract..." >&2
     exec cdparanoia -r `cat "$FILE"` -
