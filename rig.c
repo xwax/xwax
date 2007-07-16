@@ -133,24 +133,27 @@ int rig_realtime(struct rig_t *rig)
                 "may get wow and skips!\n");
     }
 
-    while(!rig->finished) {
-        pe = pt;
+    /* The requested poll events never change, so populate the poll
+     * entry table before entering the loop */
+    
+    pe = pt;
+
+    for(n = 0; n < MAX_DEVICES; n++) {
+        dv = rig->device[n];
         
-        for(n = 0; n < MAX_DEVICES; n++) {
-            dv = rig->device[n];
-
-            if(!dv)
-                continue;
-            
-            pe->fd = dv->fd;
-            pe->revents = 0;
-            pe->events = POLLIN | POLLOUT; /* even if we are silent */
-                        
-            dv->pe = pe;
-            
-            pe++;
-        }
-
+        if(!dv)
+            continue;
+        
+        pe->fd = dv->fd;
+        pe->revents = 0;
+        pe->events = POLLIN | POLLOUT; /* play something even if silence */
+        
+        dv->pe = pe;
+        
+        pe++;
+    }
+    
+    while(!rig->finished) {        
         r = poll(pt, pe - pt, POLL_TIMEOUT);
         
         if(r == -1 && errno != EINTR) {
