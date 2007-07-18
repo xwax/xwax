@@ -24,7 +24,7 @@ SDL_LIBS = `sdl-config --libs` -lSDL_ttf
 
 xwax:		device.o interface.o library.o player.o rig.o timecoder.o \
 		track.o xwax.o
-		$(CC) $(CFLAGS) -o $@ $^ -pthread $(SDL_LIBS)
+		$(CC) $(CFLAGS) -o $@ $^ -pthread $(SDL_LIBS) -lasound
 
 interface.o:	CFLAGS += $(SDL_CFLAGS)
 

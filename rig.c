@@ -21,6 +21,7 @@
 #include <pthread.h>
 #include <signal.h>
 #include <stdio.h>
+#include <alsa/asoundlib.h>
 #include <sys/poll.h>
 
 #include "device.h"
@@ -30,7 +31,7 @@
 
 #define REALTIME_PRIORITY 80
 #define POLL_TIMEOUT 1000
-
+#define MAX_POLLENT (MAX_DEVICES * 4)
 
 int rig_init(struct rig_t *rig)
 {
@@ -105,7 +106,7 @@ int rig_realtime(struct rig_t *rig)
 {
     int r, n, max_pri;
     struct sched_param sp;
-    struct pollfd pt[MAX_DEVICES], *pe;
+    struct pollfd pt[MAX_POLLENT], *pe;
     struct device_t *dv;
 
     /* Setup the POSIX scheduler */
@@ -133,24 +134,21 @@ int rig_realtime(struct rig_t *rig)
                 "may get wow and skips!\n");
     }
 
+    pe = pt;
+    
+    for(n = 0; n < MAX_DEVICES; n++) {
+        dv = rig->device[n];
+        if(!dv)
+            continue;
+
+        pe += device_fill_pollfd(dv, pe, 9999); /* FIXME */
+
+        device_start(dv);
+    }
+
+
     while(!rig->finished) {
-        pe = pt;
         
-        for(n = 0; n < MAX_DEVICES; n++) {
-            dv = rig->device[n];
-
-            if(!dv)
-                continue;
-            
-            pe->fd = dv->fd;
-            pe->revents = 0;
-            pe->events = POLLIN | POLLOUT; /* even if we are silent */
-                        
-            dv->pe = pe;
-            
-            pe++;
-        }
-
         r = poll(pt, pe - pt, POLL_TIMEOUT);
         
         if(r == -1 && errno != EINTR) {
@@ -159,8 +157,10 @@ int rig_realtime(struct rig_t *rig)
         }
 
         for(n = 0; n < MAX_DEVICES; n++) {
-            if(rig->device[n])
-                device_handle(rig->device[n]);
+            if(rig->device[n]) {
+                if(device_handle(rig->device[n]) == -1) 
+                    return -1;
+            }
         }
     }
 

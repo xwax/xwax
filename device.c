@@ -17,167 +17,339 @@
  *
  */
 
-#include <fcntl.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
-#include <sys/ioctl.h>
 #include <sys/poll.h>
-#include <sys/soundcard.h>
+#include <alsa/asoundlib.h>
 
 #include "device.h"
 #include "timecoder.h"
 #include "player.h"
 
 
-int device_open(struct device_t *dv, const char *filename,
-                unsigned short buffers, unsigned short fragment)
+#define PLAYBACK_BUFFER 4096
+
+static void alsa_error(int r)
 {
-    int p;
-    
-    dv->fd = open(filename, O_RDWR, 0);
-    if(dv->fd == -1) {
-        perror("open");
-        return -1;
-    }
-
-    /* Ideally would set independent settings for the record and
-     * playback buffers. Recording needs to buffer where necessary, as
-     * lost audio results in zero-crossings which corrupt the
-     * timecode. Playback buffer neews to be short to avoid high
-     * latency */
-    
-    p = (buffers << 16) | fragment;
-    if(ioctl(dv->fd, SNDCTL_DSP_SETFRAGMENT, &p) == -1) {
-        perror("SNDCTL_DSP_SETFRAGMENT");
-        goto fail;
-    }
-
-    p = AFMT_S16_LE;
-    if(ioctl(dv->fd, SNDCTL_DSP_SETFMT, &p) == -1) {
-        perror("SNDCTL_DSP_SETFMT");
-        goto fail;
-    }
-    
-    p = DEVICE_CHANNELS;
-    if(ioctl(dv->fd, SNDCTL_DSP_CHANNELS, &p) == -1) {
-        perror("SNDCTL_DSP_CHANNELS");
-        goto fail;
-    }
-
-    p = DEVICE_RATE;
-    if(ioctl(dv->fd, SNDCTL_DSP_SPEED, &p) == -1) {
-        perror("SNDCTL_DSP_SPEED");
-        goto fail;
-    }
-
-    if(fcntl(dv->fd, F_SETFL, O_NONBLOCK) == -1) {
-        perror("fcntl");
-        return -1;
-    }
-
-    dv->pe = NULL;
-
-    return dv->fd;
-
- fail:
-    close(dv->fd);
-    return -1;   
+    fputs("ALSA: ", stderr);
+    fputs(snd_strerror(r), stderr);
+    fputc('\n', stderr);
 }
 
 
-int device_close(struct device_t *dv)
+static int alsa_open(snd_pcm_t **snd, const char *device_name,
+                     snd_pcm_stream_t stream)
 {
-    close(dv->fd);
-    dv->fd = -1;
+    int p, r, dir;
+    snd_pcm_hw_params_t *hw_params;
+    
+    r = snd_pcm_open(snd, device_name, stream, SND_PCM_NONBLOCK);
+    if(r < 0) {
+        alsa_error(r);
+        return -1;
+    }
+    
+    snd_pcm_hw_params_malloc(&hw_params);
+    
+    r = snd_pcm_hw_params_any(*snd, hw_params);
+    if(r < 0) {
+        alsa_error(r);
+        return -1;
+    }
+
+    r = snd_pcm_hw_params_set_access(*snd, hw_params,
+                                     SND_PCM_ACCESS_RW_INTERLEAVED);
+    if(r < 0) {
+        alsa_error(r);
+        return -1;
+    }
+    
+    r = snd_pcm_hw_params_set_format(*snd, hw_params,
+                                     SND_PCM_FORMAT_S16_LE);
+    if(r < 0) {
+        alsa_error(r);
+        return -1;
+    }
+
+    r = snd_pcm_hw_params_set_rate(*snd, hw_params, DEVICE_RATE, 0);
+    if(r < 0) {
+        alsa_error(r);
+        return -1;
+    }
+    
+    r = snd_pcm_hw_params_set_channels(*snd, hw_params, DEVICE_CHANNELS);
+    if(r < 0) {
+        alsa_error(r);
+        return -1;
+    }
+    
+    if(stream == SND_PCM_STREAM_PLAYBACK) {
+        
+        p = PLAYBACK_BUFFER; /* microseconds */
+        dir = 0;
+        r = snd_pcm_hw_params_set_buffer_time_near(*snd, hw_params, &p, &dir);
+        if(r < 0) {
+            alsa_error(r);
+            return -1;
+        }
+        
+        fprintf(stderr, "Buffer time is %d\n", p);
+    }
+    
+    r = snd_pcm_hw_params(*snd, hw_params);
+    if(r < 0) {
+        alsa_error(r);
+        return -1;
+    }
+
+    snd_pcm_hw_params_free(hw_params);
+    
+    r = snd_pcm_prepare(*snd);
+    if(r < 0) {
+        alsa_error(r);
+        return -1;
+    }
 
     return 0;
 }
 
 
-/* Push audio into the device's buffer, for playback */
+/* Open ALSA device. Do not operate on audio until device_start() */
 
-int device_push(struct device_t *dv, signed short *pcm, int samples)
+int device_open(struct device_t *dv, const char *device_name,
+                unsigned short buffers, unsigned short fragment)
 {
-    int r, bytes;
+    fprintf(stderr, "Opening ALSA device '%s'...\n", device_name);
 
-    bytes = samples * DEVICE_CHANNELS * sizeof(short);
-    
-    r = write(dv->fd, pcm, bytes);
-
-    if(r == -1) {
-        perror("write");
-        return -1;
-    }
-    
-    if(r < bytes)
-        fprintf(stderr, "Device output overrun.\n");
-
-    return r / DEVICE_CHANNELS / sizeof(short);
-}
-
-
-/* Pull audio from the device, for recording */
-
-int device_pull(struct device_t *dv, signed short *pcm, int samples)
-{
-    int r, bytes;
-
-    bytes = samples * DEVICE_CHANNELS * sizeof(short);
-
-    r = read(dv->fd, pcm, bytes);
-
-    if(r == -1) {
-        perror("read");
+    if(alsa_open(&dv->snd_cap, device_name, SND_PCM_STREAM_CAPTURE) < 0) {
+        fputs("Failed to open device for capture.\n", stderr);
         return -1;
     }
 
-    if(r < bytes) 
-        fprintf(stderr, "Device input underrun.\n");
+    if(alsa_open(&dv->snd_play, device_name, SND_PCM_STREAM_PLAYBACK) < 0) {
+        fputs("Failed to open device for playback.\n", stderr);
+        return -1;
+    }
 
-    return r / DEVICE_CHANNELS / sizeof(short);
+    fputs("Device opened successfully.\n", stderr);
+
+    return 0;
 }
 
+
+/* Start the audio buffers */
+
+int device_start(struct device_t *dv)
+{
+    snd_pcm_start(dv->snd_cap);
+    snd_pcm_start(dv->snd_play);
+    return 0;
+}
+
+
+/* Close ALSA device */
+
+int device_close(struct device_t *dv)
+{
+    snd_pcm_close(dv->snd_cap);
+    snd_pcm_close(dv->snd_play);
+    return 0;
+}
+
+
+/* Register this device's interest in a set of pollfd file
+ * descriptors */
+
+int device_fill_pollfd(struct device_t *dv, struct pollfd *pe, int pe_size)
+{
+    int n, r;
+    
+    /* File descriptors for capture device */
+    
+    n = snd_pcm_poll_descriptors_count(dv->snd_cap);
+
+    if(n > pe_size)
+        return -1;
+    
+    if(n > 0) {
+        r = snd_pcm_poll_descriptors(dv->snd_cap, pe, n);
+        
+        if(r < 0) {
+            alsa_error(r);
+            return -1;
+        }
+        
+        dv->pe_cap = pe;
+    }
+
+    dv->pn_cap = n;
+    
+    pe += n;
+    pe_size -= n;
+
+    /* File descriptors for playback device */
+    
+    n = snd_pcm_poll_descriptors_count(dv->snd_play);
+    
+    if(n > pe_size)
+        return -1;
+    
+    if(n > 0) {
+        r = snd_pcm_poll_descriptors(dv->snd_play, pe, n);
+
+        if(r < 0) {
+            alsa_error(r);
+            return -1;
+        }
+
+        dv->pe_play = pe;
+    }
+
+    dv->pn_play = n;
+    
+    return dv->pn_cap + dv->pn_play;
+}
+    
+
+/* Collect audio from the player and push it into the device's buffer,
+ * for playback */
+
+static int playback(struct device_t *dv)
+{
+    int r, samples;
+    signed short pcm[DEVICE_FRAME * DEVICE_CHANNELS];
+
+    /* Always push some audio to the soundcard, even if it means
+     * silence. This has shown itself to be much more reliable than
+     * constantly starting and stopping -- which can affect other
+     * devices to the one which is doing the stopping. */
+    
+    r = snd_pcm_avail_update(dv->snd_play);
+    
+    if(r < 0)
+        return r;
+
+    if(r == 0) {
+        fprintf(stderr, "device_push: premature.\n");
+        return 0;
+    }
+
+    samples = r;
+    
+    if(samples > DEVICE_FRAME)
+        samples = DEVICE_FRAME;
+    
+    if(dv->player && dv->player->playing)
+        player_collect(dv->player, pcm, samples);
+    else
+        memset(pcm, 0, samples * DEVICE_CHANNELS * sizeof(short));
+    
+    r = snd_pcm_writei(dv->snd_play, pcm, samples);
+    
+    if(r < 0)
+        return r;
+        
+    if(r < samples)
+        fprintf(stderr, "device_push: underrun %d/%d.\n", r, samples);
+
+    return 0;
+}
+
+
+/* Pull audio from the device's buffer for capture, and pass it
+ * through to the timecoder */
+
+static int capture(struct device_t *dv)
+{
+    int r, samples;
+    signed short pcm[DEVICE_FRAME * DEVICE_CHANNELS];
+
+    r = snd_pcm_avail_update(dv->snd_cap);
+    
+    if(r < 0)
+        return r;
+
+    if(r == 0) {
+        fprintf(stderr, "device_pull: premature.\n");
+        return 0;
+    }
+
+    samples = r;
+            
+    if(samples > DEVICE_FRAME)
+        samples = DEVICE_FRAME;
+                
+    r = snd_pcm_readi(dv->snd_cap, pcm, samples);
+
+    if(r < 0)
+        return r;
+
+    if(r < samples)
+        fprintf(stderr, "device_pull: underrun %d/%d.\n", r, samples);
+
+    samples = r;
+    
+    if(dv->timecoder) {
+        timecoder_submit(dv->timecoder, pcm, samples);
+        
+        if(dv->player)
+            player_sync(dv->player);
+    }
+
+    return 0;
+}
+
+
+/* After poll() has returned, instruct a device to do all it can at
+ * the present time. Return zero if success, otherwise -1 */
 
 int device_handle(struct device_t *dv)
 {
-    signed short pcm[DEVICE_FRAME * DEVICE_CHANNELS];
-    int samples;
-
-    /* Check input buffer for recording */
-
-    if(!dv->pe || dv->pe->revents & POLLIN) {
-        samples = device_pull(dv, pcm, DEVICE_FRAME);
-        if(samples == -1)
-            return -1;
-        
-        if(dv->timecoder) {
-            timecoder_submit(dv->timecoder, pcm, samples);
-
-            if(dv->player)
-                player_sync(dv->player);
-        }
+    int r;
+    unsigned short revents;
+    
+    /* Check input buffer for timecode capture */
+    
+    r = snd_pcm_poll_descriptors_revents(dv->snd_cap, dv->pe_cap,
+                                         dv->pn_cap, &revents);
+    
+    if(r < 0) {
+        alsa_error(r);
+        return -1;
     }
-
+    
+    if(revents & POLLIN) { 
+        r = capture(dv);
+        
+        if(r < 0) {
+            if(r == -EPIPE) {
+                fprintf(stderr, "device_handle: capture xrun.\n");
+                snd_pcm_prepare(dv->snd_cap);
+            } else
+                return -1;
+        } 
+    }
+    
     /* Check the output buffer for playback */
     
-    if((!dv->pe || dv->pe->revents & POLLOUT) && dv->player) {
+    snd_pcm_poll_descriptors_revents(dv->snd_play, dv->pe_play,
+                                     dv->pn_play, &revents);
 
-        /* Always push some audio to the soundcard, even if it means
-         * silence. This has shown itself to be much more reliable
-         * than constantly starting and stopping -- which can affect
-         * other devices to the one which is doing the stopping. */
+    if(r < 0) {
+        alsa_error(r);
+        return -1;
+    }
+    
+    if(revents & POLLOUT) {
+        r = playback(dv);
         
-        if(dv->player->playing)
-            player_collect(dv->player, pcm, DEVICE_FRAME);
-        else
-            memset(pcm, 0, DEVICE_FRAME * DEVICE_CHANNELS * sizeof(short));
-        
-        samples = device_push(dv, pcm, DEVICE_FRAME);
-        
-        if(samples == -1)
-            return -1;
+        if(r < 0) {
+            if(r == -EPIPE) {
+                fprintf(stderr, "device_handle: playback xrun.\n");
+                snd_pcm_prepare(dv->snd_play);
+            } else
+                return -1;
+        }
     }
 
     return 0;

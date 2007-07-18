@@ -20,15 +20,17 @@
 #ifndef DEVICE_H
 #define DEVICE_H
 
+#include <alsa/asoundlib.h>
 #include <sys/poll.h>
 
 #define DEVICE_CHANNELS 2
 #define DEVICE_RATE 44100
-#define DEVICE_FRAME 32
+#define DEVICE_FRAME 45
 
 struct device_t {
-    int fd;
-    struct pollfd *pe;
+    snd_pcm_t *snd_cap, *snd_play;
+    struct pollfd *pe_cap, *pe_play;
+    int pn_cap, pn_play;
 
     struct timecoder_t *timecoder;
     struct player_t *player;
@@ -36,9 +38,9 @@ struct device_t {
 
 int device_open(struct device_t *dv, const char *filename,
                 unsigned short buffers, unsigned short fragment);
+int device_start(struct device_t *dv);
 int device_close(struct device_t *dv);
-int device_push(struct device_t *dv, signed short *pcm, int samples);
-int device_pull(struct device_t *dv, signed short *pcm, int samples);
+int device_fill_pollfd(struct device_t *dv, struct pollfd *pe, int pe_size);
 int device_handle(struct device_t *dv);
 
 #endif
