@@ -46,7 +46,7 @@
 void usage(FILE *fd)
 {
     fprintf(fd, "Usage: xwax [<parameters>]\n\n"
-      "  -d <device>    Build a deck connected to OSS audio device\n"
+      "  -d <device>    Build a deck connected to ALSA audio device\n"
       "  -l <directory> Directory to scan for audio tracks\n"
       "  -t <name>      Timecode name\n"
       "  -i <program>   Specify external importer (default '%s')\n"
@@ -58,9 +58,9 @@ void usage(FILE *fd)
       "Available timecodes:\n"
       "  serato_2a (default), serato_2b, serato_cd, traktor_a, traktor_b\n\n"
       "eg. Standard 2-deck setup\n"
-      "  xwax -l ~/music -d /dev/dsp -d /dev/dsp1\n\n"
+      "  xwax -l ~/music -d hw:0 -d /dev/dsp1\n\n"
       "eg. Use a larger buffer on a third deck\n"
-      "  xwax -l ~/music -d /dev/dsp -d /dev/dsp1 -f 10 -d /dev/dsp2\n\n",
+      "  xwax -l ~/music -d hw:0 -d hw:1 -f 10 -d /dev/dsp2\n\n",
       DEFAULT_IMPORTER, DEFAULT_BUFFERS, DEFAULT_FRAGMENT);
 }
 
