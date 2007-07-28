@@ -25,12 +25,23 @@
 
 #define DEVICE_CHANNELS 2
 #define DEVICE_RATE 44100
-#define DEVICE_FRAME 45
+
+/* This structure doesn't have corresponding functions to be an
+ * abstraction of the ALSA calls; it is merely a container for these
+ * variables. */
+
+struct alsa_pcm_t {
+    snd_pcm_t *pcm;
+
+    struct pollfd *pe;
+    int pe_count; /* number of pollfd entries */
+
+    signed short *buf;
+    snd_pcm_uframes_t period;
+};
 
 struct device_t {
-    snd_pcm_t *snd_cap, *snd_play;
-    struct pollfd *pe_cap, *pe_play;
-    int pn_cap, pn_play;
+    struct alsa_pcm_t capture, playback;
 
     struct timecoder_t *timecoder;
     struct player_t *player;

@@ -140,8 +140,8 @@ int rig_realtime(struct rig_t *rig)
         dv = rig->device[n];
         if(!dv)
             continue;
-
-        pe += device_fill_pollfd(dv, pe, 9999); /* FIXME */
+        
+        pe += device_fill_pollfd(dv, pe, pt + MAX_POLLENT - pe);
 
         device_start(dv);
     }
@@ -150,7 +150,7 @@ int rig_realtime(struct rig_t *rig)
     while(!rig->finished) {
         
         r = poll(pt, pe - pt, POLL_TIMEOUT);
-        
+
         if(r == -1 && errno != EINTR) {
             perror("poll");
             return -1;

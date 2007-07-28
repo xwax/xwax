@@ -27,7 +27,7 @@
 #include "player.h"
 
 
-#define PLAYBACK_BUFFER 4096
+#define PLAYBACK_BUFFER 4000 /* microseconds */
 
 static void alsa_error(int r)
 {
@@ -37,13 +37,13 @@ static void alsa_error(int r)
 }
 
 
-static int alsa_open(snd_pcm_t **snd, const char *device_name,
+static int alsa_open(struct alsa_pcm_t *alsa, const char *device_name,
                      snd_pcm_stream_t stream)
 {
-    int p, r, dir;
+    int r, p, dir;
     snd_pcm_hw_params_t *hw_params;
     
-    r = snd_pcm_open(snd, device_name, stream, SND_PCM_NONBLOCK);
+    r = snd_pcm_open(&alsa->pcm, device_name, stream, SND_PCM_NONBLOCK);
     if(r < 0) {
         alsa_error(r);
         return -1;
@@ -51,62 +51,73 @@ static int alsa_open(snd_pcm_t **snd, const char *device_name,
     
     snd_pcm_hw_params_malloc(&hw_params);
     
-    r = snd_pcm_hw_params_any(*snd, hw_params);
+    r = snd_pcm_hw_params_any(alsa->pcm, hw_params);
     if(r < 0) {
         alsa_error(r);
         return -1;
     }
-
-    r = snd_pcm_hw_params_set_access(*snd, hw_params,
+    
+    r = snd_pcm_hw_params_set_access(alsa->pcm, hw_params,
                                      SND_PCM_ACCESS_RW_INTERLEAVED);
     if(r < 0) {
         alsa_error(r);
         return -1;
     }
     
-    r = snd_pcm_hw_params_set_format(*snd, hw_params,
+    r = snd_pcm_hw_params_set_format(alsa->pcm, hw_params,
                                      SND_PCM_FORMAT_S16_LE);
     if(r < 0) {
         alsa_error(r);
         return -1;
     }
 
-    r = snd_pcm_hw_params_set_rate(*snd, hw_params, DEVICE_RATE, 0);
+    r = snd_pcm_hw_params_set_rate(alsa->pcm, hw_params, DEVICE_RATE, 0);
     if(r < 0) {
         alsa_error(r);
         return -1;
     }
     
-    r = snd_pcm_hw_params_set_channels(*snd, hw_params, DEVICE_CHANNELS);
-    if(r < 0) {
-        alsa_error(r);
-        return -1;
-    }
-    
-    if(stream == SND_PCM_STREAM_PLAYBACK) {
-        
-        p = PLAYBACK_BUFFER; /* microseconds */
-        dir = 0;
-        r = snd_pcm_hw_params_set_buffer_time_near(*snd, hw_params, &p, &dir);
-        if(r < 0) {
-            alsa_error(r);
-            return -1;
-        }
-        
-        fprintf(stderr, "Buffer time is %d\n", p);
-    }
-    
-    r = snd_pcm_hw_params(*snd, hw_params);
+    r = snd_pcm_hw_params_set_channels(alsa->pcm, hw_params, DEVICE_CHANNELS);
     if(r < 0) {
         alsa_error(r);
         return -1;
     }
 
-    snd_pcm_hw_params_free(hw_params);
-    
-    r = snd_pcm_prepare(*snd);
+    p = PLAYBACK_BUFFER; /* microseconds */
+    dir = 1;
+    r = snd_pcm_hw_params_set_buffer_time_near(alsa->pcm, hw_params, &p, &dir);
     if(r < 0) {
         alsa_error(r);
+        return -1;
+    }
+    
+    fprintf(stderr, "Buffer time is %d\n", p);
+
+    r = snd_pcm_hw_params(alsa->pcm, hw_params);
+    if(r < 0) {
+        alsa_error(r);
+        return -1;
+    }
+    
+    dir = 0;
+    r = snd_pcm_hw_params_get_period_size(hw_params, &alsa->period, &dir);
+    if(r < 0) {
+        alsa_error(r);
+        return -1;
+    }
+    fprintf(stderr, "Period size is %ld\n", alsa->period);
+
+    snd_pcm_hw_params_free(hw_params);
+    
+    r = snd_pcm_prepare(alsa->pcm);
+    if(r < 0) {
+        alsa_error(r);
+        return -1;
+    }
+
+    alsa->buf = malloc(alsa->period * DEVICE_CHANNELS * sizeof(signed short));
+    if(!alsa->buf) {
+        perror("malloc");
         return -1;
     }
 
@@ -121,12 +132,12 @@ int device_open(struct device_t *dv, const char *device_name,
 {
     fprintf(stderr, "Opening ALSA device '%s'...\n", device_name);
 
-    if(alsa_open(&dv->snd_cap, device_name, SND_PCM_STREAM_CAPTURE) < 0) {
+    if(alsa_open(&dv->capture, device_name, SND_PCM_STREAM_CAPTURE) < 0) {
         fputs("Failed to open device for capture.\n", stderr);
         return -1;
     }
-
-    if(alsa_open(&dv->snd_play, device_name, SND_PCM_STREAM_PLAYBACK) < 0) {
+    
+    if(alsa_open(&dv->playback, device_name, SND_PCM_STREAM_PLAYBACK) < 0) {
         fputs("Failed to open device for playback.\n", stderr);
         return -1;
     }
@@ -141,8 +152,8 @@ int device_open(struct device_t *dv, const char *device_name,
 
 int device_start(struct device_t *dv)
 {
-    snd_pcm_start(dv->snd_cap);
-    snd_pcm_start(dv->snd_play);
+    snd_pcm_start(dv->capture.pcm);
+    snd_pcm_start(dv->playback.pcm);
     return 0;
 }
 
@@ -151,9 +162,35 @@ int device_start(struct device_t *dv)
 
 int device_close(struct device_t *dv)
 {
-    snd_pcm_close(dv->snd_cap);
-    snd_pcm_close(dv->snd_play);
+    snd_pcm_close(dv->capture.pcm);
+    snd_pcm_close(dv->playback.pcm);
     return 0;
+}
+
+
+static int alsa_fill_pollfd(struct alsa_pcm_t *alsa, struct pollfd *pe, int n)
+{
+    int r, count;
+
+    count = snd_pcm_poll_descriptors_count(alsa->pcm);
+    if(count > n)
+        return -1;
+
+    if(count == 0) 
+        alsa->pe = NULL;
+    else {
+        r = snd_pcm_poll_descriptors(alsa->pcm, pe, count);
+        
+        if(r < 0) {
+            alsa_error(r);
+            return -1;
+        }
+
+        alsa->pe = pe;
+    }
+
+    alsa->pe_count = count;
+    return count;
 }
 
 
@@ -162,52 +199,25 @@ int device_close(struct device_t *dv)
 
 int device_fill_pollfd(struct device_t *dv, struct pollfd *pe, int pe_size)
 {
-    int n, r;
-    
-    /* File descriptors for capture device */
-    
-    n = snd_pcm_poll_descriptors_count(dv->snd_cap);
+    int total, r;
 
-    if(n > pe_size)
+    total = 0;
+
+    r = alsa_fill_pollfd(&dv->capture, pe, pe_size);
+    if(r < 0)
         return -1;
     
-    if(n > 0) {
-        r = snd_pcm_poll_descriptors(dv->snd_cap, pe, n);
-        
-        if(r < 0) {
-            alsa_error(r);
-            return -1;
-        }
-        
-        dv->pe_cap = pe;
-    }
-
-    dv->pn_cap = n;
+    pe += r;
+    pe_size -= r;
+    total += r;
     
-    pe += n;
-    pe_size -= n;
-
-    /* File descriptors for playback device */
-    
-    n = snd_pcm_poll_descriptors_count(dv->snd_play);
-    
-    if(n > pe_size)
+    r = alsa_fill_pollfd(&dv->playback, pe, pe_size);
+    if(r < 0)
         return -1;
     
-    if(n > 0) {
-        r = snd_pcm_poll_descriptors(dv->snd_play, pe, n);
-
-        if(r < 0) {
-            alsa_error(r);
-            return -1;
-        }
-
-        dv->pe_play = pe;
-    }
-
-    dv->pn_play = n;
+    total += r;
     
-    return dv->pn_cap + dv->pn_play;
+    return total;
 }
     
 
@@ -216,41 +226,28 @@ int device_fill_pollfd(struct device_t *dv, struct pollfd *pe, int pe_size)
 
 static int playback(struct device_t *dv)
 {
-    int r, samples;
-    signed short pcm[DEVICE_FRAME * DEVICE_CHANNELS];
+    int r;
 
     /* Always push some audio to the soundcard, even if it means
      * silence. This has shown itself to be much more reliable than
      * constantly starting and stopping -- which can affect other
      * devices to the one which is doing the stopping. */
     
-    r = snd_pcm_avail_update(dv->snd_play);
-    
-    if(r < 0)
-        return r;
-
-    if(r == 0) {
-        fprintf(stderr, "device_push: premature.\n");
-        return 0;
-    }
-
-    samples = r;
-    
-    if(samples > DEVICE_FRAME)
-        samples = DEVICE_FRAME;
-    
     if(dv->player && dv->player->playing)
-        player_collect(dv->player, pcm, samples);
-    else
-        memset(pcm, 0, samples * DEVICE_CHANNELS * sizeof(short));
-    
-    r = snd_pcm_writei(dv->snd_play, pcm, samples);
-    
+        player_collect(dv->player, dv->playback.buf, dv->playback.period);
+    else {
+        memset(dv->playback.buf, 0,
+               dv->playback.period * DEVICE_CHANNELS * sizeof(short));
+    }    
+
+    r = snd_pcm_writei(dv->playback.pcm, dv->playback.buf,
+                       dv->playback.period);
     if(r < 0)
         return r;
         
-    if(r < samples)
-        fprintf(stderr, "device_push: underrun %d/%d.\n", r, samples);
+    if(r < dv->playback.period)
+        fprintf(stderr, "device_push: underrun %d/%ld.\n", r,
+                dv->playback.period);
 
     return 0;
 }
@@ -261,41 +258,38 @@ static int playback(struct device_t *dv)
 
 static int capture(struct device_t *dv)
 {
-    int r, samples;
-    signed short pcm[DEVICE_FRAME * DEVICE_CHANNELS];
+    int r;
 
-    r = snd_pcm_avail_update(dv->snd_cap);
+    r = snd_pcm_readi(dv->capture.pcm, dv->capture.buf, dv->capture.period);
+    if(r < 0)
+        return r;
     
-    if(r < 0)
-        return r;
-
-    if(r == 0) {
-        fprintf(stderr, "device_pull: premature.\n");
-        return 0;
+    if(r < dv->capture.period) {
+        fprintf(stderr, "device_pull: underrun %d/%ld.\n",
+                r, dv->capture.period);
     }
-
-    samples = r;
-            
-    if(samples > DEVICE_FRAME)
-        samples = DEVICE_FRAME;
-                
-    r = snd_pcm_readi(dv->snd_cap, pcm, samples);
-
-    if(r < 0)
-        return r;
-
-    if(r < samples)
-        fprintf(stderr, "device_pull: underrun %d/%d.\n", r, samples);
-
-    samples = r;
     
     if(dv->timecoder) {
-        timecoder_submit(dv->timecoder, pcm, samples);
+        timecoder_submit(dv->timecoder, dv->capture.buf, r);
         
         if(dv->player)
             player_sync(dv->player);
     }
 
+    return 0;
+}
+
+
+static int alsa_revents(struct alsa_pcm_t *alsa, unsigned short *revents) {
+    int r;
+
+    r = snd_pcm_poll_descriptors_revents(alsa->pcm, alsa->pe, alsa->pe_count,
+                                         revents);
+    if(r < 0) {
+        alsa_error(r);
+        return -1;
+    }
+    
     return 0;
 }
 
@@ -310,13 +304,9 @@ int device_handle(struct device_t *dv)
     
     /* Check input buffer for timecode capture */
     
-    r = snd_pcm_poll_descriptors_revents(dv->snd_cap, dv->pe_cap,
-                                         dv->pn_cap, &revents);
-    
-    if(r < 0) {
-        alsa_error(r);
+    r = alsa_revents(&dv->capture, &revents);
+    if(r < 0)
         return -1;
-    }
     
     if(revents & POLLIN) { 
         r = capture(dv);
@@ -324,7 +314,7 @@ int device_handle(struct device_t *dv)
         if(r < 0) {
             if(r == -EPIPE) {
                 fprintf(stderr, "device_handle: capture xrun.\n");
-                snd_pcm_prepare(dv->snd_cap);
+                snd_pcm_prepare(dv->capture.pcm);
             } else
                 return -1;
         } 
@@ -332,13 +322,9 @@ int device_handle(struct device_t *dv)
     
     /* Check the output buffer for playback */
     
-    snd_pcm_poll_descriptors_revents(dv->snd_play, dv->pe_play,
-                                     dv->pn_play, &revents);
-
-    if(r < 0) {
-        alsa_error(r);
+    r = alsa_revents(&dv->playback, &revents);
+    if(r < 0)
         return -1;
-    }
     
     if(revents & POLLOUT) {
         r = playback(dv);
@@ -346,7 +332,7 @@ int device_handle(struct device_t *dv)
         if(r < 0) {
             if(r == -EPIPE) {
                 fprintf(stderr, "device_handle: playback xrun.\n");
-                snd_pcm_prepare(dv->snd_play);
+                snd_pcm_prepare(dv->playback.pcm);
             } else
                 return -1;
         }

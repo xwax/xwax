@@ -187,7 +187,8 @@ int player_sync(struct player_t *pl)
      * on the sine wave, then use it */
     
     if(alive && !pitch_unavailable)
-        pl->pitch = (pl->pitch * (SMOOTHING - 1) + pitch) / SMOOTHING;
+        pl->pitch = pitch; /* FIXME */
+        //pl->pitch = (pl->pitch * (SMOOTHING - 1) + pitch) / SMOOTHING;
 
     pl->target_volume = fabs(pl->pitch) * VOLUME;
     
