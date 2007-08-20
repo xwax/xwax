@@ -314,9 +314,23 @@ int device_handle(struct device_t *dv)
         if(r < 0) {
             if(r == -EPIPE) {
                 fprintf(stderr, "device_handle: capture xrun.\n");
-                snd_pcm_prepare(dv->capture.pcm);
-            } else
+
+                r = snd_pcm_prepare(dv->capture.pcm);
+                if(r < 0) {
+                    fprintf(stderr, "Can't recover from capture xrun: %s\n",
+                            snd_strerror(r));
+                }
+
+                r = snd_pcm_start(dv->capture.pcm);
+                if(r < 0) {
+                    fprintf(stderr, "Can't restart capture device: %s\n",
+                            snd_strerror(r));
+                }
+
+            } else {
+                alsa_error(r);
                 return -1;
+            }
         } 
     }
     
@@ -332,9 +346,23 @@ int device_handle(struct device_t *dv)
         if(r < 0) {
             if(r == -EPIPE) {
                 fprintf(stderr, "device_handle: playback xrun.\n");
-                snd_pcm_prepare(dv->playback.pcm);
-            } else
+                
+                r = snd_pcm_prepare(dv->playback.pcm) < 0;
+                if(r < 0) {
+                    fprintf(stderr, "Can't recover from playback xrun: %s\n",
+                            snd_strerror(r));
+                }
+
+                r = snd_pcm_start(dv->playback.pcm);
+                if(r < 0) {
+                    fprintf(stderr, "Can't restart playback device: %s\n",
+                            snd_strerror(r));
+                }
+
+            } else {
+                alsa_error(r);
                 return -1;
+            }
         }
     }
 
