@@ -146,7 +146,6 @@ int rig_realtime(struct rig_t *rig)
         device_start(dv);
     }
 
-
     while(!rig->finished) {
         
         r = poll(pt, pe - pt, POLL_TIMEOUT);

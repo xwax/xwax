@@ -73,10 +73,10 @@ int track_import(struct track_t *tr, char *path)
         return -1;
     }
     
-    tr->pid = fork();
+    tr->pid = vfork();
     
     if(tr->pid < 0) {
-        perror("fork");
+        perror("vfork");
         return -1;
         
     } else if(tr->pid == 0) { /* child */
