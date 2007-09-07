@@ -240,7 +240,7 @@ int track_wait(struct track_t *tr)
 
     fprintf(stderr, "Entering track wait...\n");
 
-    if(tr->pid && waitpid(tr->pid, &status, 0) == -1) {
+    if(waitpid(tr->pid, &status, 0) == -1) {
         perror("waitpid");
         return -1;
     }
