@@ -98,7 +98,7 @@ int device_close(struct device_t *dv)
 
 /* Push audio into the device's buffer, for playback */
 
-int device_push(struct device_t *dv, signed short *pcm, int samples)
+static int push(struct device_t *dv, signed short *pcm, int samples)
 {
     int r, bytes;
 
@@ -120,7 +120,7 @@ int device_push(struct device_t *dv, signed short *pcm, int samples)
 
 /* Pull audio from the device, for recording */
 
-int device_pull(struct device_t *dv, signed short *pcm, int samples)
+static int pull(struct device_t *dv, signed short *pcm, int samples)
 {
     int r, bytes;
 
@@ -148,7 +148,7 @@ int device_handle(struct device_t *dv)
     /* Check input buffer for recording */
 
     if(!dv->pe || dv->pe->revents & POLLIN) {
-        samples = device_pull(dv, pcm, DEVICE_FRAME);
+        samples = pull(dv, pcm, DEVICE_FRAME);
         if(samples == -1)
             return -1;
         
@@ -174,7 +174,7 @@ int device_handle(struct device_t *dv)
         else
             memset(pcm, 0, DEVICE_FRAME * DEVICE_CHANNELS * sizeof(short));
         
-        samples = device_push(dv, pcm, DEVICE_FRAME);
+        samples = push(dv, pcm, DEVICE_FRAME);
         
         if(samples == -1)
             return -1;

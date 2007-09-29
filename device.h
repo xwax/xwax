@@ -37,8 +37,6 @@ struct device_t {
 int device_open(struct device_t *dv, const char *filename,
                 unsigned short buffers, unsigned short fragment);
 int device_close(struct device_t *dv);
-int device_push(struct device_t *dv, signed short *pcm, int samples);
-int device_pull(struct device_t *dv, signed short *pcm, int samples);
 int device_handle(struct device_t *dv);
 
 #endif
