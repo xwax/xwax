@@ -27,9 +27,6 @@
 #include "player.h"
 
 
-#define PLAYBACK_BUFFER 4000 /* microseconds */
-
-
 /* This structure doesn't have corresponding functions to be an
  * abstraction of the ALSA calls; it is merely a container for these
  * variables. */
@@ -59,7 +56,7 @@ static void alsa_error(int r)
 
 
 static int pcm_open(struct alsa_pcm_t *alsa, const char *device_name,
-                    snd_pcm_stream_t stream)
+                    snd_pcm_stream_t stream, int buffer_time)
 {
     int r, p, dir;
     snd_pcm_hw_params_t *hw_params;
@@ -104,7 +101,7 @@ static int pcm_open(struct alsa_pcm_t *alsa, const char *device_name,
         return -1;
     }
 
-    p = PLAYBACK_BUFFER; /* microseconds */
+    p = buffer_time * 1000; /* microseconds */
     dir = 1;
     r = snd_pcm_hw_params_set_buffer_time_near(alsa->pcm, hw_params, &p, &dir);
     if(r < 0) {
@@ -384,7 +381,7 @@ int clear(struct device_t *dv)
 
 /* Open ALSA device. Do not operate on audio until device_start() */
 
-int alsa_init(struct device_t *dv, const char *device_name)
+int alsa_init(struct device_t *dv, const char *device_name, int buffer_time)
 {
     struct alsa_t *alsa;
 
@@ -396,12 +393,16 @@ int alsa_init(struct device_t *dv, const char *device_name)
         return -1;
     }
 
-    if(pcm_open(&alsa->capture, device_name, SND_PCM_STREAM_CAPTURE) < 0) {
+    if(pcm_open(&alsa->capture, device_name, SND_PCM_STREAM_CAPTURE,
+                buffer_time) < 0)
+    {
         fputs("Failed to open device for capture.\n", stderr);
         goto fail;
     }
     
-    if(pcm_open(&alsa->playback, device_name, SND_PCM_STREAM_PLAYBACK) < 0) {
+    if(pcm_open(&alsa->playback, device_name, SND_PCM_STREAM_PLAYBACK,
+                buffer_time) < 0)
+    {
         fputs("Failed to open device for playback.\n", stderr);
         goto fail;
     }

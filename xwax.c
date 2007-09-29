@@ -38,8 +38,10 @@
 
 #define MAX_DECKS 3
 
-#define DEFAULT_BUFFERS 8
-#define DEFAULT_FRAGMENT 7
+#define DEFAULT_OSS_BUFFERS 8
+#define DEFAULT_OSS_FRAGMENT 7
+
+#define DEFAULT_ALSA_BUFFER 4 /* milliseconds */
 
 #define DEFAULT_IMPORTER "xwax_import"
 #define DEFAULT_TIMECODE "serato_2a"
@@ -55,6 +57,7 @@ void usage(FILE *fd)
       "  -i <program>   Specify external importer (default '%s')\n"
       "  -b <n>         Number of OSS buffers to request (default %d)\n"
       "  -f <n>         OSS fragment size to request (2^n bytes, default %d)\n"
+      "  -t <ms>        ALSA buffer time to request (default %dms)\n"
       "  -h             Display this message\n\n"
       "Parameter -f and -b apply to subsequent devices.\n"
       "Parameters -d and -l are most useful when specified multiple times.\n\n"
@@ -64,13 +67,14 @@ void usage(FILE *fd)
       "  xwax -l ~/music -d /dev/dsp -d /dev/dsp1\n\n"
       "eg. Use a larger buffer on a third deck\n"
       "  xwax -l ~/music -d /dev/dsp -d /dev/dsp1 -f 10 -d /dev/dsp2\n\n",
-      DEFAULT_IMPORTER, DEFAULT_BUFFERS, DEFAULT_FRAGMENT);
+      DEFAULT_IMPORTER, DEFAULT_OSS_BUFFERS, DEFAULT_OSS_FRAGMENT,
+      DEFAULT_ALSA_BUFFER);
 }
 
 
 int main(int argc, char *argv[])
 {
-    int r, n, decks, fragment, buffers;
+    int r, n, decks, oss_fragment, oss_buffers, alsa_buffer;
     char *endptr, *timecode, *importer;
 
     struct device_t device[MAX_DECKS];
@@ -90,8 +94,9 @@ int main(int argc, char *argv[])
     library_init(&library);
     
     decks = 0;
-    fragment = DEFAULT_FRAGMENT;
-    buffers = DEFAULT_BUFFERS;
+    oss_fragment = DEFAULT_OSS_FRAGMENT;
+    oss_buffers = DEFAULT_OSS_BUFFERS;
+    alsa_buffer = DEFAULT_ALSA_BUFFER;
     importer = DEFAULT_IMPORTER;
     timecode = DEFAULT_TIMECODE;
 
@@ -111,7 +116,7 @@ int main(int argc, char *argv[])
                 return -1;
             }
 
-            fragment = strtol(argv[1], &endptr, 10);
+            oss_fragment = strtol(argv[1], &endptr, 10);
             if(*endptr != '\0') {
                 fprintf(stderr, "-f requires an integer argument.\n");
                 return -1;
@@ -120,9 +125,9 @@ int main(int argc, char *argv[])
             /* Fragment sizes greater than the default aren't useful
              * as they are dependent on DEVICE_FRAME */
 
-            if(fragment < DEFAULT_FRAGMENT) {
+            if(oss_fragment < DEFAULT_OSS_FRAGMENT) {
                 fprintf(stderr, "Fragment size must be %d or more; aborting.\n",
-                        DEFAULT_FRAGMENT);
+                        DEFAULT_OSS_FRAGMENT);
                 return -1;
             }
             
@@ -138,9 +143,27 @@ int main(int argc, char *argv[])
                 return -1;
             }
             
-            buffers = strtol(argv[1], &endptr, 10);
+            oss_buffers = strtol(argv[1], &endptr, 10);
             if(*endptr != '\0') {
                 fprintf(stderr, "-b requires an integer argument.\n");
+                return -1;
+            }
+            
+            argv += 2;
+            argc -= 2;
+            
+        } else if(!strcmp(argv[0], "-t")) {
+            
+            /* Set number of buffers for subsequent devices */
+            
+            if(argc < 2) {
+                fprintf(stderr, "-m requires an integer argument.\n");
+                return -1;
+            }
+            
+            alsa_buffer = strtol(argv[1], &endptr, 10);
+            if(*endptr != '\0') {
+                fprintf(stderr, "-m requires an integer argument.\n");
                 return -1;
             }
             
@@ -185,11 +208,12 @@ int main(int argc, char *argv[])
             switch(argv[0][1]) {
 
             case 'd':
-                r = oss_init(&device[decks], argv[1], buffers, fragment);
+                r = oss_init(&device[decks], argv[1],
+                             oss_buffers, oss_fragment);
                 break;
 
             case 'a':
-                r = alsa_init(&device[decks], argv[1]);
+                r = alsa_init(&device[decks], argv[1], alsa_buffer);
                 break;
 
             default:

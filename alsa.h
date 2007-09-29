@@ -19,4 +19,4 @@
 
 #include "device.h"
 
-int alsa_init(struct device_t *dv, const char *name);
+int alsa_init(struct device_t *dv, const char *name, int buffer_time);
