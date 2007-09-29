@@ -158,7 +158,7 @@ int main(int argc, char *argv[])
             
         } else if(!strcmp(argv[0], "-t")) {
             
-            /* Set number of buffers for subsequent devices */
+            /* Set size of ALSA buffer for subsequence devices */
             
             if(argc < 2) {
                 fprintf(stderr, "-m requires an integer argument.\n");
