@@ -17,36 +17,5 @@
  *
  */
 
-#ifndef DEVICE_H
-#define DEVICE_H
-
-#include <sys/poll.h>
-
-#define DEVICE_CHANNELS 2
-#define DEVICE_RATE 44100
-#define DEVICE_FRAME 32
-
-struct device_t {
-    void *local;
-    
-    struct timecoder_t *timecoder;
-    struct player_t *player;
-
-    int (*pollfds)(struct device_t *dv, struct pollfd *pe, int n);
-    int (*handle)(struct device_t *dv);
-
-    int (*start)(struct device_t *dv);
-    int (*stop)(struct device_t *dv);
-
-    int (*clear)(struct device_t *dv);
-};
-
-int device_pollfds(struct device_t *dv, struct pollfd *pe, int n);
-int device_handle(struct device_t *dv);
-
-int device_start(struct device_t *dv);
-int device_stop(struct device_t *dv);
-
-int device_clear(struct device_t *dv);
-
-#endif
+int oss_init(struct device_t *dv, const char *filename,
+             unsigned short buffers, unsigned short fragment);

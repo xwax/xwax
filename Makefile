@@ -22,8 +22,8 @@ SDL_LIBS = `sdl-config --libs` -lSDL_ttf
 
 .PHONY:		clean depend
 
-xwax:		device.o interface.o library.o player.o rig.o timecoder.o \
-		track.o xwax.o
+xwax:		device.o interface.o library.o oss.o player.o rig.o \
+		timecoder.o track.o xwax.o
 		$(CC) $(CFLAGS) -o $@ $^ -pthread $(SDL_LIBS)
 
 interface.o:	CFLAGS += $(SDL_CFLAGS)

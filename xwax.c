@@ -25,6 +25,7 @@
 #include "device.h"
 #include "interface.h"
 #include "library.h"
+#include "oss.h"
 #include "player.h"
 #include "rig.h"
 #include "timecoder.h"
@@ -176,7 +177,7 @@ int main(int argc, char *argv[])
             
             fprintf(stderr, "Initialising deck %d (%s)...\n", decks, argv[1]);
             
-            if(device_open(&device[decks], argv[1], buffers, fragment) == -1)
+            if(oss_init(&device[decks], argv[1], buffers, fragment) == -1)
                 return -1;
 
             /* The following is slightly confusing -- rig uses sparse
@@ -287,7 +288,7 @@ int main(int argc, char *argv[])
         track_clear(&track[n]);
         timecoder_clear(&timecoder[n]);
         player_clear(&player[n]);
-        device_close(&device[n]);
+        device_clear(&device[n]);
     }
     
     timecoder_free_lookup();

@@ -25,6 +25,8 @@
 #define MAX_PLAYERS 4
 #define MAX_TIMECODERS 4
 
+#define MAX_DEVICE_POLLFDS 32
+
 struct rig_t {
     int finished;
     pthread_t pt_realtime, pt_service;
@@ -33,6 +35,11 @@ struct rig_t {
     struct track_t *track[MAX_TRACKS];
     struct player_t *player[MAX_PLAYERS];
     struct timecoder_t *timecoder[MAX_TIMECODERS];
+
+    /* Poll table for devices */
+    
+    int npt;
+    struct pollfd pt[MAX_DEVICE_POLLFDS];
 };
 
 int rig_init(struct rig_t *rig);
