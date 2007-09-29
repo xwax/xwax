@@ -55,18 +55,22 @@ void usage(FILE *fd)
       "  -l <directory> Directory to scan for audio tracks\n"
       "  -t <name>      Timecode name\n"
       "  -i <program>   Specify external importer (default '%s')\n"
-      "  -b <n>         Number of OSS buffers to request (default %d)\n"
-      "  -f <n>         OSS fragment size to request (2^n bytes, default %d)\n"
-      "  -t <ms>        ALSA buffer time to request (default %dms)\n"
       "  -h             Display this message\n\n"
-      "Parameter -f and -b apply to subsequent devices.\n"
+      "OSS device options:\n"
+      "  -b <n>         Number of buffers (default %d)\n"
+      "  -f <n>         Buffer size to request (2^n bytes, default %d)\n\n"
+      "ALSA device options:\n"
+      "  -t <ms>        Buffer time (default %dms)\n\n"
+      "Device options apply to subsequent devices.\n"
       "Parameters -d and -l are most useful when specified multiple times.\n\n"
-      "Available timecodes:\n"
+      "Available timecodes (for use with -t):\n"
       "  serato_2a (default), serato_2b, serato_cd, traktor_a, traktor_b\n\n"
       "eg. Standard 2-deck setup\n"
       "  xwax -l ~/music -d /dev/dsp -d /dev/dsp1\n\n"
       "eg. Use a larger buffer on a third deck\n"
-      "  xwax -l ~/music -d /dev/dsp -d /dev/dsp1 -f 10 -d /dev/dsp2\n\n",
+      "  xwax -l ~/music -d /dev/dsp -d /dev/dsp1 -f 10 -d /dev/dsp2\n\n"
+      "eg. Use OSS and ALSA devices simultaneously\n"
+      "  xwax -l ~/music -d /dev/dsp -a hw:1\n\n",
       DEFAULT_IMPORTER, DEFAULT_OSS_BUFFERS, DEFAULT_OSS_FRAGMENT,
       DEFAULT_ALSA_BUFFER);
 }
