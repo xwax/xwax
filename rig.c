@@ -232,8 +232,10 @@ int rig_stop(struct rig_t *rig)
 
     /* Stop audio rolling on devices */
 
-    for(n = 0; n < MAX_DEVICES; n++)
-        device_stop(rig->device[n]);
+    for(n = 0; n < MAX_DEVICES; n++) {
+        if(rig->device[n])
+            device_stop(rig->device[n]);
+    }
 
     if(pthread_join(rig->pt_service, NULL) != 0) {
         perror("pthread_join");
