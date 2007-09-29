@@ -22,6 +22,7 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "alsa.h"
 #include "device.h"
 #include "interface.h"
 #include "library.h"
@@ -47,6 +48,7 @@
 void usage(FILE *fd)
 {
     fprintf(fd, "Usage: xwax [<parameters>]\n\n"
+      "  -a <device>    Build a deck connected to ALSA audio device\n"
       "  -d <device>    Build a deck connected to OSS audio device\n"
       "  -l <directory> Directory to scan for audio tracks\n"
       "  -t <name>      Timecode name\n"
@@ -68,7 +70,7 @@ void usage(FILE *fd)
 
 int main(int argc, char *argv[])
 {
-    int n, decks, fragment, buffers;
+    int r, n, decks, fragment, buffers;
     char *endptr, *timecode, *importer;
 
     struct device_t device[MAX_DECKS];
@@ -160,9 +162,9 @@ int main(int argc, char *argv[])
             argv += 2;
             argc -= 2;
             
-        } else if(!strcmp(argv[0], "-d")) {
+        } else if(!strcmp(argv[0], "-d") || !strcmp(argv[0], "-a")) {
 
-            /* Create a deck, given an OSS device */
+            /* Create a deck */
 
             if(argc < 2) {
                 fprintf(stderr, "-d requires a device path as an argument.\n");
@@ -176,8 +178,27 @@ int main(int argc, char *argv[])
             }
             
             fprintf(stderr, "Initialising deck %d (%s)...\n", decks, argv[1]);
-            
-            if(oss_init(&device[decks], argv[1], buffers, fragment) == -1)
+
+            /* Work out which device type we are using, and initialise
+             * an appropriate device. */
+
+            switch(argv[0][1]) {
+
+            case 'd':
+                r = oss_init(&device[decks], argv[1], buffers, fragment);
+                break;
+
+            case 'a':
+                r = alsa_init(&device[decks], argv[1]);
+                break;
+
+            default:
+                fprintf(stderr, "Device type is not supported by this "
+                        "distribution of xwax.\n");
+                return -1;
+            }
+
+            if(r == -1)
                 return -1;
 
             /* The following is slightly confusing -- rig uses sparse

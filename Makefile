@@ -20,11 +20,13 @@ CFLAGS += -Wall -O3
 SDL_CFLAGS = `sdl-config --cflags`
 SDL_LIBS = `sdl-config --libs` -lSDL_ttf
 
+ALSA_LIBS = -lasound
+
 .PHONY:		clean depend
 
-xwax:		device.o interface.o library.o oss.o player.o rig.o \
+xwax:		alsa.o device.o interface.o library.o oss.o player.o rig.o \
 		timecoder.o track.o xwax.o
-		$(CC) $(CFLAGS) -o $@ $^ -pthread $(SDL_LIBS)
+		$(CC) $(CFLAGS) -o $@ $^ -pthread $(SDL_LIBS) $(ALSA_LIBS)
 
 interface.o:	CFLAGS += $(SDL_CFLAGS)
 

@@ -19,5 +19,4 @@
 
 #include "device.h"
 
-int oss_init(struct device_t *dv, const char *filename,
-             unsigned short buffers, unsigned short fragment);
+int alsa_init(struct device_t *dv, const char *name);
