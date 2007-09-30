@@ -40,7 +40,7 @@
 
 #define VALID_BITS 24
 
-#define MONITOR_DECAY_EVERY (TIMECODER_RATE / 128)
+#define MONITOR_DECAY_EVERY 512 /* in samples */
 
 #define SQ(x) ((x)*(x))
 
@@ -476,7 +476,7 @@ int timecoder_submit(struct timecoder_t *tc, signed short *pcm, int samples)
             
             if(++tc->mon_counter % MONITOR_DECAY_EVERY == 0) {
                 for(p = 0; p < SQ(tc->mon_size); p++)
-                    tc->mon[p] *= 0.9;
+                    tc->mon[p] -= tc->mon[p] / 8;
             }
 
             v = pcm[s * TIMECODER_CHANNELS]; /* first channel */
