@@ -68,25 +68,32 @@ static double build_pcm(signed short *pcm, int frame, struct track_t *tr,
                         double position, float pitch, float start_vol,
                         float end_vol)
 {
-    signed short a, b, *pa, *pb;
-    int s, c;
-    double ss;
+    signed short a, b, *pa, *pb, *pcm_s;
+    int s, c, isample;
+    double sample;
     float f, vol, v;
 
     for(s = 0; s < frame; s++) {
-        ss = position + (double)pitch * s;
+        sample = position + (double)pitch * s;
+        pcm_s = pcm + s * PLAYER_CHANNELS;
         
-        if(ss < 0 || ss >= tr->length) {
+        if(sample < 0 || sample >= tr->length) {
             for(c = 0; c < PLAYER_CHANNELS; c++)
-                pcm[s * PLAYER_CHANNELS + c] = 0;
+                *(pcm_s + c) = 0;
             
         } else {
+
             vol = end_vol + ((start_vol - end_vol) * s / frame);
             
-            pa = track_get_sample(tr, (int)floor(ss));
-            pb = track_get_sample(tr, (int)ceil(ss));
+            /* sample is positive, so cast to an integer in preference
+             * to floor() function */
+
+            isample = (int)sample;
+
+            pa = track_get_sample(tr, isample);
+            pb = track_get_sample(tr, isample + 1);
             
-            f = ss - (floor)(ss);
+            f = sample - isample;
 
             for(c = 0; c < PLAYER_CHANNELS; c++) {
                 a = *(pa + c);
@@ -94,7 +101,7 @@ static double build_pcm(signed short *pcm, int frame, struct track_t *tr,
                 
                 v = vol * ((1.0 - f) * a + f * b);
                 
-                pcm[s * PLAYER_CHANNELS + c] = v;
+                *(pcm_s + c) = v;
             }
         }
     }
