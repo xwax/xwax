@@ -222,7 +222,7 @@ static int calculate_spinner_lookup(int *angle, int *distance, int size)
                 theta += M_PI;
             
             angle[r * size + c]
-                = ((int)(theta * 1000 / (M_PI * 2)) + 1000) % 1000;
+                = ((int)(theta * 1024 / (M_PI * 2)) + 1024) % 1024;
 
             if(distance)
                 distance[r * size + c] = sqrt(SQ(nc) + SQ(nr));
@@ -434,7 +434,7 @@ static void display_player(struct interface_local_t *il, int x, int y, int w,
         
         /* Spinning record */
         
-        rangle = (int)(pl->position * 10000 / 18 / TRACK_RATE) % 1000; 
+        rangle = (int)(pl->position * 1024 * 10 / 18 / TRACK_RATE) % 1024; 
         
         for(r = 0; r < SPINNER_SIZE; r++) {
             for(c = 0; c < SPINNER_SIZE; c++) {
@@ -453,7 +453,7 @@ static void display_player(struct interface_local_t *il, int x, int y, int w,
                 else
                     col = ok_col;
                 
-                if((rangle - pangle + 1000) % 1000 < 500) {
+                if((rangle - pangle + 1024) % 1024 < 512) {
                     col.r >>= 2;
                     col.g >>= 2;
                     col.b >>= 2;
