@@ -379,7 +379,7 @@ static void display_player(struct interface_local_t *il, int x, int y, int w,
     short int r, c, v, ox, oy, fade;
     SDL_Colour col;
     SDL_Rect rect;
-    Uint8 *p;
+    Uint8 *p, *rp, *cp;
     unsigned char m;
 
     ox = x;
@@ -437,11 +437,12 @@ static void display_player(struct interface_local_t *il, int x, int y, int w,
         rangle = (int)(pl->position * 1024 * 10 / 18 / TRACK_RATE) % 1024; 
         
         for(r = 0; r < SPINNER_SIZE; r++) {
+
+            /* Store a pointer to this row of the framebuffer */
+
+            rp = il->surface->pixels + (y + r) * il->surface->pitch;
+
             for(c = 0; c < SPINNER_SIZE; c++) {
-                
-                p = il->surface->pixels
-                    + (y + r) * il->surface->pitch
-                    + (x + c) * il->surface->format->BytesPerPixel;
                 
                 /* Use the lookup table to provide the angle at each
                  * pixel */
@@ -458,6 +459,10 @@ static void display_player(struct interface_local_t *il, int x, int y, int w,
                     col.g >>= 2;
                     col.b >>= 2;
                 }
+                
+                /* Calculate the final pixel location and set it */
+
+                p = rp + (x + c) * il->surface->format->BytesPerPixel;
                 
                 p[0] = col.b;
                 p[1] = col.g;
@@ -547,12 +552,15 @@ static void display_player(struct interface_local_t *il, int x, int y, int w,
             col.g >>= 1;
             col.b >>= 1;
         }
+
+        /* Store a pointer to this column of the framebuffer */
+
+        cp = il->surface->pixels
+            + (x + c) * il->surface->format->BytesPerPixel;
         
         for(r = 0; r < PROGRESS_HEIGHT; r++) {    
             
-            p = il->surface->pixels
-                + (y + r) * il->surface->pitch
-                + (x + c) * il->surface->format->BytesPerPixel;
+            p = cp + (y + r) * il->surface->pitch;
             
             /* Change the colour according to the audio meter */
             
