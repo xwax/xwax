@@ -17,6 +17,11 @@
  *
  */
 
+#ifndef ALSA_H
+#define ALSA_H
+
 #include "device.h"
 
 int alsa_init(struct device_t *dv, const char *name, int buffer_time);
+
+#endif

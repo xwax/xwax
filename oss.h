@@ -17,7 +17,12 @@
  *
  */
 
+#ifndef OSS_H
+#define OSS_H
+
 #include "device.h"
 
 int oss_init(struct device_t *dv, const char *filename,
              unsigned short buffers, unsigned short fragment);
+
+#endif
