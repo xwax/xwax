@@ -599,11 +599,14 @@ static void display_player(struct interface_local_t *il, int x, int y, int w,
             fade = 3;
         }
 
+        /* Store a pointer to this column of the framebuffer */
+
+        cp = il->surface->pixels
+            + (x + c) * il->surface->format->BytesPerPixel;
+
         for(r = 0; r < METER_HEIGHT; r++) {
 
-            p = il->surface->pixels
-                + (y + r) * il->surface->pitch
-                + (x + c) * il->surface->format->BytesPerPixel;
+            p = cp + (y + r) * il->surface->pitch;
            
             if((METER_HEIGHT - r) * 256 > (int)m * METER_HEIGHT) {
                 p[0] = col.b >> fade;
