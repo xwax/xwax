@@ -14,7 +14,7 @@ case "$TYPE" in
 
 'ogg')
     echo "Calling Ogg decoder..." >&2
-    exec oggdec --bits 16 --endianness 0 --sign 1 --raw --output - "$FILE"
+    exec oggdec -Q --bits 16 --endianness 0 --sign 1 --raw --output - "$FILE"
     ;;
 
 'aac')
@@ -34,7 +34,7 @@ case "$TYPE" in
 
 'flac')
     echo "Calling FLAC decoder..." >&2
-    exec flac -d -c --force-raw-format --sign=signed --endian=little "$FILE"
+    exec flac -d -c -s --force-raw-format --sign=signed --endian=little "$FILE"
     ;;
 
 *)

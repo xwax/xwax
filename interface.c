@@ -222,7 +222,7 @@ static int calculate_spinner_lookup(int *angle, int *distance, int size)
                 theta += M_PI;
             
             angle[r * size + c]
-                = ((int)(theta * 1000 / (M_PI * 2)) + 1000) % 1000;
+                = ((int)(theta * 1024 / (M_PI * 2)) + 1024) % 1024;
 
             if(distance)
                 distance[r * size + c] = sqrt(SQ(nc) + SQ(nr));
@@ -379,7 +379,7 @@ static void display_player(struct interface_local_t *il, int x, int y, int w,
     short int r, c, v, ox, oy, fade;
     SDL_Colour col;
     SDL_Rect rect;
-    Uint8 *p;
+    Uint8 *p, *rp, *cp;
     unsigned char m;
 
     ox = x;
@@ -434,14 +434,15 @@ static void display_player(struct interface_local_t *il, int x, int y, int w,
         
         /* Spinning record */
         
-        rangle = (int)(pl->position * 10000 / 18 / TRACK_RATE) % 1000; 
+        rangle = (int)(pl->position * 1024 * 10 / 18 / TRACK_RATE) % 1024; 
         
         for(r = 0; r < SPINNER_SIZE; r++) {
+
+            /* Store a pointer to this row of the framebuffer */
+
+            rp = il->surface->pixels + (y + r) * il->surface->pitch;
+
             for(c = 0; c < SPINNER_SIZE; c++) {
-                
-                p = il->surface->pixels
-                    + (y + r) * il->surface->pitch
-                    + (x + c) * il->surface->format->BytesPerPixel;
                 
                 /* Use the lookup table to provide the angle at each
                  * pixel */
@@ -453,11 +454,15 @@ static void display_player(struct interface_local_t *il, int x, int y, int w,
                 else
                     col = ok_col;
                 
-                if((rangle - pangle + 1000) % 1000 < 500) {
+                if((rangle - pangle + 1024) % 1024 < 512) {
                     col.r >>= 2;
                     col.g >>= 2;
                     col.b >>= 2;
                 }
+                
+                /* Calculate the final pixel location and set it */
+
+                p = rp + (x + c) * il->surface->format->BytesPerPixel;
                 
                 p[0] = col.b;
                 p[1] = col.g;
@@ -547,12 +552,15 @@ static void display_player(struct interface_local_t *il, int x, int y, int w,
             col.g >>= 1;
             col.b >>= 1;
         }
+
+        /* Store a pointer to this column of the framebuffer */
+
+        cp = il->surface->pixels
+            + (x + c) * il->surface->format->BytesPerPixel;
         
         for(r = 0; r < PROGRESS_HEIGHT; r++) {    
             
-            p = il->surface->pixels
-                + (y + r) * il->surface->pitch
-                + (x + c) * il->surface->format->BytesPerPixel;
+            p = cp + (y + r) * il->surface->pitch;
             
             /* Change the colour according to the audio meter */
             
@@ -591,11 +599,14 @@ static void display_player(struct interface_local_t *il, int x, int y, int w,
             fade = 3;
         }
 
+        /* Store a pointer to this column of the framebuffer */
+
+        cp = il->surface->pixels
+            + (x + c) * il->surface->format->BytesPerPixel;
+
         for(r = 0; r < METER_HEIGHT; r++) {
 
-            p = il->surface->pixels
-                + (y + r) * il->surface->pitch
-                + (x + c) * il->surface->format->BytesPerPixel;
+            p = cp + (y + r) * il->surface->pitch;
            
             if((METER_HEIGHT - r) * 256 > (int)m * METER_HEIGHT) {
                 p[0] = col.b >> fade;
