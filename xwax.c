@@ -60,7 +60,7 @@ void usage(FILE *fd)
       "  -b <n>         Number of buffers (default %d)\n"
       "  -f <n>         Buffer size to request (2^n bytes, default %d)\n\n"
       "ALSA device options:\n"
-      "  -t <ms>        Buffer time (default %dms)\n\n"
+      "  -m <ms>        Buffer time (default %dms)\n\n"
       "Device options apply to subsequent devices.\n"
       "Parameters -d and -l are most useful when specified multiple times.\n\n"
       "Available timecodes (for use with -t):\n"
@@ -156,7 +156,7 @@ int main(int argc, char *argv[])
             argv += 2;
             argc -= 2;
             
-        } else if(!strcmp(argv[0], "-t")) {
+        } else if(!strcmp(argv[0], "-m")) {
             
             /* Set size of ALSA buffer for subsequence devices */
             
