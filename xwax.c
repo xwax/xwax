@@ -61,7 +61,7 @@ void usage(FILE *fd)
       "  -f <n>         Buffer size to request (2^n bytes, default %d)\n\n"
       "ALSA device options:\n"
       "  -m <ms>        Buffer time (default %dms)\n\n"
-      "Device options apply to subsequent devices.\n"
+      "Device options, -t and -i apply to subsequent devices.\n"
       "Parameters -d and -l are most useful when specified multiple times.\n\n"
       "Available timecodes (for use with -t):\n"
       "  serato_2a (default), serato_2b, serato_cd, traktor_a, traktor_b\n\n"
