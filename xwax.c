@@ -98,16 +98,16 @@ static void connect_deck_to_rig(struct rig_t *rig, int n, struct deck_t *deck)
 void usage(FILE *fd)
 {
     fprintf(fd, "Usage: xwax [<parameters>]\n\n"
-      "  -a <device>    Build a deck connected to ALSA audio device\n"
-      "  -d <device>    Build a deck connected to OSS audio device\n"
       "  -l <directory> Directory to scan for audio tracks\n"
       "  -t <name>      Timecode name\n"
       "  -i <program>   Specify external importer (default '%s')\n"
       "  -h             Display this message\n\n"
       "OSS device options:\n"
+      "  -d <device>    Build a deck connected to OSS audio device\n"
       "  -b <n>         Number of buffers (default %d)\n"
       "  -f <n>         Buffer size to request (2^n bytes, default %d)\n\n"
       "ALSA device options:\n"
+      "  -a <device>    Build a deck connected to ALSA audio device\n"
       "  -m <ms>        Buffer time (default %dms)\n\n"
       "Device options, -t and -i apply to subsequent devices.\n"
       "Parameters -d and -l are most useful when specified multiple times.\n\n"
