@@ -101,26 +101,35 @@ void usage(FILE *fd)
       "  -l <directory> Directory to scan for audio tracks\n"
       "  -t <name>      Timecode name\n"
       "  -i <program>   Specify external importer (default '%s')\n"
-      "  -h             Display this message\n\n"
-      "OSS device options:\n"
+      "  -h             Display this message\n\n",
+      DEFAULT_IMPORTER);
+
+    fprintf(fd, "OSS device options:\n"
       "  -d <device>    Build a deck connected to OSS audio device\n"
       "  -b <n>         Number of buffers (default %d)\n"
-      "  -f <n>         Buffer size to request (2^n bytes, default %d)\n\n"
-      "ALSA device options:\n"
+      "  -f <n>         Buffer size to request (2^n bytes, default %d)\n\n",
+      DEFAULT_OSS_BUFFERS, DEFAULT_OSS_FRAGMENT);
+
+#ifdef WITH_ALSA
+    fprintf(fd, "ALSA device options:\n"
       "  -a <device>    Build a deck connected to ALSA audio device\n"
-      "  -m <ms>        Buffer time (default %dms)\n\n"
-      "Device options, -t and -i apply to subsequent devices.\n"
+      "  -m <ms>        Buffer time (default %dms)\n\n",
+      DEFAULT_ALSA_BUFFER);
+#endif
+
+    fprintf(fd, "Device options, -t and -i apply to subsequent devices.\n"
       "Parameters -d and -l are most useful when specified multiple times.\n\n"
       "Available timecodes (for use with -t):\n"
       "  serato_2a (default), serato_2b, serato_cd, traktor_a, traktor_b\n\n"
       "eg. Standard 2-deck setup\n"
       "  xwax -l ~/music -d /dev/dsp -d /dev/dsp1\n\n"
       "eg. Use a larger buffer on a third deck\n"
-      "  xwax -l ~/music -d /dev/dsp -d /dev/dsp1 -f 10 -d /dev/dsp2\n\n"
-      "eg. Use OSS and ALSA devices simultaneously\n"
-      "  xwax -l ~/music -d /dev/dsp -a hw:1\n\n",
-      DEFAULT_IMPORTER, DEFAULT_OSS_BUFFERS, DEFAULT_OSS_FRAGMENT,
-      DEFAULT_ALSA_BUFFER);
+      "  xwax -l ~/music -d /dev/dsp -d /dev/dsp1 -f 10 -d /dev/dsp2\n\n");
+
+#ifdef WITH_ALSA
+    fprintf(fd, "eg. Use OSS and ALSA devices simultaneously\n"
+            "  xwax -l ~/music -d /dev/dsp -a hw:1\n\n");
+#endif    
 }
 
 
@@ -201,6 +210,7 @@ int main(int argc, char *argv[])
             argv += 2;
             argc -= 2;
             
+#ifdef WITH_ALSA
         } else if(!strcmp(argv[0], "-m")) {
             
             /* Set size of ALSA buffer for subsequence devices */
@@ -218,6 +228,7 @@ int main(int argc, char *argv[])
             
             argv += 2;
             argc -= 2;
+#endif
             
         } else if(!strcmp(argv[0], "-d") || !strcmp(argv[0], "-a")) {
 
@@ -249,11 +260,11 @@ int main(int argc, char *argv[])
             case 'd':
                 r = oss_init(device, argv[1], oss_buffers, oss_fragment);
                 break;
-
+#ifdef WITH_ALSA
             case 'a':
                 r = alsa_init(device, argv[1], alsa_buffer);
                 break;
-                
+#endif                   
             default:
                 fprintf(stderr, "Device type is not supported by this "
                         "distribution of xwax.\n");
