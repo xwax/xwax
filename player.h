@@ -46,11 +46,11 @@ struct player_t {
     struct timecoder_t *timecoder;
 };
 
-int player_init(struct player_t *pl);
-int player_clear(struct player_t *pl);
+void player_init(struct player_t *pl);
+void player_clear(struct player_t *pl);
 
-int player_connect_timecoder(struct player_t *pl, struct timecoder_t *tc);
-int player_disconnect_timecoder(struct player_t *pl);
+void player_connect_timecoder(struct player_t *pl, struct timecoder_t *tc);
+void player_disconnect_timecoder(struct player_t *pl);
 int player_sync(struct player_t *pl);
 
 int player_control(struct player_t *pl, float pitch, float volume,
@@ -59,6 +59,6 @@ int player_recue(struct player_t *pl);
 
 int player_collect(struct player_t *pl, signed short *pcm, int samples);
 
-int player_connect_track(struct player_t *pl, struct track_t *tr);
+void player_connect_track(struct player_t *pl, struct track_t *tr);
 
 #endif

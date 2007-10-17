@@ -49,7 +49,7 @@ struct track_t {
 
     /* pointers to external data */
    
-    char *importer, /* path to import script */
+    const char *importer, /* path to import script */
         *artist, *title, *name;
     
     size_t bytes; /* loaded in */
@@ -63,8 +63,8 @@ struct track_t {
     unsigned int overview;
 };
 
-int track_init(struct track_t *tr, char *importer);
-int track_clear(struct track_t *tr);
+void track_init(struct track_t *tr, const char *importer);
+void track_clear(struct track_t *tr);
 int track_import(struct track_t *tr, char *path);
 int track_read(struct track_t *tr, struct pollfd *pe);
 int track_wait(struct track_t *tr);

@@ -234,7 +234,7 @@ void timecoder_free_lookup(void) {
 
 /* Initialise a timecode decoder */
 
-int timecoder_init(struct timecoder_t *tc)
+void timecoder_init(struct timecoder_t *tc)
 {
     int c;
     struct timecoder_channel_t *st;
@@ -262,17 +262,14 @@ int timecoder_init(struct timecoder_t *tc)
     tc->forwards = 1;
     tc->mon = NULL;
     tc->log_fd = -1;
-    
-    return 0;
 }
 
 
 /* Clear a timecode decoder */
 
-int timecoder_clear(struct timecoder_t *tc)
+void timecoder_clear(struct timecoder_t *tc)
 {
     timecoder_monitor_clear(tc);
-    return 0;
 }
 
 
@@ -280,27 +277,24 @@ int timecoder_clear(struct timecoder_t *tc)
  * display of the incoming audio. Initialise one for the given
  * timecoder */
 
-int timecoder_monitor_init(struct timecoder_t *tc, int size, int scale)
+void timecoder_monitor_init(struct timecoder_t *tc, int size, int scale)
 {
     tc->mon_size = size;
     tc->mon_scale = scale;
     tc->mon = malloc(SQ(tc->mon_size));
     memset(tc->mon, 0, SQ(tc->mon_size));
     tc->mon_counter = 0;
-
-    return 0;
 }
 
 
 /* Clear the monitor on the given timecoder */
 
-int timecoder_monitor_clear(struct timecoder_t *tc)
+void timecoder_monitor_clear(struct timecoder_t *tc)
 {
     if(tc->mon) {
         free(tc->mon);
         tc->mon = NULL;
     }
-    return 0;
 }
 
 

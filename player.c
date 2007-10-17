@@ -103,7 +103,7 @@ static double build_pcm(signed short *pcm, int frame, struct track_t *tr,
 }
 
 
-int player_init(struct player_t *pl)
+void player_init(struct player_t *pl)
 {
     pl->lost = 0;
     pl->playing = 0;
@@ -121,30 +121,25 @@ int player_init(struct player_t *pl)
 
     pl->track = NULL;
     pl->timecoder = NULL;
-    
-    return 0;
 }
 
 
-int player_clear(struct player_t *pl)
+void player_clear(struct player_t *pl)
 {
-    return 0;
 }
 
 
-int player_connect_timecoder(struct player_t *pl, struct timecoder_t *tc)
+void player_connect_timecoder(struct player_t *pl, struct timecoder_t *tc)
 {
     pl->timecoder = tc;
     pl->reconnect = 1;
     pl->safe = timecoder_get_safe(tc);
-    return 0;
 }
 
 
-int player_disconnect_timecoder(struct player_t *pl)
+void player_disconnect_timecoder(struct player_t *pl)
 {
     pl->timecoder = NULL;
-    return 0;
 }
 
 
@@ -280,8 +275,7 @@ int player_collect(struct player_t *pl, signed short *pcm, int samples)
 }
 
 
-int player_connect_track(struct player_t *pl, struct track_t *tr)
+void player_connect_track(struct player_t *pl, struct track_t *tr)
 {
     pl->track = tr;
-    return 0;
 }

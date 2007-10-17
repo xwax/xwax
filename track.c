@@ -33,7 +33,7 @@
 #define SAMPLE 4 /* bytes per sample (all channels) */
 
 
-int track_init(struct track_t *tr, char *importer)
+void track_init(struct track_t *tr, const char *importer)
 {
     tr->importer = importer;
     
@@ -48,19 +48,15 @@ int track_init(struct track_t *tr, char *importer)
     tr->name = NULL;
         
     tr->status = TRACK_STATUS_CLEAR;
-
-    return 0;
 }
 
 
-int track_clear(struct track_t *tr)
+void track_clear(struct track_t *tr)
 {
     int n;
-
+    
     for(n = 0; n < tr->blocks; n++)
         free(tr->block[n]);
-    
-    return 0;
 }
 
 

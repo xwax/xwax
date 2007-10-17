@@ -293,8 +293,9 @@ static Uint32 palette(SDL_Surface *sf, SDL_Color *col)
 }
 
 
-static int draw_font(SDL_Surface *sf, int x, int y, int w, int h, char *buf,
-                     TTF_Font *font, SDL_Color fg, SDL_Color bg)
+static int draw_font(SDL_Surface *sf, int x, int y, int w, int h,
+                     const char *buf, TTF_Font *font,
+                     SDL_Color fg, SDL_Color bg)
 {
     SDL_Surface *rendered;
     SDL_Rect dst, src, fill;
@@ -374,7 +375,8 @@ static void display_timecoder(struct interface_local_t *il, int x, int y,
 static void display_player(struct interface_local_t *il, int x, int y, int w,
                            struct player_t *pl)
 {
-    char hms[8], deci[8], buf[128], *s;
+    char hms[8], deci[8], buf[128];
+    const char *s;
     int elapse, remain, rangle, pangle, pos, sp, tc;
     short int r, c, v, ox, oy, fade;
     SDL_Colour col;
@@ -837,7 +839,7 @@ static int set_size(struct interface_t *in, int w, int h)
 }
 
 
-int interface_init(struct interface_t *in)
+void interface_init(struct interface_t *in)
 {
     int n;
 
@@ -846,8 +848,6 @@ int interface_init(struct interface_t *in)
     
     in->listing = NULL;
     in->local = NULL;
-
-    return 0;
 }
 
 

@@ -41,12 +41,15 @@ struct device_t {
     int (*clear)(struct device_t *dv);
 };
 
-int device_pollfds(struct device_t *dv, struct pollfd *pe, int n);
-int device_handle(struct device_t *dv);
+void device_connect_timecoder(struct device_t *dv, struct timecoder_t *tc);
+void device_connect_player(struct device_t *dv, struct player_t *pl);
 
 int device_start(struct device_t *dv);
 int device_stop(struct device_t *dv);
 
 int device_clear(struct device_t *dv);
+
+int device_pollfds(struct device_t *dv, struct pollfd *pe, int n);
+int device_handle(struct device_t *dv);
 
 #endif

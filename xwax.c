@@ -47,6 +47,54 @@
 #define DEFAULT_TIMECODE "serato_2a"
 
 
+/* We don't use the full flexibility of a rig, and just have a direct
+ * correspondence between a device, track, player and timecoder */
+
+struct deck_t {
+    struct device_t device;
+    struct track_t track;
+    struct player_t player;
+    struct timecoder_t timecoder;
+};
+
+
+static void deck_init(struct deck_t *deck, const char *importer)
+{
+    track_init(&deck->track, importer);
+    timecoder_init(&deck->timecoder);
+    player_init(&deck->player);
+    player_connect_track(&deck->player, &deck->track);    
+}
+
+
+static void deck_clear(struct deck_t *deck)
+{
+    track_abort(&deck->track);
+    track_wait(&deck->track);
+    track_clear(&deck->track);
+    timecoder_clear(&deck->timecoder);
+    player_clear(&deck->player);
+    device_clear(&deck->device);
+}
+
+
+static void connect_deck_to_interface(struct interface_t *iface, int n,
+                                      struct deck_t *deck)
+{
+    iface->timecoder[n] = &deck->timecoder;
+    iface->player[n] = &deck->player;
+}
+
+
+static void connect_deck_to_rig(struct rig_t *rig, int n, struct deck_t *deck)
+{
+    rig->device[n] = &deck->device;
+    rig->track[n] = &deck->track;
+    rig->player[n] = &deck->player;
+    rig->timecoder[n] = &deck->timecoder;
+}
+
+
 void usage(FILE *fd)
 {
     fprintf(fd, "Usage: xwax [<parameters>]\n\n"
@@ -81,15 +129,12 @@ int main(int argc, char *argv[])
     int r, n, decks, oss_fragment, oss_buffers, alsa_buffer;
     char *endptr, *timecode, *importer;
 
-    struct device_t device[MAX_DECKS];
-    struct track_t track[MAX_DECKS];
-    struct player_t player[MAX_DECKS];
-    struct timecoder_t timecoder[MAX_DECKS];
-
+    struct deck_t deck[MAX_DECKS];
     struct rig_t rig;
     struct interface_t iface;
     struct library_t library;
     struct listing_t listing;
+    struct device_t *device;
     
     fprintf(stderr, BANNER "\n\n" NOTICE "\n\n");
     
@@ -194,7 +239,8 @@ int main(int argc, char *argv[])
             /* Create a deck */
 
             if(argc < 2) {
-                fprintf(stderr, "-d requires a device path as an argument.\n");
+                fprintf(stderr, "-%c requires a device path as an argument.\n",
+                        argv[0][1]);
                 return -1;
             }
 
@@ -206,20 +252,23 @@ int main(int argc, char *argv[])
             
             fprintf(stderr, "Initialising deck %d (%s)...\n", decks, argv[1]);
 
+            deck_init(&deck[decks], importer);
+
             /* Work out which device type we are using, and initialise
              * an appropriate device. */
+
+            device = &deck[decks].device;
 
             switch(argv[0][1]) {
 
             case 'd':
-                r = oss_init(&device[decks], argv[1],
-                             oss_buffers, oss_fragment);
+                r = oss_init(device, argv[1], oss_buffers, oss_fragment);
                 break;
 
             case 'a':
-                r = alsa_init(&device[decks], argv[1], alsa_buffer);
+                r = alsa_init(device, argv[1], alsa_buffer);
                 break;
-
+                
             default:
                 fprintf(stderr, "Device type is not supported by this "
                         "distribution of xwax.\n");
@@ -229,28 +278,17 @@ int main(int argc, char *argv[])
             if(r == -1)
                 return -1;
 
-            /* The following is slightly confusing -- rig uses sparse
-             * arrays, interface does not. There's some degree of
-             * flexibility for multiple rigs, sharing tracks etc.. */
-
-            track_init(&track[decks], importer);
-            timecoder_init(&timecoder[decks]);
-            player_init(&player[decks]);
-
-            device[decks].timecoder = &timecoder[decks];
-            device[decks].player = &player[decks];
-  
-            /* The rig handles the given track, timecoder and player. */
-
-            rig.device[decks] = &device[decks];
-            rig.track[decks] = &track[decks];
-            rig.player[decks] = &player[decks];
-            rig.timecoder[decks] = &timecoder[decks];
-
-            /* Attach them to the user interface. */
+            /* The timecoder and player are driven by requests from
+             * the audio device */
             
-            iface.timecoder[decks] = &timecoder[decks];
-            iface.player[decks] = &player[decks];
+            device_connect_timecoder(device, &deck[decks].timecoder);
+            device_connect_player(device, &deck[decks].player);
+
+            /* The rig and interface keep track of everything whilst
+             * the program is running */
+
+            connect_deck_to_interface(&iface, decks, &deck[decks]);
+            connect_deck_to_rig(&rig, decks, &deck[decks]);
 
             decks++;
             
@@ -281,13 +319,11 @@ int main(int argc, char *argv[])
             argc -= 2;
 
         } else if(!strcmp(argv[0], "-h")) {
-
             usage(stdout);
             return 0;
 
         } else {
             fprintf(stderr, "'%s' argument is unknown; try -h.\n", argv[0]);
-
             return -1;
         }
     }
@@ -308,11 +344,9 @@ int main(int argc, char *argv[])
     /* Connect everything up. Do this after selecting a timecode and
      * built the lookup tables. */
 
-    for(n = 0; n < decks; n++) {
-        player_connect_timecoder(&player[n], &timecoder[n]);
-        player_connect_track(&player[n], &track[n]);
-    }
-
+    for(n = 0; n < decks; n++)
+        player_connect_timecoder(&deck[n].player, &deck[n].timecoder);
+    
     fprintf(stderr, "Indexing music library...\n");
     listing_init(&listing);
     library_get_listing(&library, &listing);
@@ -331,14 +365,8 @@ int main(int argc, char *argv[])
     if(rig_stop(&rig) == -1)
         return -1;
     
-    for(n = 0; n < decks; n++) {
-        track_abort(&track[n]);
-        track_wait(&track[n]);
-        track_clear(&track[n]);
-        timecoder_clear(&timecoder[n]);
-        player_clear(&player[n]);
-        device_clear(&device[n]);
-    }
+    for(n = 0; n < decks; n++)
+        deck_clear(&deck[n]);
     
     timecoder_free_lookup();
     listing_clear(&listing);

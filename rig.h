@@ -47,11 +47,3 @@ int rig_start(struct rig_t *rig);
 int rig_stop(struct rig_t *rig);
 
 #endif
-
-
-
-
-
-
-
-

@@ -57,11 +57,11 @@ struct timecoder_t {
 int timecoder_build_lookup(char *timecode_name);
 void timecoder_free_lookup(void);
 
-int timecoder_init(struct timecoder_t *tc);
-int timecoder_clear(struct timecoder_t *tc);
+void timecoder_init(struct timecoder_t *tc);
+void timecoder_clear(struct timecoder_t *tc);
 
-int timecoder_monitor_init(struct timecoder_t *tc, int size, int scale);
-int timecoder_monitor_clear(struct timecoder_t *tc);
+void timecoder_monitor_init(struct timecoder_t *tc, int size, int scale);
+void timecoder_monitor_clear(struct timecoder_t *tc);
 
 int timecoder_submit(struct timecoder_t *tc, signed short *aud, int samples);
 

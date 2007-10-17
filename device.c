@@ -22,6 +22,18 @@
 #include "device.h"
 
 
+void device_connect_timecoder(struct device_t *dv, struct timecoder_t *tc)
+{
+    dv->timecoder = tc;
+}
+
+
+void device_connect_player(struct device_t *dv, struct player_t *pl)
+{
+    dv->player = pl;
+}
+
+
 /* Start the device inputting and outputting audio */
 
 int device_start(struct device_t *dv)
