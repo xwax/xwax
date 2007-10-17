@@ -219,21 +219,6 @@ int main(int argc, char *argv[])
             argv += 2;
             argc -= 2;
             
-        } else if(!strcmp(argv[0], "-i")) {
-
-            /* Importer script for subsequent decks */
-
-            if(argc < 2) {
-                fprintf(stderr, "-i requires an executable path "
-                        "as an argument.\n");
-                return -1;
-            }
-
-            importer = argv[1];
-            
-            argv += 2;
-            argc -= 2;
-            
         } else if(!strcmp(argv[0], "-d") || !strcmp(argv[0], "-a")) {
 
             /* Create a deck */
@@ -309,6 +294,21 @@ int main(int argc, char *argv[])
             argv += 2;
             argc -= 2;
             
+        } else if(!strcmp(argv[0], "-i")) {
+
+            /* Importer script for subsequent decks */
+
+            if(argc < 2) {
+                fprintf(stderr, "-i requires an executable path "
+                        "as an argument.\n");
+                return -1;
+            }
+
+            importer = argv[1];
+
+            argv += 2;
+            argc -= 2;
+                        
         } else if(!strcmp(argv[0], "-l")) {
 
             /* Load in a music library */
