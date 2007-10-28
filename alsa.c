@@ -188,10 +188,14 @@ static int pcm_revents(struct alsa_pcm_t *alsa, unsigned short *revents) {
 
 static int start(struct device_t *dv)
 {
+    int r;
     struct alsa_t *alsa = (struct alsa_t*)dv->local;
-    
-    snd_pcm_start(alsa->capture.pcm);
-    snd_pcm_start(alsa->playback.pcm);
+
+    r = snd_pcm_start(alsa->capture.pcm);
+    if(r < 0) {
+        alsa_error(r);
+        return -1;
+    }
 
     return 0;
 }
@@ -347,11 +351,8 @@ static int handle(struct device_t *dv)
                             snd_strerror(r));
                 }
 
-                r = snd_pcm_start(alsa->playback.pcm);
-                if(r < 0) {
-                    fprintf(stderr, "Can't restart playback device: %s\n",
-                            snd_strerror(r));
-                }
+                /* The device starts when data is written. POLLOUT
+                 * events are generated in prepared state. */
 
             } else {
                 alsa_error(r);
