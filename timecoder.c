@@ -469,8 +469,10 @@ int timecoder_submit(struct timecoder_t *tc, signed short *pcm, int samples)
             /* Decay the pixels already in the montior */
             
             if(++tc->mon_counter % MONITOR_DECAY_EVERY == 0) {
-                for(p = 0; p < SQ(tc->mon_size); p++)
-                    tc->mon[p] -= tc->mon[p] / 8;
+                for(p = 0; p < SQ(tc->mon_size); p++) {
+                    if(tc->mon[p])
+                        tc->mon[p] = tc->mon[p] * 7 / 8;
+                }
             }
 
             v = pcm[s * TIMECODER_CHANNELS]; /* first channel */
