@@ -27,16 +27,29 @@
 #define DEVICE_FRAME 32
 
 struct device_t {
-    int fd;
-    struct pollfd *pe;
-
+    void *local;
+    
     struct timecoder_t *timecoder;
     struct player_t *player;
+
+    int (*pollfds)(struct device_t *dv, struct pollfd *pe, int n);
+    int (*handle)(struct device_t *dv);
+
+    int (*start)(struct device_t *dv);
+    int (*stop)(struct device_t *dv);
+
+    int (*clear)(struct device_t *dv);
 };
 
-int device_open(struct device_t *dv, const char *filename,
-                unsigned short buffers, unsigned short fragment);
-int device_close(struct device_t *dv);
+void device_connect_timecoder(struct device_t *dv, struct timecoder_t *tc);
+void device_connect_player(struct device_t *dv, struct player_t *pl);
+
+int device_start(struct device_t *dv);
+int device_stop(struct device_t *dv);
+
+int device_clear(struct device_t *dv);
+
+int device_pollfds(struct device_t *dv, struct pollfd *pe, int n);
 int device_handle(struct device_t *dv);
 
 #endif

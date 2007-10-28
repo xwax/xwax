@@ -19,14 +19,33 @@ CFLAGS += -Wall -O3
 
 SDL_CFLAGS = `sdl-config --cflags`
 SDL_LIBS = `sdl-config --libs` -lSDL_ttf
+ALSA_LIBS = -lasound
+
+# Core objects and libraries
+
+OBJS = interface.o library.o player.o rig.o timecoder.o track.o xwax.o
+DEVICE_OBJS = device.o oss.o
+DEVICE_CPPFLAGS =
+DEVICE_LIBS =
+
+# Optional device types
+
+ifdef ALSA
+DEVICE_OBJS += alsa.o
+DEVICE_CPPFLAGS += -DWITH_ALSA
+DEVICE_LIBS += $(ALSA_LIBS)
+endif
+
+# Rules
 
 .PHONY:		clean depend
 
-xwax:		device.o interface.o library.o player.o rig.o timecoder.o \
-		track.o xwax.o
-		$(CC) $(CFLAGS) -o $@ $^ -pthread $(SDL_LIBS)
+xwax:		$(OBJS) $(DEVICE_OBJS)
+		$(CC) $(CFLAGS) -o $@ $^ -pthread $(SDL_LIBS) $(DEVICE_LIBS)
 
 interface.o:	CFLAGS += $(SDL_CFLAGS)
+
+xwax.o:		CFLAGS += $(DEVICE_CPPFLAGS)
 
 depend:		device.c interface.c library.c player.c rig.c timecoder.c \
 		track.c xwax.c

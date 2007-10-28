@@ -17,33 +17,12 @@
  *
  */
 
-#ifndef RIG_H
-#define RIG_H
+#ifndef OSS_H
+#define OSS_H
 
-#define MAX_DEVICES 4
-#define MAX_TRACKS 8
-#define MAX_PLAYERS 4
-#define MAX_TIMECODERS 4
+#include "device.h"
 
-#define MAX_DEVICE_POLLFDS 32
-
-struct rig_t {
-    int finished;
-    pthread_t pt_realtime, pt_service;
-
-    struct device_t *device[MAX_DEVICES];
-    struct track_t *track[MAX_TRACKS];
-    struct player_t *player[MAX_PLAYERS];
-    struct timecoder_t *timecoder[MAX_TIMECODERS];
-
-    /* Poll table for devices */
-    
-    int npt;
-    struct pollfd pt[MAX_DEVICE_POLLFDS];
-};
-
-int rig_init(struct rig_t *rig);
-int rig_start(struct rig_t *rig);
-int rig_stop(struct rig_t *rig);
+int oss_init(struct device_t *dv, const char *filename,
+             unsigned short buffers, unsigned short fragment);
 
 #endif

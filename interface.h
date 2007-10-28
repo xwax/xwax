@@ -37,7 +37,7 @@ struct interface_t {
     struct interface_local_t *local;
 };
 
-int interface_init(struct interface_t *in);
+void interface_init(struct interface_t *in);
 int interface_run(struct interface_t *in);
 
 #endif

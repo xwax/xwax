@@ -105,8 +105,6 @@ int rig_realtime(struct rig_t *rig)
 {
     int r, n, max_pri;
     struct sched_param sp;
-    struct pollfd pt[MAX_DEVICES], *pe;
-    struct device_t *dv;
 
     /* Setup the POSIX scheduler */
     
@@ -133,28 +131,8 @@ int rig_realtime(struct rig_t *rig)
                 "may get wow and skips!\n");
     }
 
-    /* The requested poll events never change, so populate the poll
-     * entry table before entering the loop */
-    
-    pe = pt;
-
-    for(n = 0; n < MAX_DEVICES; n++) {
-        dv = rig->device[n];
-        
-        if(!dv)
-            continue;
-        
-        pe->fd = dv->fd;
-        pe->revents = 0;
-        pe->events = POLLIN | POLLOUT; /* play something even if silence */
-        
-        dv->pe = pe;
-        
-        pe++;
-    }
-    
     while(!rig->finished) {        
-        r = poll(pt, pe - pt, POLL_TIMEOUT);
+        r = poll(rig->pt, rig->npt, POLL_TIMEOUT);
         
         if(r == -1 && errno != EINTR) {
             perror("poll");
@@ -187,16 +165,54 @@ void *realtime(void *p)
 
 int rig_start(struct rig_t *rig)
 {
+    int r, n;
+    struct pollfd *pe, *pm;
+    struct device_t *dv;
+
     rig->finished = 0;
     
     if(pthread_create(&rig->pt_service, NULL, service, (void*)rig)) {
         perror("pthread_create");
         return -1;
     }
-    
-    if(pthread_create(&rig->pt_realtime, NULL, realtime, (void*)rig)) {
-        perror("pthread_create");
-        return -1;
+
+    /* The requested poll events never change, so populate the poll
+     * entry table before entering the realtime thread */
+
+    pe = rig->pt;
+    pm = rig->pt + MAX_DEVICE_POLLFDS;
+
+    for(n = 0; n < MAX_DEVICES; n++) {
+        dv = rig->device[n];
+        
+        if(!dv)
+            continue;
+        
+        r = device_pollfds(dv, pe, pm - pe);
+        if(r == -1) {
+            fprintf(stderr, "Device failed to return file descriptors.\n");
+            return -1;
+        }
+
+        pe += r;
+
+        /* Start the audio rolling on the device */
+        
+        device_start(dv);
+    }
+
+    rig->npt = pe - rig->pt;
+
+    /* If there are any devices which returned file descriptors for
+     * poll() then launch the realtime thread to handle them */
+
+    if(rig->npt > 0) {
+        fprintf(stderr, "Launching realtime thread to handle devices...\n");
+
+        if(pthread_create(&rig->pt_realtime, NULL, realtime, (void*)rig)) {
+            perror("pthread_create");
+            return -1;
+        }
     }
     
     return 0;
@@ -205,11 +221,20 @@ int rig_start(struct rig_t *rig)
 
 int rig_stop(struct rig_t *rig)
 {
+    int n;
+
     rig->finished = 1;
 
     if(pthread_join(rig->pt_realtime, NULL) != 0) {
         perror("pthread_join");
         return -1;
+    }
+
+    /* Stop audio rolling on devices */
+
+    for(n = 0; n < MAX_DEVICES; n++) {
+        if(rig->device[n])
+            device_stop(rig->device[n]);
     }
 
     if(pthread_join(rig->pt_service, NULL) != 0) {
