@@ -102,14 +102,17 @@ static int pcm_open(struct alsa_pcm_t *alsa, const char *device_name,
     }
 
     p = buffer_time * 1000; /* microseconds */
-    dir = 1;
+    dir = 0;
     r = snd_pcm_hw_params_set_buffer_time_near(alsa->pcm, hw_params, &p, &dir);
     if(r < 0) {
         alsa_error(r);
         return -1;
     }
-    
-    fprintf(stderr, "Buffer time is %d\n", p);
+
+    if(p > buffer_time * 1000 + 500) {
+        fprintf(stderr, "Buffer time of %dms is too small.\n", buffer_time);
+        return -1;
+    }
 
     r = snd_pcm_hw_params(alsa->pcm, hw_params);
     if(r < 0) {
@@ -117,13 +120,11 @@ static int pcm_open(struct alsa_pcm_t *alsa, const char *device_name,
         return -1;
     }
     
-    dir = 0;
     r = snd_pcm_hw_params_get_period_size(hw_params, &alsa->period, &dir);
     if(r < 0) {
         alsa_error(r);
         return -1;
     }
-    fprintf(stderr, "Period size is %ld\n", alsa->period);
 
     snd_pcm_hw_params_free(hw_params);
     
@@ -387,8 +388,6 @@ int alsa_init(struct device_t *dv, const char *device_name, int buffer_time)
 {
     struct alsa_t *alsa;
 
-    fprintf(stderr, "Opening ALSA device '%s'...\n", device_name);
-
     alsa = malloc(sizeof(struct alsa_t));
     if(!alsa) {
         perror("malloc");
@@ -416,8 +415,6 @@ int alsa_init(struct device_t *dv, const char *device_name, int buffer_time)
     dv->start = start;
     dv->stop = NULL;
     dv->clear = clear;
-
-    fputs("Device opened successfully.\n", stderr);
 
     return 0;
 
