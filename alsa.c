@@ -49,7 +49,7 @@ struct alsa_t {
 
 static void alsa_error(int r)
 {
-    fputs("ALSA: ", stderr);
+    fputs("alsa: ", stderr);
     fputs(snd_strerror(r), stderr);
     fputc('\n', stderr);
 }
@@ -254,9 +254,10 @@ static int playback(struct device_t *dv)
     if(r < 0)
         return r;
         
-    if(r < alsa->playback.period)
-        fprintf(stderr, "ALSA playback: underrun %d/%ld.\n", r,
+    if(r < alsa->playback.period) {
+        fprintf(stderr, "alsa: playback underrun %d/%ld.\n", r,
                 alsa->playback.period);
+    }
 
     return 0;
 }
@@ -276,7 +277,7 @@ static int capture(struct device_t *dv)
         return r;
     
     if(r < alsa->capture.period) {
-        fprintf(stderr, "ALSA capture: underrun %d/%ld.\n",
+        fprintf(stderr, "alsa: capture underrun %d/%ld.\n",
                 r, alsa->capture.period);
     }
     
@@ -311,18 +312,18 @@ static int handle(struct device_t *dv)
         
         if(r < 0) {
             if(r == -EPIPE) {
-                fprintf(stderr, "device_handle: capture xrun.\n");
+                fputs("alsa: capture xrun.\n", stderr);
 
                 r = snd_pcm_prepare(alsa->capture.pcm);
                 if(r < 0) {
-                    fprintf(stderr, "Can't recover from capture xrun: %s\n",
-                            snd_strerror(r));
+                    alsa_error(r);
+                    return -1;
                 }
 
                 r = snd_pcm_start(alsa->capture.pcm);
                 if(r < 0) {
-                    fprintf(stderr, "Can't restart capture device: %s\n",
-                            snd_strerror(r));
+                    alsa_error(r);
+                    return -1;
                 }
 
             } else {
@@ -343,12 +344,12 @@ static int handle(struct device_t *dv)
         
         if(r < 0) {
             if(r == -EPIPE) {
-                fprintf(stderr, "device_handle: playback xrun.\n");
+                fputs("alsa: playback xrun.\n", stderr);
                 
                 r = snd_pcm_prepare(alsa->playback.pcm) < 0;
                 if(r < 0) {
-                    fprintf(stderr, "Can't recover from playback xrun: %s\n",
-                            snd_strerror(r));
+                    alsa_error(r);
+                    return -1;
                 }
 
                 /* The device starts when data is written. POLLOUT
