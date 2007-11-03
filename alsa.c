@@ -369,7 +369,7 @@ static int handle(struct device_t *dv)
 
 /* Close ALSA device and clear any allocations */
 
-int clear(struct device_t *dv)
+static int clear(struct device_t *dv)
 {
     struct alsa_t *alsa = (struct alsa_t*)dv->local;
 
