@@ -33,8 +33,6 @@ struct interface_t {
     struct player_t *player[MAX_PLAYERS];
     struct timecoder_t *timecoder[MAX_TIMECODERS];
     struct listing_t *listing;
-    
-    struct interface_local_t *local;
 };
 
 void interface_init(struct interface_t *in);
