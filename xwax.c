@@ -117,8 +117,8 @@ void usage(FILE *fd)
       DEFAULT_ALSA_BUFFER);
 #endif
 
-    fprintf(fd, "Device options, -t and -i apply to subsequent devices.\n"
-      "Parameters -d and -l are most useful when specified multiple times.\n\n"
+    fprintf(fd, "Device options and -i apply to subsequent devices.\n"
+      "Decks and audio directories can be specified multiple times.\n\n"
       "Available timecodes (for use with -t):\n"
       "  serato_2a (default), serato_2b, serato_cd, traktor_a, traktor_b\n\n"
       "eg. Standard 2-deck setup\n"
