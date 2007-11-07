@@ -624,7 +624,7 @@ static void draw_deck_clocks(SDL_Surface *surface, const struct rect_t *rect,
 static void draw_overview(SDL_Surface *surface, const struct rect_t *rect,
                           struct track_t *tr, int position)
 {
-    int x, y, w, h, r, c, sp, fade, f, bytes_per_pixel, pitch, height;
+    int x, y, w, h, r, c, sp, fade, bytes_per_pixel, pitch, height;
     Uint8 *pixels, *p;
     SDL_Color col;
 
@@ -665,24 +665,28 @@ static void draw_overview(SDL_Surface *surface, const struct rect_t *rect,
         if(tr->length && c <= (long long)position * w / tr->length)
             fade++;
 
+        col.r >>= fade;
+        col.g >>= fade;
+        col.b >>= fade;
+
         /* Store a pointer to this column of the framebuffer */
 
         p = pixels + y * pitch + (x + c) * bytes_per_pixel;
 
-        for(r = 0; r < h; r++) {    
-
-            /* Change the colour according to the audio meter */
-
-            f = fade;
-
-            if(h - r >= height)
-                f += 2;
-
-            p[0] = col.b >> f;
-            p[1] = col.g >> f;
-            p[2] = col.r >> f;
-        
+        r = h;
+        while(r > height) {
+            p[0] = col.b >> 2;
+            p[1] = col.g >> 2;
+            p[2] = col.r >> 2;
             p += pitch;
+            r--;
+        }
+        while(r) {
+            p[0] = col.b;
+            p[1] = col.g;
+            p[2] = col.r;
+            p += pitch;
+            r--;
         }
     }
 }
@@ -734,16 +738,20 @@ static void draw_closeup(SDL_Surface *surface, const struct rect_t *rect,
 
         p = pixels + y * pitch + (x + c) * bytes_per_pixel;
 
-        for(r = 0; r < h; r++) {
-
-            if(h - r < height)
-                fade = 0;
-
+        r = h;
+        while(r > height) {
             p[0] = col.b >> fade;
             p[1] = col.g >> fade;
             p[2] = col.r >> fade;
-            
             p += pitch;
+            r--;
+        }
+        while(r) {
+            p[0] = col.b;
+            p[1] = col.g;
+            p[2] = col.r;
+            p += pitch;
+            r--;
         }
     }
 }
