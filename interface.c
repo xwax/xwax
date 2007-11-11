@@ -104,8 +104,8 @@
 
 /* State variables used to trigger certain actions */
 
-#define LEAVE 0
-#define REDISPLAY 1
+#define UPDATE_NONE 0
+#define UPDATE_REDRAW 1
 
 #define RESULTS_REFINE 2
 #define RESULTS_EXPAND 3
@@ -1143,7 +1143,7 @@ int interface_run(struct interface_t *in)
     int selected, view_offset, meter_scale,
         library_lines, p, search_len,
         finished,
-        rstate, dstate, sstate,
+        library_update, decks_update, status_update,
         deck, func;
     char search[256];
     const char *status = BANNER;
@@ -1203,9 +1203,9 @@ int interface_run(struct interface_t *in)
     if(!surface)
         return -1;
 
-    dstate = REDISPLAY;
-    sstate = REDISPLAY;
-    rstate = RESULTS_EXPAND;
+    decks_update = UPDATE_REDRAW;
+    status_update = UPDATE_REDRAW;
+    library_update = RESULTS_EXPAND;
 
     /* The final action is to add the timer which triggers refresh */
 
@@ -1224,21 +1224,21 @@ int interface_run(struct interface_t *in)
             if(!surface)
                 return -1;
 
-            if(rstate < REDISPLAY)
-                rstate = REDISPLAY;
+            if(library_update < UPDATE_REDRAW)
+                library_update = UPDATE_REDRAW;
 
-            if(dstate < REDISPLAY)
-                dstate = REDISPLAY;
+            if(decks_update < UPDATE_REDRAW)
+                decks_update = UPDATE_REDRAW;
 
-            if(sstate < REDISPLAY)
-                sstate = REDISPLAY;
+            if(status_update < UPDATE_REDRAW)
+                status_update = UPDATE_REDRAW;
 
             break;
             
         case SDL_USEREVENT: /* request to update the clocks */
 
-            if(dstate < REDISPLAY)
-                dstate = REDISPLAY;
+            if(decks_update < UPDATE_REDRAW)
+                decks_update = UPDATE_REDRAW;
             
             break;
 
@@ -1249,21 +1249,21 @@ int interface_run(struct interface_t *in)
             if(key >= SDLK_a && key <= SDLK_z) {
                 search[search_len] = (key - SDLK_a) + 'a';
                 search[++search_len] = '\0';
-                rstate = RESULTS_REFINE;
+                library_update = RESULTS_REFINE;
 
             } else if(key >= SDLK_0 && key <= SDLK_9) {
                 search[search_len] = (key - SDLK_0) + '0';
                 search[++search_len] = '\0';
-                rstate = RESULTS_REFINE;
+                library_update = RESULTS_REFINE;
                 
             } else if(key == SDLK_SPACE) {
                 search[search_len] = ' ';
                 search[++search_len] = '\0';
-                rstate = RESULTS_REFINE;
+                library_update = RESULTS_REFINE;
                 
             } else if(key == SDLK_BACKSPACE && search_len > 0) {
                 search[--search_len] = '\0';
-                rstate = RESULTS_EXPAND;
+                library_update = RESULTS_EXPAND;
 
             } else if(key == SDLK_UP) {
                 selected--;
@@ -1271,7 +1271,7 @@ int interface_run(struct interface_t *in)
                 if(selected < view_offset)
                     view_offset -= library_lines / 2;
 
-                rstate = REDISPLAY;
+                library_update = UPDATE_REDRAW;
     
             } else if(key == SDLK_DOWN) {
                 selected++;
@@ -1279,7 +1279,7 @@ int interface_run(struct interface_t *in)
                 if(selected > view_offset + library_lines - 1)
                     view_offset += library_lines / 2;
                 
-                rstate = REDISPLAY;
+                library_update = UPDATE_REDRAW;
 
             } else if(key == SDLK_PAGEUP) {
                 view_offset -= library_lines;
@@ -1287,7 +1287,7 @@ int interface_run(struct interface_t *in)
                 if(selected > view_offset + library_lines - 1)
                     selected = view_offset + library_lines - 1;
 
-                rstate = REDISPLAY;
+                library_update = UPDATE_REDRAW;
 
             } else if(key == SDLK_PAGEDOWN) {
                 view_offset += library_lines;
@@ -1295,7 +1295,7 @@ int interface_run(struct interface_t *in)
                 if(selected < view_offset)
                     selected = view_offset;
 
-                rstate = REDISPLAY;
+                library_update = UPDATE_REDRAW;
 
             } else if(key == SDLK_EQUALS) {
                 meter_scale--;
@@ -1360,25 +1360,25 @@ int interface_run(struct interface_t *in)
         split_bottom(&rworkspace, &rtmp, &rstatus, STATUS_HEIGHT, SPACER);
         if(rtmp.h < 128 || rtmp.w < 0) {
             rtmp = rworkspace;
-            sstate = LEAVE;
+            status_update = UPDATE_NONE;
         }
 
         split_top(&rtmp, &rplayers, &rlibrary, PLAYER_HEIGHT, SPACER);        
         if(rlibrary.h < LIBRARY_MIN_HEIGHT || rlibrary.w < LIBRARY_MIN_WIDTH) {
             rplayers = rtmp;
-            rstate = LEAVE;
+            library_update = UPDATE_NONE;
         }
 
         if(rplayers.h < 0 || rplayers.w < 0)
-            dstate = LEAVE;
+            decks_update = UPDATE_NONE;
 
         /* Re-search the library for based on the new criteria */
         
-        if(rstate == RESULTS_EXPAND) {
+        if(library_update == RESULTS_EXPAND) {
             listing_blank(results);
             listing_match(in->listing, results, search);
             
-        } else if(rstate == RESULTS_REFINE) {
+        } else if(library_update == RESULTS_REFINE) {
             listing_blank(refine);
             listing_match(results, refine, search);
             
@@ -1392,7 +1392,7 @@ int interface_run(struct interface_t *in)
         /* If there's been a change to the library search results,
          * check them over and display them. */
 
-        if(rstate >= REDISPLAY) {
+        if(library_update >= UPDATE_REDRAW) {
             if(selected < 0)
                 selected = 0;
             
@@ -1412,36 +1412,36 @@ int interface_run(struct interface_t *in)
                 status = results->record[selected]->pathname;
             else
                 status = "No search results found";
-            sstate = REDISPLAY;
+            status_update = UPDATE_REDRAW;
           
             LOCK(surface);
             library_lines = draw_library(surface, &rlibrary, search, results,
                                          selected, view_offset);
             UNLOCK(surface);
             UPDATE(surface, &rlibrary);
-            rstate = LEAVE;
+            library_update = UPDATE_NONE;
         }
 
         /* If there's been a change to status, redisplay it */
 
-        if(sstate >= REDISPLAY) {
+        if(status_update >= UPDATE_REDRAW) {
             LOCK(surface);
             draw_status(surface, &rstatus, status);
             UNLOCK(surface);
             UPDATE(surface, &rstatus);
-            sstate = LEAVE;
+            status_update = UPDATE_NONE;
         }
 
         /* If it's due, redraw the players. This is triggered by the
          * timer event. */
 
-        if(dstate >= REDISPLAY) {
+        if(decks_update >= UPDATE_REDRAW) {
             LOCK(surface);
             draw_decks(surface, &rplayers, in->players, in->player,
                        meter_scale);
             UNLOCK(surface);
             UPDATE(surface, &rplayers);
-            dstate = LEAVE;
+            decks_update = UPDATE_NONE;
         }
 
         /* Enter wait state for any tracks. This must happen in this
