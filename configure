@@ -39,7 +39,7 @@ done
 
 # Construct the output file
 
-echo -n > $OUTPUT
+> $OUTPUT
 
 if [ $ALSA = 1 ]; then
 	echo "ALSA enabled"
