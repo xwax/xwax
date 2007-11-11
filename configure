@@ -1,0 +1,54 @@
+#!/bin/sh
+#
+# Copyright (C) 2007 Mark Hills <mark@pogo.org.uk>
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License version 2, as
+# published by the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+# General Public License version 2 for more details.
+#
+# You should have received a copy of the GNU General Public License
+# version 2 along with this program; if not, write to the Free
+# Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+# MA 02110-1301, USA.
+#
+
+OUTPUT=.config
+
+# Set some defaults and parse the command line
+
+ALSA=0
+
+while [ $# -ge 1 ]; do
+	case $1 in
+	--help)
+		echo "Usage: configure [--enable-alsa]"
+		exit 0
+		;;
+	--enable-alsa)
+		ALSA=1
+		;;
+	esac
+
+	shift
+done
+
+# Construct the output file
+
+echo -n > $OUTPUT
+
+if [ $ALSA = 1 ]; then
+	echo "ALSA enabled"
+	echo "ALSA=yes" >> $OUTPUT
+else
+	echo "ALSA disabled"
+fi
+
+# Explain the next step
+
+echo "Be sure to run 'make clean' if you have changed the configuration."
+echo "Run 'make' to compile xwax."

@@ -21,6 +21,10 @@ SDL_CFLAGS = `sdl-config --cflags`
 SDL_LIBS = `sdl-config --libs` -lSDL_ttf
 ALSA_LIBS = -lasound
 
+# Import the optional configuration
+
+-include .config
+
 # Core objects and libraries
 
 OBJS = interface.o library.o player.o rig.o timecoder.o track.o xwax.o
