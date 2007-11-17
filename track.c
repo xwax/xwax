@@ -113,18 +113,32 @@ int track_import(struct track_t *tr, char *path)
 }
 
 
+/* Return the file descriptor which should be watched for this track */
+
+int track_pollfd(struct track_t *tr, struct pollfd *pe)
+{
+    if(tr->status != TRACK_STATUS_IMPORTING)
+        return 0;
+
+    pe->fd = tr->fd;
+    pe->revents = 0;
+    pe->events = POLLIN | POLLHUP;
+
+    tr->pe = pe;
+
+    return 1;
+}
+
+
 /* Read the next block of data from the file */
 
-int track_read(struct track_t *tr, struct pollfd *pe)
+static int read_from_pipe(struct track_t *tr)
 {
     int r, ls, used;
     size_t m;
     unsigned short v;
     unsigned int s, w;
     struct track_block_t *block;
-    
-    if(pe && !pe->revents)
-        return 0;
 
     /* Check whether we need to allocate a new block */
     
@@ -222,6 +236,19 @@ int track_read(struct track_t *tr, struct pollfd *pe)
     tr->length = s;
 
     return r;
+}
+
+
+/* Handle any data input on this track */
+
+int track_handle(struct track_t *tr)
+{
+    if(tr->status == TRACK_STATUS_IMPORTING && tr->pe->revents) {
+        if(read_from_pipe(tr))
+            return -1;
+    }
+
+    return 0;
 }
 
 

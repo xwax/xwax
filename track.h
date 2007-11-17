@@ -46,6 +46,7 @@ struct track_block_t {
 struct track_t {
     int status, fd;
     pid_t pid;
+    struct pollfd *pe;
 
     /* pointers to external data */
    
@@ -66,7 +67,8 @@ struct track_t {
 void track_init(struct track_t *tr, const char *importer);
 void track_clear(struct track_t *tr);
 int track_import(struct track_t *tr, char *path);
-int track_read(struct track_t *tr, struct pollfd *pe);
+int track_pollfd(struct track_t *tr, struct pollfd *pe);
+int track_handle(struct track_t *tr);
 int track_wait(struct track_t *tr);
 int track_abort(struct track_t *tr);
 

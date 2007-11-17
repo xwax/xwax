@@ -55,30 +55,16 @@ int rig_init(struct rig_t *rig)
 int rig_service(struct rig_t *rig)
 {
     int r, n;
-    struct pollfd pt[MAX_TRACKS],
-        *map[MAX_TRACKS],
-        *pe;
+    struct pollfd pt[MAX_TRACKS], *pe;
     
     while(!rig->finished) {
         pe = pt;
         
         for(n = 0; n < MAX_TRACKS; n++) {
-            if(!rig->track[n]
-               || rig->track[n]->status != TRACK_STATUS_IMPORTING)
-            {
-                map[n] = NULL;
-                continue;
-            }
-
-            pe->fd = rig->track[n]->fd;
-            pe->revents = 0;
-            pe->events = POLLIN | POLLHUP;
-            
-            map[n] = pe;
-
-            pe++;
+            if(rig->track[n])
+                pe += track_pollfd(rig->track[n], pe);
         }
-        
+
         r = poll(pt, pe - pt, POLL_TIMEOUT);
         
         if(r == -1 && errno != EINTR) {
@@ -87,13 +73,8 @@ int rig_service(struct rig_t *rig)
         }
         
         for(n = 0; n < MAX_TRACKS; n++) {
-            if(!rig->track[n]
-               || rig->track[n]->status != TRACK_STATUS_IMPORTING)
-            {
-                continue;
-            }
-
-            track_read(rig->track[n], map[n]);
+            if(rig->track[n])
+                track_handle(rig->track[n]);
         }
     }
     
