@@ -1071,9 +1071,6 @@ static int do_loading(struct track_t *track, struct record_t *record)
 {
     fprintf(stderr, "Loading '%s'.\n", record->name);
 
-    track_abort(track);
-    track_wait(track);
-
     track_import(track, record->pathname);
 
     if(strlen(record->artist))
@@ -1443,12 +1440,6 @@ int interface_run(struct interface_t *in)
             UPDATE(surface, &rplayers);
             decks_update = UPDATE_NONE;
         }
-
-        /* Enter wait state for any tracks. This must happen in this
-         * thread, as the child process is a child of this thread. */
-
-        for(p = 0; p < in->players; p++) 
-            track_wait(in->player[p]->track);
 
     } /* main loop */
 

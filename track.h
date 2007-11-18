@@ -27,10 +27,9 @@
 #define TRACK_RATE 44100
 
 #define TRACK_STATUS_UNKNOWN -1
-#define TRACK_STATUS_CLEAR 0
+#define TRACK_STATUS_VALID 0
 #define TRACK_STATUS_IMPORTING 1
-#define TRACK_STATUS_WAITING 2
-#define TRACK_STATUS_COMPLETE 3
+#define TRACK_STATUS_CLOSING 2
 
 #define TRACK_MAX_BLOCKS 64
 #define TRACK_BLOCK_SAMPLES (TRACK_RATE * 64)
@@ -65,11 +64,10 @@ struct track_t {
 };
 
 void track_init(struct track_t *tr, const char *importer);
-void track_clear(struct track_t *tr);
-int track_import(struct track_t *tr, char *path);
+int track_clear(struct track_t *tr);
+int track_import(struct track_t *tr, const char *path);
 int track_pollfd(struct track_t *tr, struct pollfd *pe);
 int track_handle(struct track_t *tr);
-int track_wait(struct track_t *tr);
 int track_abort(struct track_t *tr);
 
 /* Macro functions, to force the code inline */
