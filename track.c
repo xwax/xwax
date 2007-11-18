@@ -202,8 +202,7 @@ int track_read(struct track_t *tr, struct pollfd *pe)
         else
             tr->ppm -= (tr->ppm - v) >> 9;
         
-        if(!(ls % TRACK_PPM_RES))
-            block->ppm[ls / TRACK_PPM_RES] = tr->ppm >> 8;
+        block->ppm[ls / TRACK_PPM_RES] = tr->ppm >> 8;
         
         /* Update the slow-metering overview. Fixed point arithmetic
          * going on here */
@@ -214,9 +213,8 @@ int track_read(struct track_t *tr, struct pollfd *pe)
             tr->overview += (w - tr->overview) >> 8;
         else
             tr->overview -= (tr->overview - w) >> 17;
-        
-        if(!(ls % TRACK_OVERVIEW_RES))
-            block->overview[ls / TRACK_OVERVIEW_RES] = tr->overview >> 24;
+
+        block->overview[ls / TRACK_OVERVIEW_RES] = tr->overview >> 24;
     }
     
     tr->length = s;
