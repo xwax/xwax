@@ -66,9 +66,13 @@ static int pcm_open(struct alsa_pcm_t *alsa, const char *device_name,
         alsa_error(r);
         return -1;
     }
-    
-    snd_pcm_hw_params_malloc(&hw_params);
-    
+
+    r = snd_pcm_hw_params_malloc(&hw_params);
+    if(r < 0) {
+        alsa_error(r);
+        return -1;
+    }
+
     r = snd_pcm_hw_params_any(alsa->pcm, hw_params);
     if(r < 0) {
         alsa_error(r);
