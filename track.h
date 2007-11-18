@@ -33,14 +33,14 @@
 #define TRACK_STATUS_COMPLETE 3
 
 #define TRACK_MAX_BLOCKS 64
-#define TRACK_BLOCK_SAMPLES (TRACK_RATE * 64)
+#define TRACK_BLOCK_SAMPLES (2048 * 1024)
 #define TRACK_PPM_RES 64
-#define TRACK_OVERVIEW_RES (TRACK_RATE / 32)
+#define TRACK_OVERVIEW_RES 2048
 
 struct track_block_t {
     signed short pcm[TRACK_BLOCK_SAMPLES * TRACK_CHANNELS];
-    unsigned char ppm[TRACK_BLOCK_SAMPLES / TRACK_PPM_RES + 1],
-        overview[TRACK_BLOCK_SAMPLES / TRACK_OVERVIEW_RES + 1];
+    unsigned char ppm[TRACK_BLOCK_SAMPLES / TRACK_PPM_RES],
+        overview[TRACK_BLOCK_SAMPLES / TRACK_OVERVIEW_RES];
 };
 
 struct track_t {
