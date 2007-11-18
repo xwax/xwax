@@ -1441,6 +1441,12 @@ int interface_run(struct interface_t *in)
             decks_update = UPDATE_NONE;
         }
 
+        /* Enter wait state for any tracks. Do this from the same
+         * thread as any import processes were launched from. */
+
+        for(p = 0; p < in->players; p++) 
+            track_wait(in->player[p]->track);
+
     } /* main loop */
 
     SDL_RemoveTimer(timer);

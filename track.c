@@ -74,6 +74,7 @@ static int start_import(struct track_t *tr, const char *path)
     tr->length = 0;
     tr->ppm = 0;
     tr->overview = 0;
+    tr->eof = 0;
     
     return 0;
 }
@@ -192,7 +193,7 @@ static int read_from_pipe(struct track_t *tr)
     
     tr->length = s;
 
-    return r;
+    return 0;
 }
 
 
@@ -264,16 +265,13 @@ int track_handle(struct track_t *tr)
 {
     int r;
 
-    if(tr->status == TRACK_STATUS_IMPORTING && tr->pe && tr->pe->revents) {
-        r = read_from_pipe(tr);
-        if(r == -1)
-            return -1;
+    if(!tr->pe || !tr->pe->revents)
+        return 0;
 
-        if(r == 1) { /* EOF */
-            if(stop_import(tr) == -1)
-                return -1;
-            tr->status = TRACK_STATUS_VALID;
-        }
+    if(tr->status == TRACK_STATUS_IMPORTING && !tr->eof) {
+        r = read_from_pipe(tr);
+        if(r != 0)
+            tr->eof = 1;
     }
 
     return 0;
@@ -305,6 +303,19 @@ int track_import(struct track_t *tr, const char *path)
     if(r < 0)
         return -1;
     tr->status = TRACK_STATUS_IMPORTING;
+
+    return 0;
+}
+
+
+/* Do any waiting for completion of importer process if needed */
+
+int track_wait(struct track_t *tr)
+{
+    if(tr->status == TRACK_STATUS_IMPORTING && tr->eof) {
+        stop_import(tr);
+        tr->status = TRACK_STATUS_VALID;
+    }
 
     return 0;
 }
