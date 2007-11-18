@@ -1069,8 +1069,6 @@ static int draw_library(SDL_Surface *surface, const struct rect_t *rect,
 
 static int do_loading(struct track_t *track, struct record_t *record)
 {
-    fprintf(stderr, "Loading '%s'.\n", record->name);
-
     track_import(track, record->pathname);
 
     if(strlen(record->artist))
@@ -1084,7 +1082,9 @@ static int do_loading(struct track_t *track, struct record_t *record)
         track->title = NULL;
     
     track->name = record->name;
-    
+
+    fprintf(stderr, "Loading '%s'.\n", record->name);
+
     return 0;
 }
 
