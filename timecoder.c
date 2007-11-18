@@ -243,6 +243,7 @@ void timecoder_init(struct timecoder_t *tc)
         st = &tc->state[c];
 
         st->zero = 0;
+        st->half_peak = 0;
         st->wave_peak = 0;
         st->ref_level = -1;
         st->signal_level = 0;
