@@ -144,6 +144,21 @@ static int pcm_open(struct alsa_pcm_t *alsa, const char *device_name,
 }
 
 
+static int pcm_close(struct alsa_pcm_t *alsa)
+{
+    int r;
+
+    r = snd_pcm_close(alsa->pcm);
+    if(r < 0) {
+        alsa_error(r);
+        return -1;
+    }
+    free(alsa->buf);
+
+    return 0;
+}
+
+
 static int pcm_pollfds(struct alsa_pcm_t *alsa, struct pollfd *pe, int n)
 {
     int r, count;
@@ -373,9 +388,8 @@ static int clear(struct device_t *dv)
 {
     struct alsa_t *alsa = (struct alsa_t*)dv->local;
 
-    snd_pcm_close(alsa->capture.pcm);
-    snd_pcm_close(alsa->playback.pcm);
-    
+    pcm_close(&alsa->capture);
+    pcm_close(&alsa->playback);
     free(dv->local);
 
     return 0;
