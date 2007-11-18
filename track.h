@@ -39,8 +39,8 @@
 
 struct track_block_t {
     signed short pcm[TRACK_BLOCK_SAMPLES * TRACK_CHANNELS];
-    unsigned char ppm[TRACK_BLOCK_SAMPLES / TRACK_PPM_RES],
-        overview[TRACK_BLOCK_SAMPLES / TRACK_OVERVIEW_RES];
+    unsigned char ppm[TRACK_BLOCK_SAMPLES / TRACK_PPM_RES + 1],
+        overview[TRACK_BLOCK_SAMPLES / TRACK_OVERVIEW_RES + 1];
 };
 
 struct track_t {
