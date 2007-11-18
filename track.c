@@ -117,8 +117,10 @@ int track_import(struct track_t *tr, char *path)
 
 int track_pollfd(struct track_t *tr, struct pollfd *pe)
 {
-    if(tr->status != TRACK_STATUS_IMPORTING)
+    if(tr->status != TRACK_STATUS_IMPORTING) {
+        tr->pe = NULL;
         return 0;
+    }
 
     pe->fd = tr->fd;
     pe->revents = 0;
@@ -243,7 +245,7 @@ static int read_from_pipe(struct track_t *tr)
 
 int track_handle(struct track_t *tr)
 {
-    if(tr->status == TRACK_STATUS_IMPORTING && tr->pe->revents) {
+    if(tr->status == TRACK_STATUS_IMPORTING && tr->pe && tr->pe->revents) {
         if(read_from_pipe(tr))
             return -1;
     }
