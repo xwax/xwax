@@ -32,6 +32,9 @@
 
 #define SAMPLE 4 /* bytes per sample (all channels) */
 
+#define LOCK(tr) pthread_mutex_lock(&(tr)->mx)
+#define UNLOCK(tr) pthread_mutex_unlock(&(tr)->mx)
+
 
 /* Start the importer process. On completion, pid and fd are set */
 
@@ -146,6 +149,8 @@ static int read_from_pipe(struct track_t *tr)
              TRACK_BLOCK_SAMPLES * SAMPLE - used);
 
     if(r == -1) {
+        if(errno == EAGAIN)
+            return 0;
         perror("read");
         return -1;
 
@@ -210,6 +215,8 @@ void track_init(struct track_t *tr, const char *importer)
     tr->bytes = 0;
     tr->length = 0;
 
+    pthread_mutex_init(&tr->mx, 0); /* always returns zero */
+
     tr->status = TRACK_STATUS_VALID;
 }
 
@@ -229,11 +236,17 @@ int track_clear(struct track_t *tr)
                 return -1;
             }
         }
-        stop_import(tr);
+        if(stop_import(tr) == -1)
+            return -1;
     }
 
     for(n = 0; n < tr->blocks; n++)
         free(tr->block[n]);
+
+    if(pthread_mutex_destroy(&tr->mx) == EBUSY) {
+        fprintf(stderr, "Track busy on destroy.\n");
+        return -1;
+    }
 
     return 0;
 }
@@ -244,17 +257,20 @@ int track_clear(struct track_t *tr)
 
 int track_pollfd(struct track_t *tr, struct pollfd *pe)
 {
+    LOCK(tr);
+
     if(tr->status != TRACK_STATUS_IMPORTING) {
         tr->pe = NULL;
+        UNLOCK(tr);
         return 0;
     }
 
     pe->fd = tr->fd;
     pe->revents = 0;
     pe->events = POLLIN | POLLHUP | POLLERR;
-
     tr->pe = pe;
 
+    UNLOCK(tr);
     return 1;
 }
 
@@ -265,8 +281,13 @@ int track_handle(struct track_t *tr)
 {
     int r;
 
+    /* Only one thread is allowed to call this function, and it owns
+     * the poll entry */
+
     if(!tr->pe || !tr->pe->revents)
         return 0;
+
+    LOCK(tr);
 
     if(tr->status == TRACK_STATUS_IMPORTING && !tr->eof) {
         r = read_from_pipe(tr);
@@ -274,6 +295,7 @@ int track_handle(struct track_t *tr)
             tr->eof = 1;
     }
 
+    UNLOCK(tr);
     return 0;
 }
 
@@ -285,25 +307,34 @@ int track_import(struct track_t *tr, const char *path)
 {
     int r;
 
+    LOCK(tr);
+
     /* Abort any running import process */
 
     if(tr->status != TRACK_STATUS_VALID) {
         if(tr->status == TRACK_STATUS_IMPORTING) {
             if(kill(tr->pid, SIGTERM) == -1) {
                 perror("kill");
+                UNLOCK(tr);
                 return -1;
             }
         }
-        stop_import(tr);
+        if(stop_import(tr) == -1) {
+            UNLOCK(tr);
+            return -1;
+        }
     }
 
     /* Start the new import process */
 
     r = start_import(tr, path);
-    if(r < 0)
+    if(r < 0) {
+        UNLOCK(tr);
         return -1;
+    }
     tr->status = TRACK_STATUS_IMPORTING;
 
+    UNLOCK(tr);
     return 0;
 }
 
@@ -312,10 +343,13 @@ int track_import(struct track_t *tr, const char *path)
 
 int track_wait(struct track_t *tr)
 {
+    LOCK(tr);
+
     if(tr->status == TRACK_STATUS_IMPORTING && tr->eof) {
         stop_import(tr);
         tr->status = TRACK_STATUS_VALID;
     }
 
+    UNLOCK(tr);
     return 0;
 }
