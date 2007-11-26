@@ -58,7 +58,8 @@ static void alsa_error(int r)
 static int pcm_open(struct alsa_pcm_t *alsa, const char *device_name,
                     snd_pcm_stream_t stream, int buffer_time)
 {
-    int r, p, dir;
+    int r, dir;
+    unsigned int p;
     snd_pcm_hw_params_t *hw_params;
     
     r = snd_pcm_open(&alsa->pcm, device_name, stream, SND_PCM_NONBLOCK);
