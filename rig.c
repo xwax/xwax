@@ -21,6 +21,7 @@
 #include <pthread.h>
 #include <signal.h>
 #include <stdio.h>
+#include <unistd.h>
 #include <sys/poll.h>
 
 #include "device.h"
@@ -29,7 +30,7 @@
 #include "track.h"
 
 #define REALTIME_PRIORITY 80
-#define POLL_TIMEOUT 1000
+#define POLL_TIMEOUT 10000
 
 
 int rig_init(struct rig_t *rig)
@@ -55,45 +56,49 @@ int rig_init(struct rig_t *rig)
 int rig_service(struct rig_t *rig)
 {
     int r, n;
-    struct pollfd pt[MAX_TRACKS],
-        *map[MAX_TRACKS],
-        *pe;
+    char buf;
+    struct pollfd pt[MAX_TRACKS], *pe;
     
     while(!rig->finished) {
         pe = pt;
-        
+
+        /* ppoll() is not widely available, so use a pipe between this
+         * thread and the outside. A single byte wakes up poll() to
+         * inform us that new file descriptors need to be polled */
+
+        pe->fd = rig->event[0];
+        pe->revents = 0;
+        pe->events = POLLIN | POLLHUP | POLLERR;
+        pe++;
+
+        /* Fetch file descriptors to monitor from each track */
+
         for(n = 0; n < MAX_TRACKS; n++) {
-            if(!rig->track[n]
-               || rig->track[n]->status != TRACK_STATUS_IMPORTING)
-            {
-                map[n] = NULL;
-                continue;
-            }
-
-            pe->fd = rig->track[n]->fd;
-            pe->revents = 0;
-            pe->events = POLLIN | POLLHUP;
-            
-            map[n] = pe;
-
-            pe++;
+            if(rig->track[n])
+                pe += track_pollfd(rig->track[n], pe);
         }
-        
+
         r = poll(pt, pe - pt, POLL_TIMEOUT);
         
         if(r == -1 && errno != EINTR) {
             perror("poll");
             return -1;
         }
-        
-        for(n = 0; n < MAX_TRACKS; n++) {
-            if(!rig->track[n]
-               || rig->track[n]->status != TRACK_STATUS_IMPORTING)
-            {
-                continue;
-            }
 
-            track_read(rig->track[n], map[n]);
+        /* If we were awakened, take the top byte off the event pipe */
+
+        if(pt[0].revents) {
+            if(read(rig->event[0], &buf, 1) == -1) {
+                perror("read");
+                return -1;
+            }
+        }
+
+        /* Do any reading and writing on all tracks */
+
+        for(n = 0; n < MAX_TRACKS; n++) {
+            if(rig->track[n])
+                track_handle(rig->track[n]);
         }
     }
     
@@ -170,7 +175,21 @@ int rig_start(struct rig_t *rig)
     struct device_t *dv;
 
     rig->finished = 0;
-    
+
+    /* Register ourselves with the tracks we are looking after */
+
+    for(n = 0; n < MAX_TRACKS; n++) {
+        if(rig->track[n])
+            rig->track[n]->rig = rig;
+    }
+
+    /* Create a pipe which will be used to wake the service thread */
+
+    if(pipe(rig->event) == -1) {
+        perror("pipe");
+        return -1;
+    }
+
     if(pthread_create(&rig->pt_service, NULL, service, (void*)rig)) {
         perror("pthread_create");
         return -1;
@@ -219,6 +238,21 @@ int rig_start(struct rig_t *rig)
 }
 
 
+/* Wake up the rig when a track controlled by it has changed */
+
+int rig_awaken(struct rig_t *rig)
+{
+    /* Send a single byte down the event pipe to a waiting poll() */
+
+    if(write(rig->event[1], "\0", 1) == -1) {
+        perror("write");
+        return -1;
+    }
+
+    return 0;
+}
+
+
 int rig_stop(struct rig_t *rig)
 {
     int n;
@@ -236,6 +270,8 @@ int rig_stop(struct rig_t *rig)
         if(rig->device[n])
             device_stop(rig->device[n]);
     }
+
+    rig_awaken(rig);
 
     if(pthread_join(rig->pt_service, NULL) != 0) {
         perror("pthread_join");

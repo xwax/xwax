@@ -36,6 +36,8 @@ struct rig_t {
     struct player_t *player[MAX_PLAYERS];
     struct timecoder_t *timecoder[MAX_TIMECODERS];
 
+    int event[2]; /* pipe to wake up service thread */
+
     /* Poll table for devices */
     
     int npt;
@@ -44,6 +46,7 @@ struct rig_t {
 
 int rig_init(struct rig_t *rig);
 int rig_start(struct rig_t *rig);
+int rig_awaken(struct rig_t *rig);
 int rig_stop(struct rig_t *rig);
 
 #endif

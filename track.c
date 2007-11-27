@@ -32,38 +32,16 @@
 
 #define SAMPLE 4 /* bytes per sample (all channels) */
 
-
-void track_init(struct track_t *tr, const char *importer)
-{
-    tr->importer = importer;
-    
-    tr->bytes = 0;
-    tr->length = 0;
-    tr->blocks = 0;
-    
-    tr->pid = 0;
-    
-    tr->artist = NULL;
-    tr->title = NULL;
-    tr->name = NULL;
-        
-    tr->status = TRACK_STATUS_CLEAR;
-}
+#define LOCK(tr) pthread_mutex_lock(&(tr)->mx)
+#define UNLOCK(tr) pthread_mutex_unlock(&(tr)->mx)
 
 
-void track_clear(struct track_t *tr)
-{
-    int n;
-    
-    for(n = 0; n < tr->blocks; n++)
-        free(tr->block[n]);
-}
+/* Start the importer process. On completion, pid and fd are set */
 
-
-int track_import(struct track_t *tr, char *path)
+static int start_import(struct track_t *tr, const char *path)
 {
     int pstdout[2];
-    
+
     if(pipe(pstdout) == -1) {
         perror("pipe");
         return -1;
@@ -86,45 +64,58 @@ int track_import(struct track_t *tr, char *path)
             exit(-1);
             return 0;
         }
-
-    } else { /* parent */
-        
-        close(pstdout[1]);
-        
-        tr->bytes = 0;
-        tr->length = 0;
-        tr->ppm = 0;
-        tr->overview = 0;
-        
-        tr->fd = pstdout[0];
-        
-        if(fcntl(tr->fd, F_SETFL, O_NONBLOCK) == -1) {
-            perror("fcntl");
-            return -1;
-        }
-        
-        tr->status = TRACK_STATUS_IMPORTING;
     }
-    
-    /* The conversion process has been forked, so now make repeated
-     * calls track_read() to import the data */
+
+    close(pstdout[1]);
+    tr->fd = pstdout[0];
+    if(fcntl(tr->fd, F_SETFL, O_NONBLOCK) == -1) {
+        perror("fcntl");
+        return -1;
+    }
+
+    tr->bytes = 0;
+    tr->length = 0;
+    tr->ppm = 0;
+    tr->overview = 0;
+    tr->eof = 0;
     
     return 0;
 }
 
 
-/* Read the next block of data from the file */
+/* Conclude the importer process. To be called whether the importer
+ * was aborted or completed successfully */
 
-int track_read(struct track_t *tr, struct pollfd *pe)
+static int stop_import(struct track_t *tr)
+{
+    int status;
+
+    if(close(tr->fd) == -1) {
+        perror("close");
+        return -1;
+    }
+
+    if(waitpid(tr->pid, &status, 0) == -1) {
+        perror("waitpid");
+        return -1;
+    }
+    fprintf(stderr, "Track importer exited with status %d.\n", status);
+
+    return 0;
+}
+
+
+/* Read the next block of data from the file. Return -1 when an error
+ * occurs and requires our attention, 1 if there is no more data to be
+ * read, otherwise zero. */
+
+static int read_from_pipe(struct track_t *tr)
 {
     int r, ls, used;
     size_t m;
     unsigned short v;
     unsigned int s, w;
     struct track_block_t *block;
-    
-    if(pe && !pe->revents)
-        return 0;
 
     /* Check whether we need to allocate a new block */
     
@@ -132,8 +123,7 @@ int track_read(struct track_t *tr, struct pollfd *pe)
 
         if(tr->blocks >= TRACK_MAX_BLOCKS) {
             fprintf(stderr, "Maximum track length reached; aborting...\n");
-            track_abort(tr);
-            return 0;
+            return -1;
         }
                 
         block = malloc(sizeof(struct track_block_t));
@@ -157,32 +147,19 @@ int track_read(struct track_t *tr, struct pollfd *pe)
     
     r = read(tr->fd, (char*)block->pcm + used,
              TRACK_BLOCK_SAMPLES * SAMPLE - used);
-    
-    if(r == 0) {
-        fprintf(stderr, "Importing track complete.\n");
-        
-        m = TRACK_BLOCK_SAMPLES * SAMPLE * tr->blocks / 1024;
-        
-        fprintf(stderr, "Track memory %zuKb PCM, %zuKb PPM, %zuKb overview.\n",
-                m, m / TRACK_PPM_RES, m / TRACK_OVERVIEW_RES);
-        
-        if(close(tr->fd) == -1) {
-            perror("close");
-            tr->status = TRACK_STATUS_UNKNOWN;
-            return -1;
-        }
-        
-        tr->status = TRACK_STATUS_WAITING;
-        
-        return 0;
-        
-    } else if(r == -1) {
+
+    if(r == -1) {
         if(errno == EAGAIN)
             return 0;
-        
         perror("read");
-        tr->status = TRACK_STATUS_UNKNOWN;
         return -1;
+
+    } else if(r == 0) {
+        m = TRACK_BLOCK_SAMPLES * SAMPLE * tr->blocks / 1024;
+        fprintf(stderr, "Track memory %zuKb PCM, %zuKb PPM, %zuKb overview.\n",
+                m, m / TRACK_PPM_RES, m / TRACK_OVERVIEW_RES);
+
+        return 1;
     }
     
     tr->bytes += r;
@@ -194,7 +171,7 @@ int track_read(struct track_t *tr, struct pollfd *pe)
         
         v = (abs(block->pcm[ls * TRACK_CHANNELS])
              + abs(block->pcm[ls * TRACK_CHANNELS]));
-        
+
         /* PPM-style fast meter approximation */
 
         if(v > tr->ppm)
@@ -219,53 +196,161 @@ int track_read(struct track_t *tr, struct pollfd *pe)
     
     tr->length = s;
 
-    return r;
+    return 0;
 }
 
 
-/* Must wait for the forked application and allow it to terminate */
-
-int track_wait(struct track_t *tr)
+void track_init(struct track_t *tr, const char *importer)
 {
-    int status;
+    tr->importer = importer;
+    tr->pid = 0;
 
-    if(tr->status != TRACK_STATUS_WAITING)
-        return 0;
+    tr->artist = NULL;
+    tr->title = NULL;
+    tr->name = NULL;
 
-    fprintf(stderr, "Entering track wait...\n");
+    tr->blocks = 0;
+    tr->bytes = 0;
+    tr->length = 0;
 
-    if(waitpid(tr->pid, &status, 0) == -1) {
-        perror("waitpid");
-        return -1;
+    pthread_mutex_init(&tr->mx, 0); /* always returns zero */
+
+    tr->status = TRACK_STATUS_VALID;
+}
+
+
+/* Destroy this track from memory, and any child process */
+
+int track_clear(struct track_t *tr)
+{
+    int n;
+
+    /* Force a cleanup of whichever state we are in */
+
+    if(tr->status > TRACK_STATUS_VALID) {
+        if(tr->status == TRACK_STATUS_IMPORTING) {
+            if(kill(tr->pid, SIGKILL) == -1) {
+                perror("kill");
+                return -1;
+            }
+        }
+        if(stop_import(tr) == -1)
+            return -1;
     }
 
-    fprintf(stderr, "Track importer exited with status %d.\n", status);
+    for(n = 0; n < tr->blocks; n++)
+        free(tr->block[n]);
 
-    tr->pid = 0;
-    tr->status = TRACK_STATUS_COMPLETE;
+    if(pthread_mutex_destroy(&tr->mx) == EBUSY) {
+        fprintf(stderr, "Track busy on destroy.\n");
+        return -1;
+    }
 
     return 0;
 }
 
 
-int track_abort(struct track_t *tr)
-{
-    if(tr->status == TRACK_STATUS_IMPORTING) {
-        
-        fprintf(stderr, "Aborting track import...\n");
+/* Return the number of file descriptors which should be watched for
+ * this track, and fill pe */
 
-        if(close(tr->fd) == -1) {
-            perror("close");
-            return -1;
-        }
-        
-        if(kill(tr->pid, SIGTERM) == -1) {
-            perror("kill");
-            return -1;
-        }
-        
-        tr->status = TRACK_STATUS_WAITING;
+int track_pollfd(struct track_t *tr, struct pollfd *pe)
+{
+    LOCK(tr);
+
+    if(tr->status != TRACK_STATUS_IMPORTING) {
+        tr->pe = NULL;
+        UNLOCK(tr);
+        return 0;
     }
 
+    pe->fd = tr->fd;
+    pe->revents = 0;
+    pe->events = POLLIN | POLLHUP | POLLERR;
+    tr->pe = pe;
+
+    UNLOCK(tr);
+    return 1;
+}
+
+
+/* Handle any activity on this track, whatever the current state */
+
+int track_handle(struct track_t *tr)
+{
+    int r;
+
+    /* Only one thread is allowed to call this function, and it owns
+     * the poll entry */
+
+    if(!tr->pe || !tr->pe->revents)
+        return 0;
+
+    LOCK(tr);
+
+    if(tr->status == TRACK_STATUS_IMPORTING && !tr->eof) {
+        r = read_from_pipe(tr);
+        if(r != 0)
+            tr->eof = 1;
+    }
+
+    UNLOCK(tr);
+    return 0;
+}
+
+
+/* A request to begin importing a new track. Can be called when the
+ * track is in any state */
+
+int track_import(struct track_t *tr, const char *path)
+{
+    int r;
+
+    LOCK(tr);
+
+    /* Abort any running import process */
+
+    if(tr->status != TRACK_STATUS_VALID) {
+        if(tr->status == TRACK_STATUS_IMPORTING) {
+            if(kill(tr->pid, SIGTERM) == -1) {
+                perror("kill");
+                UNLOCK(tr);
+                return -1;
+            }
+        }
+        if(stop_import(tr) == -1) {
+            UNLOCK(tr);
+            return -1;
+        }
+    }
+
+    /* Start the new import process */
+
+    r = start_import(tr, path);
+    if(r < 0) {
+        UNLOCK(tr);
+        return -1;
+    }
+    tr->status = TRACK_STATUS_IMPORTING;
+
+    UNLOCK(tr);
+
+    rig_awaken(tr->rig);
+
+    return 0;
+}
+
+
+/* Do any waiting for completion of importer process if needed */
+
+int track_wait(struct track_t *tr)
+{
+    LOCK(tr);
+
+    if(tr->status == TRACK_STATUS_IMPORTING && tr->eof) {
+        stop_import(tr);
+        tr->status = TRACK_STATUS_VALID;
+    }
+
+    UNLOCK(tr);
     return 0;
 }

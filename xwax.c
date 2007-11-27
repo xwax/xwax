@@ -69,8 +69,6 @@ static void deck_init(struct deck_t *deck, const char *importer)
 
 static void deck_clear(struct deck_t *deck)
 {
-    track_abort(&deck->track);
-    track_wait(&deck->track);
     track_clear(&deck->track);
     timecoder_clear(&deck->timecoder);
     player_clear(&deck->player);

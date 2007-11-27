@@ -1069,11 +1069,6 @@ static int draw_library(SDL_Surface *surface, const struct rect_t *rect,
 
 static int do_loading(struct track_t *track, struct record_t *record)
 {
-    fprintf(stderr, "Loading '%s'.\n", record->name);
-
-    track_abort(track);
-    track_wait(track);
-
     track_import(track, record->pathname);
 
     if(strlen(record->artist))
@@ -1087,7 +1082,9 @@ static int do_loading(struct track_t *track, struct record_t *record)
         track->title = NULL;
     
     track->name = record->name;
-    
+
+    fprintf(stderr, "Loading '%s'.\n", record->name);
+
     return 0;
 }
 
@@ -1444,8 +1441,8 @@ int interface_run(struct interface_t *in)
             decks_update = UPDATE_NONE;
         }
 
-        /* Enter wait state for any tracks. This must happen in this
-         * thread, as the child process is a child of this thread. */
+        /* Enter wait state for any tracks. Do this from the same
+         * thread as any import processes were launched from. */
 
         for(p = 0; p < in->players; p++) 
             track_wait(in->player[p]->track);
