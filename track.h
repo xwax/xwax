@@ -24,6 +24,8 @@
 #include <sys/poll.h>
 #include <sys/types.h>
 
+#include "rig.h"
+
 #define TRACK_CHANNELS 2
 #define TRACK_RATE 44100
 
@@ -47,6 +49,7 @@ struct track_t {
     pid_t pid;
     struct pollfd *pe;
     pthread_mutex_t mx;
+    struct rig_t *rig;
 
     /* pointers to external data */
    

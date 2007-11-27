@@ -335,6 +335,9 @@ int track_import(struct track_t *tr, const char *path)
     tr->status = TRACK_STATUS_IMPORTING;
 
     UNLOCK(tr);
+
+    rig_awaken(tr->rig);
+
     return 0;
 }
 
