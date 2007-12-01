@@ -115,7 +115,8 @@ static int pcm_open(struct alsa_pcm_t *alsa, const char *device_name,
     }
 
     if(p > buffer_time * 1000 + 500) {
-        fprintf(stderr, "Buffer time of %dms is too small.\n", buffer_time);
+        fprintf(stderr, "Buffer time of %dms is too small (try %dms).\n",
+                buffer_time, p / 1000);
         return -1;
     }
 
