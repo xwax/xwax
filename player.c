@@ -112,7 +112,6 @@ static double build_pcm(signed short *pcm, int frame, struct track_t *tr,
 void player_init(struct player_t *pl)
 {
     pl->lost = 0;
-    pl->playing = 0;
     pl->reconnect = 0;
 
     pl->position = 0.0;
@@ -153,7 +152,7 @@ void player_disconnect_timecoder(struct player_t *pl)
  * timecoder_get_pitch() and should be the only place which does for
  * any given timecoder_t */
 
-int player_sync(struct player_t *pl)
+static int sync_to_timecode(struct player_t *pl)
 {
     float pitch;
     unsigned int tcpos;
@@ -169,12 +168,9 @@ int player_sync(struct player_t *pl)
 
     if(timecode != -1 && alive)
         pl->lost = 0;
-    
-    if(alive && !pl->lost)
-        pl->playing = 1;
-    
+
     if(!alive)
-        pl->playing = 0;
+        pl->pitch = 0;
     
     /* Automatically disconnect the timecoder if the needle is outside
      * the 'safe' zone of the record */
@@ -235,6 +231,8 @@ int player_collect(struct player_t *pl, signed short *pcm, int samples)
 {
     double diff;
     
+    sync_to_timecode(pl);
+
     pl->sync_pitch = 1.0;
 
     if(pl->target_position != -1) {

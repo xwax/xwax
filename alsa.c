@@ -253,12 +253,7 @@ static int playback(struct device_t *dv)
     int r;
     struct alsa_t *alsa = (struct alsa_t*)dv->local;
 
-    /* Always push some audio to the soundcard, even if it means
-     * silence. This has shown itself to be much more reliable than
-     * constantly starting and stopping -- which can affect other
-     * devices to the one which is doing the stopping. */
-    
-    if(dv->player && dv->player->playing)
+    if(dv->player)
         player_collect(dv->player, alsa->playback.buf, alsa->playback.period);
     else {
         memset(alsa->playback.buf, 0,
@@ -297,12 +292,8 @@ static int capture(struct device_t *dv)
                 r, alsa->capture.period);
     }
     
-    if(dv->timecoder) {
+    if(dv->timecoder)
         timecoder_submit(dv->timecoder, alsa->capture.buf, r);
-        
-        if(dv->player)
-            player_sync(dv->player);
-    }
 
     return 0;
 }

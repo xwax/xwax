@@ -27,7 +27,6 @@
 
 struct player_t {
     int lost, /* Position no longer predictable from speed alone */
-        playing, /* Not silence */
         reconnect; /* Re-sync the offset at next opportunity */
 
     /* Current playback parameters */
@@ -51,7 +50,6 @@ void player_clear(struct player_t *pl);
 
 void player_connect_timecoder(struct player_t *pl, struct timecoder_t *tc);
 void player_disconnect_timecoder(struct player_t *pl);
-int player_sync(struct player_t *pl);
 
 int player_control(struct player_t *pl, float pitch, float volume,
                    int timecode_known, double target_position);

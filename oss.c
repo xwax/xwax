@@ -109,24 +109,20 @@ static int handle(struct device_t *dv)
         if(samples == -1)
             return -1;
         
-        if(dv->timecoder) {
+        if(dv->timecoder)
             timecoder_submit(dv->timecoder, pcm, samples);
-
-            if(dv->player)
-                player_sync(dv->player);
-        }
     }
 
     /* Check the output buffer for playback */
     
-    if((oss->pe->revents & POLLOUT) && dv->player) {
+    if(oss->pe->revents & POLLOUT) {
 
         /* Always push some audio to the soundcard, even if it means
          * silence. This has shown itself to be much more reliable
-         * than constantly starting and stopping -- which can affect
-         * other devices to the one which is doing the stopping. */
+         * than starting and stopping -- which can affect other
+         * devices in the system. */
         
-        if(dv->player->playing)
+        if(dv->player)
             player_collect(dv->player, pcm, DEVICE_FRAME);
         else
             memset(pcm, 0, DEVICE_FRAME * DEVICE_CHANNELS * sizeof(short));
