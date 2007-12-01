@@ -86,7 +86,7 @@ static double build_pcm(signed short *pcm, int frame, struct track_t *tr,
         sb = sa + 1;
         f = sample - sa;
 
-        vol = end_vol + ((start_vol - end_vol) * s / frame);
+        vol = start_vol + ((end_vol - start_vol) * s / frame);
 
         if(sa >= 0 && sa < tr->length)
             pa = track_get_sample(tr, sa);
