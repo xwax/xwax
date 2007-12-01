@@ -236,31 +236,24 @@ void timecoder_free_lookup(void) {
 
 void timecoder_init(struct timecoder_t *tc)
 {
-    int c;
-    struct timecoder_channel_t *st;
-
-    for(c = 0; c < TIMECODER_CHANNELS; c++) {
-        st = &tc->state[c];
-
-        st->zero = 0;
-        st->half_peak = 0;
-        st->wave_peak = 0;
-        st->ref_level = -1;
-        st->signal_level = 0;
-
-        st->positive = 0;
-        st->crossings = 0;
-        st->cycle_ticker = 0;
-        st->crossings_ticker = 0;
-        st->timecode_ticker = 0;
-
-        st->bitstream = 0;
-        st->timecode = 0;
-
-        st->valid_counter = 0;
-    }
-
+    tc->positive = 0;
     tc->forwards = 1;
+
+    tc->zero = 0;
+    tc->half_peak = 0;
+    tc->wave_peak = 0;
+    tc->ref_level = -1;
+    tc->signal_level = 0;
+
+    tc->crossings = 0;
+    tc->crossings_ticker = 0;
+    tc->cycle_ticker = 0;
+
+    tc->bitstream = 0;
+    tc->timecode = 0;
+    tc->valid_counter = 0;
+    tc->timecode_ticker = 0;
+
     tc->mon = NULL;
     tc->log_fd = -1;
 }
@@ -304,14 +297,15 @@ void timecoder_monitor_clear(struct timecoder_t *tc)
 int timecoder_submit(struct timecoder_t *tc, signed short *pcm, int samples)
 {
     int b, l, /* bitstream and timecode bits */
-        s, c, /* samples, channels */
+        s,
         x, y, p, /* monitor coordinates */
-        t, u, /* phase difference */
+        v,
+        offset,
         swapped,
+        phase,
         monitor_centre;
-    signed short v, w; /* pcm sample values */
+    signed short w; /* pcm sample values */
     unsigned int mask;
-    struct timecoder_channel_t *st, *sto;
     
     b = 0;
     l = 0;
@@ -319,150 +313,131 @@ int timecoder_submit(struct timecoder_t *tc, signed short *pcm, int samples)
     mask = ((1 << def->bits) - 1);
     monitor_centre = tc->mon_size / 2;
 
+    offset = 0;
+
     for(s = 0; s < samples; s++) {
 
-        for(c = 0; c < TIMECODER_CHANNELS; c++) {
-            st = &tc->state[c];
-            
-            v = pcm[s * TIMECODER_CHANNELS + c];
-            
-            /* Work out if we've crossed through zero, based on a zero
-             * being a range rather than simply a value */
-            
-            swapped = 0;
-            
-            if(v >= st->zero + ZERO_THRESHOLD && !st->positive) {
-                swapped = 1;
-                st->positive = 1;
-            
-            } else if(v < st->zero - ZERO_THRESHOLD && st->positive) {
-                swapped = 1;
-                st->positive = 0;
-            }
-            
-            /* If a sign change in the (zero corrected) audio has
-             * happened, log the peak information */
-            
-            if(swapped) {
+        v = pcm[offset] + pcm[offset + 1];
 
-                /* Work out whether half way through a cycle we are
-                 * looking for the wave to be positive or negative */
-
-                if(st->positive == (def->polarity ^ tc->forwards)) {
-
-                    /* Entering the second half of a wave cycle */
+        /* Work out if we've crossed through zero, based on a zero
+         * being a range rather than simply a value */
+        
+        swapped = 0;
+        
+        if(v >= tc->zero + ZERO_THRESHOLD && !tc->positive) {
+            swapped = 1;
+            tc->positive = 1;
+            
+        } else if(v < tc->zero - ZERO_THRESHOLD && tc->positive) {
+            swapped = 1;
+            tc->positive = 0;
+        }
+            
+        /* If a sign change in the (zero corrected) audio has
+         * happened, log the peak information */
+        
+        if(swapped) {
+            
+            /* Work out whether half way through a cycle we are
+             * looking for the wave to be positive or negative */
+            
+            if(tc->positive == (def->polarity ^ tc->forwards)) {
+                
+                /* Entering the second half of a wave cycle */
+                
+                tc->half_peak = tc->wave_peak;
+                
+            } else {
+                
+                /* Completed a full wave cycle, so time to analyse
+                 * the level and work out whether it's a 1 or 0 */
+                
+                b = tc->wave_peak + tc->half_peak > tc->ref_level;
+                
+                /* Log binary timecode */
+                
+                if(tc->log_fd != -1)
+                    write(tc->log_fd, b ? "1" : "0", 1);
+                
+                /* Add it to the bitstream, and work out what we
+                 * were expecting (timecode). */
+                
+                /* tc->bitstream is always in the order it is
+                 * physically placed on the vinyl, regardless of
+                 * the direction. */
+                
+                if(tc->forwards) {
+                    l = lfsr(tc->timecode);
+                 
+                    tc->bitstream = (tc->bitstream >> 1)
+                        + (b << (def->bits - 1));
                     
-                    st->half_peak = st->wave_peak;
-
+                    tc->timecode = (tc->timecode >> 1)
+                        + (l << (def->bits - 1));
+                    
                 } else {
+                    l = lfsr_rev(tc->timecode);
                     
-                    /* Completed a full wave cycle, so time to analyse
-                     * the level and work out whether it's a 1 or 0 */
-
-                    b = st->wave_peak + st->half_peak > st->ref_level;
-                    
-                    /* Log _all_ channels, interleaved */
-
-                    if(tc->log_fd != -1 && c == 0)
-                        write(tc->log_fd, b ? "1" : "0", 1);
-                    
-                    /* Add it to the bitstream, and work out what we
-                     * were expecting (timecode). */
-
-                    /* st->bitstream is always in the order it is
-                     * physically placed on the vinyl, regardless of
-                     * the direction. */
-                    
-                    if(tc->forwards) {
-                        l = lfsr(st->timecode);
-                        
-                        st->bitstream = (st->bitstream >> 1)
-                            + (b << (def->bits - 1));
-
-                        st->timecode = (st->timecode >> 1)
-                            + (l << (def->bits - 1));
-
-                    } else {
-                        l = lfsr_rev(st->timecode);
-
-                        st->bitstream = ((st->bitstream << 1) & mask) + b;
-                        st->timecode = ((st->timecode << 1) & mask) + l;
-                    }
-
-                    if(b == l) {
-                        st->valid_counter++;
-                    } else {
-                        st->timecode = st->bitstream;
-                        st->valid_counter = 0;
-                    }
-
-                    /* Take note of the last time we read a valid
-                     * timecode */
-                    
-                    st->timecode_ticker = 0;
-
-                    /* Adjust the reference level based on the peaks
-                     * seen in this cycle */
-                    
-                    if(st->ref_level == -1)
-                        st->ref_level = st->half_peak + st->wave_peak;
-                    else {
-                        st->ref_level = (st->ref_level * (REF_PEAKS_AVG - 1)
-                                         + st->half_peak + st->wave_peak)
-                            / REF_PEAKS_AVG;
-                    }
-    
+                    tc->bitstream = ((tc->bitstream << 1) & mask) + b;
+                    tc->timecode = ((tc->timecode << 1) & mask) + l;
+                }
+                
+                if(b == l) {
+                    tc->valid_counter++;
+                } else {
+                    tc->timecode = tc->bitstream;
+                    tc->valid_counter = 0;
                 }
 
-                /* Calculate the immediate direction based on phase
-                 * difference of the two channels */
+                /* Take note of the last time we read a valid
+                 * timecode */
                 
-                if(c == 0) {
-                    sto = &tc->state[!c];
-                    
-                    t = st->cycle_ticker;
-                    u = sto->cycle_ticker;
-                    
-                    if(t > u) {
-                        if(st->positive == sto->positive) {
-                            st->crossings++;
-                            tc->forwards = 1;
-                        }
-                        
-                        if(st->positive != sto->positive) {
-                            st->crossings--;
-                            tc->forwards = 0;
-                        }
-                    }
-                }                    
+                tc->timecode_ticker = 0;
                 
-                /* Reset crossing couner */
+                /* Adjust the reference level based on the peaks
+                 * seen in this cycle */
                 
-                st->crossings_ticker += st->cycle_ticker;
-                st->cycle_ticker = 0;
-                st->wave_peak = 0;
+                if(tc->ref_level == -1)
+                    tc->ref_level = tc->half_peak + tc->wave_peak;
+                else {
+                    tc->ref_level = (tc->ref_level * (REF_PEAKS_AVG - 1)
+                                     + tc->half_peak + tc->wave_peak)
+                        / REF_PEAKS_AVG;
+                }
+                
+            }
 
-            } /* swapped */
+            /* Calculate the immediate direction based on phase
+             * difference of the two channels */
 
-            st->cycle_ticker++;
-            st->timecode_ticker++;
+            /* FIXME */
 
-            /* Find the zero-normalised sample of the peak value from
-             * the input */
+            /* Reset crossing counter */
 
-            w = abs(v - st->zero);
-            if(w > st->wave_peak)
-                st->wave_peak = w;
+            tc->crossings++;            
+            tc->crossings_ticker += tc->cycle_ticker;
+            tc->cycle_ticker = 0;
+            tc->wave_peak = 0;
 
-            /* Take a rolling average of zero and signal level */
+        } /* swapped */
+        
+        tc->cycle_ticker++;
+        tc->timecode_ticker++;
+        
+        /* Find the zero-normalised sample of the peak value from
+         * the input */
 
-            st->zero = (st->zero * (ZERO_AVG - 1) + v) / ZERO_AVG;
-
-            st->signal_level = (st->signal_level * (SIGNAL_AVG - 1) + w)
-                / SIGNAL_AVG;
-
-        } /* for each channel */
-
+        w = abs(v - tc->zero);
+        if(w > tc->wave_peak)
+            tc->wave_peak = w;
+        
+        /* Take a rolling average of zero and signal level */
+        
+        tc->zero = (tc->zero * (ZERO_AVG - 1) + v) / ZERO_AVG;
+        
+        tc->signal_level = (tc->signal_level * (SIGNAL_AVG - 1) + w)
+            / SIGNAL_AVG;
+        
         /* Update the monitor to add the incoming sample */
         
         if(tc->mon) {
@@ -475,9 +450,9 @@ int timecoder_submit(struct timecoder_t *tc, signed short *pcm, int samples)
                         tc->mon[p] = tc->mon[p] * 7 / 8;
                 }
             }
-
-            v = pcm[s * TIMECODER_CHANNELS]; /* first channel */
-            w = pcm[s * TIMECODER_CHANNELS + 1]; /* second channel */
+            
+            v = pcm[offset]; /* first channel */
+            w = pcm[offset + 1]; /* second channel */
             
             x = monitor_centre + (v * tc->mon_size * tc->mon_scale / 32768);
             y = monitor_centre + (w * tc->mon_size * tc->mon_scale / 32768);
@@ -488,23 +463,23 @@ int timecoder_submit(struct timecoder_t *tc, signed short *pcm, int samples)
                 tc->mon[y * tc->mon_size + x] = 0xff;
         }
 
+        offset += TIMECODER_CHANNELS;
+
     } /* for each sample */
 
     /* Print debugging information */
 
 #if 0
-    st = &tc->state[0];
-
     fprintf(stderr, "%+6d +/%4d -/%4d (%d)\t= %d (%d) %c %d"
             "\t[crossings: %d %d]\n",
-            st->zero,
-            st->half_peak,
-            st->wave_peak,
-            st->ref_level >> 1,
+            tc->zero,
+            tc->half_peak,
+            tc->wave_peak,
+            tc->ref_level >> 1,
             b, l, b == l ? ' ' : 'x',
-            st->valid_counter,
-            st->crossings,
-            st->crossings_ticker);
+            tc->valid_counter,
+            tc->crossings,
+            tc->crossings_ticker);
 #endif
 
     return 0;
@@ -517,22 +492,18 @@ int timecoder_submit(struct timecoder_t *tc, signed short *pcm, int samples)
 
 int timecoder_get_pitch(struct timecoder_t *tc, float *pitch)
 {
-    struct timecoder_channel_t *st;
-
-    st = &tc->state[0];
-    
     /* Let the caller know if there's no data to gather pitch from */
 
-    if(st->crossings_ticker == 0)
+    if(tc->crossings_ticker == 0)
         return -1;
 
-    /* Value of st->crossings may be negative */
+    /* Value of tc->crossings may be negative in reverse */
     
-    *pitch = TIMECODER_RATE * (float)st->crossings / st->crossings_ticker
+    *pitch = TIMECODER_RATE * (float)tc->crossings / tc->crossings_ticker
         / (def->resolution * 2);
-    
-    st->crossings = 0;
-    st->crossings_ticker = 0;
+
+    tc->crossings = 0;
+    tc->crossings_ticker = 0;
 
     return 0;
 }
@@ -545,18 +516,14 @@ int timecoder_get_pitch(struct timecoder_t *tc, float *pitch)
 
 signed int timecoder_get_position(struct timecoder_t *tc, int *when)
 {
-    struct timecoder_channel_t *st;
     signed int r;
 
-    st = &tc->state[0];
-
-    if(st->valid_counter > VALID_BITS) {
-        r = def->lookup[tc->state[0].bitstream];
+    if(tc->valid_counter > VALID_BITS) {
+        r = def->lookup[tc->bitstream];
 
         if(r >= 0) {
             if(when) 
-                *when = st->timecode_ticker;
-            
+                *when = tc->timecode_ticker;
             return r;
         }
     }
@@ -569,11 +536,7 @@ signed int timecoder_get_position(struct timecoder_t *tc, int *when)
 
 int timecoder_get_alive(struct timecoder_t *tc)
 {
-    struct timecoder_channel_t *st;
-
-    st = &tc->state[0];
-
-    if(st->signal_level < SIGNAL_THRESHOLD)
+    if(tc->signal_level < SIGNAL_THRESHOLD)
         return 0;
     
     return 1;

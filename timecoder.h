@@ -27,24 +27,35 @@
 
 
 struct timecoder_channel_t {
-    signed short zero, signal_level, half_peak, wave_peak, ref_level;
-
-    int positive, /* wave is in positive part of cycle */
-        crossings; /* number of zero crossings */
-
-    unsigned int bitstream, /* actual bits from the record */
-        timecode, /* corrected timecode */
-        valid_counter, /* number of successful error checks */
-        crossings_ticker, /* number of samples from which crossings counted */
-        cycle_ticker, /* samples since wave last crossed zero */
-        timecode_ticker; /* samples since valid timecode was read */
+    signed int zero, signal_level, half_peak, wave_peak, ref_level;
 };
 
 struct timecoder_t {
     struct timecoder_channel_t state[TIMECODER_CHANNELS];
-    int forwards;
 
-    unsigned char *mon; /* visual monitor of waveform */
+    int positive, /* wave is in positive part of cycle */
+        forwards;
+
+    /* Signal levels */
+
+    signed int zero, signal_level, half_peak, wave_peak, ref_level;
+
+    /* Pitch information */
+
+    int crossings, /* number of zero crossings */
+        crossings_ticker, /* number of samples from which crossings counted */
+        cycle_ticker; /* samples since wave last crossed zero */
+
+    /* Numerical timecode */
+
+    unsigned int bitstream, /* actual bits from the record */
+        timecode; /* corrected timecode */
+    int valid_counter, /* number of successful error checks */
+        timecode_ticker; /* samples since valid timecode was read */
+
+    /* Feedback */
+
+    unsigned char *mon; /* x-y array */
     int mon_size, mon_counter, mon_scale,
         log_fd; /* optional file descriptor to log to, or -1 for none */
 };
