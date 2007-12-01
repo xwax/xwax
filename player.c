@@ -69,7 +69,7 @@ static double build_pcm(signed short *pcm, int frame, struct track_t *tr,
                         float end_vol)
 {
     signed short a, b, *pa, *pb, *pcm_s;
-    unsigned int s, c, sa, sb;
+    int s, c, sa, sb;
     double sample;
     float f, vol;
 
@@ -77,22 +77,23 @@ static double build_pcm(signed short *pcm, int frame, struct track_t *tr,
         sample = position + (double)pitch * s;
         pcm_s = pcm + s * PLAYER_CHANNELS;
 
-        /* Calculate the pcm samples which sample falls inbetween. sample
-         * is positive, so cast to an integer in preference to floor()
-         * function */
+        /* Calculate the pcm samples which sample falls
+         * inbetween. sample can be positive or negative */
 
-        sa = (unsigned int)sample;
+        sa = (int)sample;
+        if(sample < 0.0)
+            sa--;
         sb = sa + 1;
         f = sample - sa;
 
         vol = end_vol + ((start_vol - end_vol) * s / frame);
 
-        if(sa < tr->length)
+        if(sa >= 0 && sa < tr->length)
             pa = track_get_sample(tr, sa);
         else
             pa = NULL;
 
-        if(sb < tr->length)
+        if(sb >= 0 && sb < tr->length)
             pb = track_get_sample(tr, sb);
         else
             pb = NULL;
