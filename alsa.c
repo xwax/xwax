@@ -132,12 +132,6 @@ static int pcm_open(struct alsa_pcm_t *alsa, const char *device_name,
     }
 
     snd_pcm_hw_params_free(hw_params);
-    
-    r = snd_pcm_prepare(alsa->pcm);
-    if(r < 0) {
-        alsa_error(r);
-        return -1;
-    }
 
     alsa->buf = malloc(alsa->period * DEVICE_CHANNELS * sizeof(signed short));
     if(!alsa->buf) {
