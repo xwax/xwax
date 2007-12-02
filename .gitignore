@@ -1,0 +1,4 @@
+xwax
+*.o
+.depend
+.config
