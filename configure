@@ -43,7 +43,7 @@ done
 
 if [ $ALSA = 1 ]; then
 	echo "ALSA enabled"
-	echo "ALSA=yes" >> $OUTPUT
+	echo "ALSA = yes" >> $OUTPUT
 else
 	echo "ALSA disabled"
 fi
