@@ -198,6 +198,10 @@ static int sync_to_timecode(struct player_t *pl)
         }
     }
         
+    /* Apply filtering in every sync cycle */
+
+    pl->pitch = (pl->pitch * (SMOOTHING - 1) + pl->target_pitch) / SMOOTHING;
+
     return 0;
 }
 
@@ -255,10 +259,6 @@ int player_collect(struct player_t *pl, signed short *pcm, int samples)
         
         pl->target_position = -1;
     }
-
-    /* Filter playback pitch and base volume on it */
-
-    pl->pitch = (pl->pitch * (SMOOTHING - 1) + pl->target_pitch) / SMOOTHING;
 
     target_volume = fabs(pl->pitch) * VOLUME;
     if(target_volume > 1.0)
