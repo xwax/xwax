@@ -20,7 +20,7 @@
 #ifndef XWAX_H
 #define XWAX_H
 
-#define BANNER "xwax 0.2 (C) Copyright 2007 Mark Hills <mark@pogo.org.uk>"
+#define BANNER "xwax 0.3 (C) Copyright 2007 Mark Hills <mark@pogo.org.uk>"
 
 #define NOTICE \
   "This software is supplied WITHOUT ANY WARRANTY; without even the implied\n"\
