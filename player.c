@@ -161,13 +161,11 @@ static int sync_to_timecode(struct player_t *pl)
     alive = timecoder_get_alive(pl->timecoder);
     pitch_unavailable = timecoder_get_pitch(pl->timecoder, &pitch);
 
-    /* Automatically disconnect the timecoder if the needle is outside
-     * the 'safe' zone of the record */
+    /* Instruct the caller to disconnect the timecoder if the needle
+     * is outside the 'safe' zone of the record */
 
-    if(timecode != -1 && timecode > pl->safe) {
-        player_disconnect_timecoder(pl);
-        return 0;
-    }
+    if(timecode != -1 && timecode > pl->safe)
+        return -1;
 
     /* If the timecoder is alive and can tell us a current pitch based
      * on the sine wave, then use it */
@@ -213,12 +211,14 @@ int player_collect(struct player_t *pl, signed short *pcm, int samples)
     double diff;
     float target_volume;
 
-    if(pl->timecoder)
-        sync_to_timecode(pl);
+    if(pl->timecoder) {
+        if(sync_to_timecode(pl) == -1)
+            player_disconnect_timecoder(pl);
+    }
 
-    pl->sync_pitch = 1.0;
-
-    if(pl->target_position != -1) {
+    if(pl->target_position == -1)
+        pl->sync_pitch = 1.0;
+    else {
 
         /* If reconnection has been requested, move the logical record
          * on the vinyl so that the current position is right under
@@ -228,6 +228,9 @@ int player_collect(struct player_t *pl, signed short *pcm, int samples)
             pl->offset += pl->target_position - pl->position;
             pl->reconnect = 0;
         }
+
+        /* Calculate the pitch compensation required to get us back on
+         * track with the absolute timecode position */
 
         diff = pl->position - pl->target_position;
         pl->last_difference = diff; /* to print in user interface */
