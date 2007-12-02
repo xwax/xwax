@@ -27,24 +27,25 @@
 
 
 struct timecoder_channel_t {
-    signed int zero, signal_level, half_peak, wave_peak, ref_level;
+    int positive; /* wave is in positive part of cycle */
+    signed int zero;
+    int crossing_ticker; /* samples since we last crossed zero */
 };
 
-struct timecoder_t {
-    struct timecoder_channel_t state[TIMECODER_CHANNELS];
 
-    int positive, /* wave is in positive part of cycle */
-        forwards;
+struct timecoder_t {
+    int forwards;
 
     /* Signal levels */
 
-    signed int zero, signal_level, half_peak, wave_peak, ref_level;
+    signed int signal_level, half_peak, wave_peak, ref_level;
+    struct timecoder_channel_t mono, channel[TIMECODER_CHANNELS];
 
     /* Pitch information */
 
     int crossings, /* number of zero crossings */
-        crossings_ticker, /* number of samples from which crossings counted */
-        cycle_ticker; /* samples since wave last crossed zero */
+        pitch_ticker, /* number of samples from which crossings counted */
+        crossing_ticker; /* stored for incrementing pitch_ticker */
 
     /* Numerical timecode */
 

@@ -232,22 +232,33 @@ void timecoder_free_lookup(void) {
 }
 
 
+static void init_channel(struct timecoder_channel_t *ch)
+{
+    ch->positive = 0;
+    ch->zero = 0;
+    ch->crossing_ticker = 0;
+}
+
+
 /* Initialise a timecode decoder */
 
 void timecoder_init(struct timecoder_t *tc)
 {
-    tc->positive = 0;
+    int c;
+
     tc->forwards = 1;
 
-    tc->zero = 0;
     tc->half_peak = 0;
     tc->wave_peak = 0;
     tc->ref_level = -1;
     tc->signal_level = 0;
 
+    init_channel(&tc->mono);
+    for(c = 0; c < TIMECODER_CHANNELS; c++)
+        init_channel(&tc->channel[c]);
+        
     tc->crossings = 0;
-    tc->crossings_ticker = 0;
-    tc->cycle_ticker = 0;
+    tc->pitch_ticker = 0;
 
     tc->bitstream = 0;
     tc->timecode = 0;
@@ -292,47 +303,61 @@ void timecoder_monitor_clear(struct timecoder_t *tc)
 }
 
 
+static int detect_zero_crossing(int v, struct timecoder_channel_t *ch)
+{
+    int swapped;
+
+    ch->crossing_ticker++;
+
+    swapped = 0;
+    if(v >= ch->zero + ZERO_THRESHOLD && !ch->positive) {
+        swapped = 1;
+        ch->positive = 1;
+        ch->crossing_ticker = 0;
+    } else if(v < ch->zero - ZERO_THRESHOLD && ch->positive) {
+        swapped = 1;
+        ch->positive = 0;
+        ch->crossing_ticker = 0;
+    }
+    
+    ch->zero = (ch->zero * (ZERO_AVG - 1) + v) / ZERO_AVG;
+    
+    return swapped;
+}
+
+
 /* Submit and decode a block of PCM audio data to the timecoder */
 
 int timecoder_submit(struct timecoder_t *tc, signed short *pcm, int samples)
 {
     int b, l, /* bitstream and timecode bits */
-        s,
+        s, c,
         x, y, p, /* monitor coordinates */
         v,
         offset,
         swapped,
-        phase,
         monitor_centre;
     signed short w; /* pcm sample values */
     unsigned int mask;
     
     b = 0;
     l = 0;
-
+    
     mask = ((1 << def->bits) - 1);
     monitor_centre = tc->mon_size / 2;
 
     offset = 0;
 
     for(s = 0; s < samples; s++) {
-
+        
+        for(c = 0; c < TIMECODER_CHANNELS; c++)
+            detect_zero_crossing(pcm[offset + c], &tc->channel[c]);
+        
+        /* Read from the mono channel */
+        
         v = pcm[offset] + pcm[offset + 1];
+        swapped = detect_zero_crossing(v, &tc->mono);
 
-        /* Work out if we've crossed through zero, based on a zero
-         * being a range rather than simply a value */
-        
-        swapped = 0;
-        
-        if(v >= tc->zero + ZERO_THRESHOLD && !tc->positive) {
-            swapped = 1;
-            tc->positive = 1;
-            
-        } else if(v < tc->zero - ZERO_THRESHOLD && tc->positive) {
-            swapped = 1;
-            tc->positive = 0;
-        }
-            
         /* If a sign change in the (zero corrected) audio has
          * happened, log the peak information */
         
@@ -341,7 +366,7 @@ int timecoder_submit(struct timecoder_t *tc, signed short *pcm, int samples)
             /* Work out whether half way through a cycle we are
              * looking for the wave to be positive or negative */
             
-            if(tc->positive == (def->polarity ^ tc->forwards)) {
+            if(tc->mono.positive == (def->polarity ^ tc->forwards)) {
                 
                 /* Entering the second half of a wave cycle */
                 
@@ -349,8 +374,8 @@ int timecoder_submit(struct timecoder_t *tc, signed short *pcm, int samples)
                 
             } else {
                 
-                /* Completed a full wave cycle, so time to analyse
-                 * the level and work out whether it's a 1 or 0 */
+                /* Completed a full wave cycle, so time to analyse the
+                 * level and work out whether it's a 1 or 0 */
                 
                 b = tc->wave_peak + tc->half_peak > tc->ref_level;
                 
@@ -359,16 +384,16 @@ int timecoder_submit(struct timecoder_t *tc, signed short *pcm, int samples)
                 if(tc->log_fd != -1)
                     write(tc->log_fd, b ? "1" : "0", 1);
                 
-                /* Add it to the bitstream, and work out what we
-                 * were expecting (timecode). */
+                /* Add it to the bitstream, and work out what we were
+                 * expecting (timecode). */
                 
                 /* tc->bitstream is always in the order it is
-                 * physically placed on the vinyl, regardless of
-                 * the direction. */
+                 * physically placed on the vinyl, regardless of the
+                 * direction. */
                 
                 if(tc->forwards) {
                     l = lfsr(tc->timecode);
-                 
+                    
                     tc->bitstream = (tc->bitstream >> 1)
                         + (b << (def->bits - 1));
                     
@@ -388,14 +413,13 @@ int timecoder_submit(struct timecoder_t *tc, signed short *pcm, int samples)
                     tc->timecode = tc->bitstream;
                     tc->valid_counter = 0;
                 }
-
-                /* Take note of the last time we read a valid
-                 * timecode */
+                
+                /* Take note of the last time we read a valid timecode */
                 
                 tc->timecode_ticker = 0;
                 
-                /* Adjust the reference level based on the peaks
-                 * seen in this cycle */
+                /* Adjust the reference level based on the peaks seen
+                 * in this cycle */
                 
                 if(tc->ref_level == -1)
                     tc->ref_level = tc->half_peak + tc->wave_peak;
@@ -406,34 +430,37 @@ int timecoder_submit(struct timecoder_t *tc, signed short *pcm, int samples)
                 }
                 
             }
+            
+            /* Calculate the immediate direction from phase difference,
+             * based on the last channel to cross zero */
 
-            /* Calculate the immediate direction based on phase
-             * difference of the two channels */
+            if(tc->channel[0].crossing_ticker > tc->channel[1].crossing_ticker)
+                tc->forwards = 1;
+            else
+                tc->forwards = 0;
 
-            /* FIXME */
-
-            /* Reset crossing counter */
-
-            tc->crossings++;            
-            tc->crossings_ticker += tc->cycle_ticker;
-            tc->cycle_ticker = 0;
+            if(tc->forwards)
+                tc->crossings++;
+            else
+                tc->crossings--;
+            
+            tc->pitch_ticker += tc->crossing_ticker;
+            tc->crossing_ticker = 0;
             tc->wave_peak = 0;
-
+            
         } /* swapped */
         
-        tc->cycle_ticker++;
+        tc->crossing_ticker++;
         tc->timecode_ticker++;
         
         /* Find the zero-normalised sample of the peak value from
          * the input */
-
-        w = abs(v - tc->zero);
+        
+        w = abs(v - tc->mono.zero);
         if(w > tc->wave_peak)
             tc->wave_peak = w;
         
         /* Take a rolling average of zero and signal level */
-        
-        tc->zero = (tc->zero * (ZERO_AVG - 1) + v) / ZERO_AVG;
         
         tc->signal_level = (tc->signal_level * (SIGNAL_AVG - 1) + w)
             / SIGNAL_AVG;
@@ -456,30 +483,37 @@ int timecoder_submit(struct timecoder_t *tc, signed short *pcm, int samples)
             
             x = monitor_centre + (v * tc->mon_size * tc->mon_scale / 32768);
             y = monitor_centre + (w * tc->mon_size * tc->mon_scale / 32768);
-
+            
             /* Set the pixel value to white */
-
+            
             if(x > 0 && x < tc->mon_size && y > 0 && y < tc->mon_size)
                 tc->mon[y * tc->mon_size + x] = 0xff;
         }
-
+        
         offset += TIMECODER_CHANNELS;
-
+        
     } /* for each sample */
-
+    
     /* Print debugging information */
-
+    
 #if 0
     fprintf(stderr, "%+6d +/%4d -/%4d (%d)\t= %d (%d) %c %d"
-            "\t[crossings: %d %d]\n",
-            tc->zero,
+            "\t[crossings: %d %d]",
+            tc->mono.zero,
             tc->half_peak,
             tc->wave_peak,
             tc->ref_level >> 1,
             b, l, b == l ? ' ' : 'x',
             tc->valid_counter,
             tc->crossings,
-            tc->crossings_ticker);
+            tc->pitch_ticker);
+
+    if(tc->pitch_ticker) {
+        fprintf(stderr, " = %d",
+                TIMECODER_RATE * tc->crossings / tc->pitch_ticker);
+    }
+
+    fputc('\n', stderr);
 #endif
 
     return 0;
@@ -494,16 +528,16 @@ int timecoder_get_pitch(struct timecoder_t *tc, float *pitch)
 {
     /* Let the caller know if there's no data to gather pitch from */
 
-    if(tc->crossings_ticker == 0)
+    if(tc->crossings == 0)
         return -1;
 
     /* Value of tc->crossings may be negative in reverse */
     
-    *pitch = TIMECODER_RATE * (float)tc->crossings / tc->crossings_ticker
+    *pitch = TIMECODER_RATE * (float)tc->crossings / tc->pitch_ticker
         / (def->resolution * 2);
 
     tc->crossings = 0;
-    tc->crossings_ticker = 0;
+    tc->pitch_ticker = 0;
 
     return 0;
 }
