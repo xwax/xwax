@@ -187,15 +187,6 @@ static int sync_to_timecode(struct player_t *pl)
             / timecoder_get_resolution(pl->timecoder);
 
         pl->target_position = tcpos + pl->target_pitch * when;
-        
-        /* If reconnection has been requested, move the logical record
-         * on the vinyl so that the current position is right under
-         * the needle, and continue */
-
-        if(pl->reconnect) {
-            pl->offset = tcpos + pl->offset - pl->position;
-            pl->reconnect = 0;
-        }
     }
         
     /* Apply filtering in every sync cycle */
@@ -228,7 +219,16 @@ int player_collect(struct player_t *pl, signed short *pcm, int samples)
     pl->sync_pitch = 1.0;
 
     if(pl->target_position != -1) {
-        
+
+        /* If reconnection has been requested, move the logical record
+         * on the vinyl so that the current position is right under
+         * the needle, and continue */
+
+        if(pl->reconnect) {
+            pl->offset += pl->target_position - pl->position;
+            pl->reconnect = 0;
+        }
+
         diff = pl->position - pl->target_position;
         pl->last_difference = diff; /* to print in user interface */
         
