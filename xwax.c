@@ -41,7 +41,7 @@
 #define DEFAULT_OSS_BUFFERS 8
 #define DEFAULT_OSS_FRAGMENT 7
 
-#define DEFAULT_ALSA_BUFFER 4 /* milliseconds */
+#define DEFAULT_ALSA_BUFFER 8 /* milliseconds */
 
 #define DEFAULT_IMPORTER "xwax_import"
 #define DEFAULT_TIMECODE "serato_2a"
