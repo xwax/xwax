@@ -47,11 +47,9 @@ struct alsa_t {
 };
 
 
-static void alsa_error(int r)
+static void alsa_error(const char *msg, int r)
 {
-    fputs("alsa: ", stderr);
-    fputs(snd_strerror(r), stderr);
-    fputc('\n', stderr);
+    fprintf(stderr, "ALSA %s: %s\n", msg, snd_strerror(r));
 }
 
 
@@ -64,45 +62,51 @@ static int pcm_open(struct alsa_pcm_t *alsa, const char *device_name,
     
     r = snd_pcm_open(&alsa->pcm, device_name, stream, SND_PCM_NONBLOCK);
     if(r < 0) {
-        alsa_error(r);
+        alsa_error("open", r);
         return -1;
     }
 
     r = snd_pcm_hw_params_malloc(&hw_params);
     if(r < 0) {
-        alsa_error(r);
+        alsa_error("hw_params_malloc", r);
         return -1;
     }
 
     r = snd_pcm_hw_params_any(alsa->pcm, hw_params);
     if(r < 0) {
-        alsa_error(r);
+        alsa_error("hw_params_any", r);
         return -1;
     }
     
     r = snd_pcm_hw_params_set_access(alsa->pcm, hw_params,
                                      SND_PCM_ACCESS_RW_INTERLEAVED);
     if(r < 0) {
-        alsa_error(r);
+        alsa_error("hw_params_set_access", r);
         return -1;
     }
     
     r = snd_pcm_hw_params_set_format(alsa->pcm, hw_params,
                                      SND_PCM_FORMAT_S16_LE);
     if(r < 0) {
-        alsa_error(r);
+        alsa_error("hw_params_set_format", r);
+        fprintf(stderr, "S16_LE format not available. You may need to use "
+                "a 'plughw' device.\n");
         return -1;
     }
 
     r = snd_pcm_hw_params_set_rate(alsa->pcm, hw_params, DEVICE_RATE, 0);
     if(r < 0) {
-        alsa_error(r);
+        alsa_error("hw_params_set_rate", r);
+        fprintf(stderr, "%dHz sample rate not available. You may need to use "
+                "a 'plughw' device.\n", DEVICE_RATE);
         return -1;
     }
     
     r = snd_pcm_hw_params_set_channels(alsa->pcm, hw_params, DEVICE_CHANNELS);
     if(r < 0) {
-        alsa_error(r);
+        alsa_error("hw_params_set_channels", r);
+        fprintf(stderr, "%d channel audio not available on this device.\n",
+                DEVICE_CHANNELS);
         return -1;
     }
 
@@ -110,7 +114,7 @@ static int pcm_open(struct alsa_pcm_t *alsa, const char *device_name,
     dir = 0;
     r = snd_pcm_hw_params_set_buffer_time_near(alsa->pcm, hw_params, &p, &dir);
     if(r < 0) {
-        alsa_error(r);
+        alsa_error("hw_params_set_buffer_time_near", r);
         return -1;
     }
 
@@ -122,13 +126,13 @@ static int pcm_open(struct alsa_pcm_t *alsa, const char *device_name,
 
     r = snd_pcm_hw_params(alsa->pcm, hw_params);
     if(r < 0) {
-        alsa_error(r);
+        alsa_error("hw_params", r);
         return -1;
     }
     
     r = snd_pcm_hw_params_get_period_size(hw_params, &alsa->period, &dir);
     if(r < 0) {
-        alsa_error(r);
+        alsa_error("get_period_size", r);
         return -1;
     }
 
@@ -150,7 +154,7 @@ static int pcm_close(struct alsa_pcm_t *alsa)
 
     r = snd_pcm_close(alsa->pcm);
     if(r < 0) {
-        alsa_error(r);
+        alsa_error("close", r);
         return -1;
     }
     free(alsa->buf);
@@ -173,7 +177,7 @@ static int pcm_pollfds(struct alsa_pcm_t *alsa, struct pollfd *pe, int n)
         r = snd_pcm_poll_descriptors(alsa->pcm, pe, count);
         
         if(r < 0) {
-            alsa_error(r);
+            alsa_error("poll_descriptors", r);
             return -1;
         }
 
@@ -191,7 +195,7 @@ static int pcm_revents(struct alsa_pcm_t *alsa, unsigned short *revents) {
     r = snd_pcm_poll_descriptors_revents(alsa->pcm, alsa->pe, alsa->pe_count,
                                          revents);
     if(r < 0) {
-        alsa_error(r);
+        alsa_error("poll_descriptors_revents", r);
         return -1;
     }
     
@@ -209,7 +213,7 @@ static int start(struct device_t *dv)
 
     r = snd_pcm_start(alsa->capture.pcm);
     if(r < 0) {
-        alsa_error(r);
+        alsa_error("start", r);
         return -1;
     }
 
@@ -328,22 +332,22 @@ static int handle(struct device_t *dv)
         
         if(r < 0) {
             if(r == -EPIPE) {
-                fputs("alsa: capture xrun.\n", stderr);
+                fputs("ALSA: capture xrun.\n", stderr);
 
                 r = snd_pcm_prepare(alsa->capture.pcm);
                 if(r < 0) {
-                    alsa_error(r);
+                    alsa_error("prepare", r);
                     return -1;
                 }
 
                 r = snd_pcm_start(alsa->capture.pcm);
                 if(r < 0) {
-                    alsa_error(r);
+                    alsa_error("start", r);
                     return -1;
                 }
 
             } else {
-                alsa_error(r);
+                alsa_error("capture", r);
                 return -1;
             }
         } 
@@ -360,11 +364,11 @@ static int handle(struct device_t *dv)
         
         if(r < 0) {
             if(r == -EPIPE) {
-                fputs("alsa: playback xrun.\n", stderr);
+                fputs("ALSA: playback xrun.\n", stderr);
                 
                 r = snd_pcm_prepare(alsa->playback.pcm) < 0;
                 if(r < 0) {
-                    alsa_error(r);
+                    alsa_error("prepare", r);
                     return -1;
                 }
 
@@ -372,7 +376,7 @@ static int handle(struct device_t *dv)
                  * events are generated in prepared state. */
 
             } else {
-                alsa_error(r);
+                alsa_error("playback", r);
                 return -1;
             }
         }
