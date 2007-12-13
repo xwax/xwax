@@ -255,21 +255,23 @@ int track_clear(struct track_t *tr)
 
 int track_pollfd(struct track_t *tr, struct pollfd *pe)
 {
+    int r;
+
     LOCK(tr);
 
-    if(tr->status != TRACK_STATUS_IMPORTING) {
+    if(tr->status == TRACK_STATUS_IMPORTING && !tr->eof) {
+        pe->fd = tr->fd;
+        pe->revents = 0;
+        pe->events = POLLIN | POLLHUP | POLLERR;
+        tr->pe = pe;
+        r = 1;
+    } else {
         tr->pe = NULL;
-        UNLOCK(tr);
-        return 0;
+        r = 0;
     }
 
-    pe->fd = tr->fd;
-    pe->revents = 0;
-    pe->events = POLLIN | POLLHUP | POLLERR;
-    tr->pe = pe;
-
     UNLOCK(tr);
-    return 1;
+    return r;
 }
 
 
