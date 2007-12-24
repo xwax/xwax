@@ -47,17 +47,17 @@ struct listing_t {
 };
 
 int library_init(struct library_t *li);
-int library_clear(struct library_t *li);
+void library_clear(struct library_t *li);
 int library_add(struct library_t *li, struct record_t *lr);
 int library_import(struct library_t *li, char *path);
 int library_get_listing(struct library_t *li, struct listing_t *ls);
 
 int listing_init(struct listing_t *ls);
-int listing_clear(struct listing_t *ls);
-int listing_blank(struct listing_t *ls);
+void listing_clear(struct listing_t *ls);
+void listing_blank(struct listing_t *ls);
 int listing_add(struct listing_t *li, struct record_t *lr);
 int listing_match(struct listing_t *src, struct listing_t *dest, char *match);
-int listing_debug(struct listing_t *ls);
-int listing_sort(struct listing_t *ls);
+void listing_debug(struct listing_t *ls);
+void listing_sort(struct listing_t *ls);
 
 #endif

@@ -135,12 +135,9 @@ int library_init(struct library_t *li)
 }
 
 
-int library_clear(struct library_t *li)
+void library_clear(struct library_t *li)
 {
-    if(li->record)
-        free(li->record);
-
-    return 0;
+    free(li->record);
 }
 
 
@@ -251,19 +248,15 @@ int listing_init(struct listing_t *ls)
 }
 
 
-int listing_clear(struct listing_t *ls)
+void listing_clear(struct listing_t *ls)
 {
-    if(ls->record)
-        free(ls->record);
-
-    return 0;
+    free(ls->record);
 }
 
 
-int listing_blank(struct listing_t *ls)
+void listing_blank(struct listing_t *ls)
 {
     ls->entries = 0;
-    return 0;
 }
 
 
@@ -289,7 +282,7 @@ int listing_add(struct listing_t *ls, struct record_t *lr)
 }
 
 
-int listing_sort(struct listing_t *ls)
+void listing_sort(struct listing_t *ls)
 {
     int i, changed;
     struct record_t *re;
@@ -306,8 +299,6 @@ int listing_sort(struct listing_t *ls)
             }
         }
     } while(changed);
-    
-    return 0;
 }
 
 
@@ -321,20 +312,20 @@ int listing_match(struct listing_t *src, struct listing_t *dest, char *match)
     for(n = 0; n < src->entries; n++) {
         re = src->record[n];
         
-        if(strmatch(match, re->name))
-            listing_add(dest, re);
+        if(strmatch(match, re->name)) {
+            if(listing_add(dest, re) == -1)
+                return -1;
+        }
     }
 
     return 0;
 }
 
 
-int listing_debug(struct listing_t *ls)
+void listing_debug(struct listing_t *ls)
 {
     int n;
 
     for(n = 0; n < ls->entries; n++)
         fprintf(stderr, "%d: %s\n", n, ls->record[n]->name);
-    
-    return 0;
 }
