@@ -33,9 +33,6 @@
 #include "track.h"
 #include "xwax.h"
 
-#define CHANNELS 2
-#define RATE 44100
-
 #define MAX_DECKS 3
 
 #define DEFAULT_OSS_BUFFERS 8
