@@ -111,8 +111,6 @@ static double build_pcm(signed short *pcm, int frame, struct track_t *tr,
 
 void player_init(struct player_t *pl)
 {
-    pl->lost = 0;
-    pl->playing = 0;
     pl->reconnect = 0;
 
     pl->position = 0.0;
@@ -122,8 +120,7 @@ void player_init(struct player_t *pl)
 
     pl->pitch = 1.0;
     pl->sync_pitch = 1.0;
-    pl->volume = 1.0;
-    pl->target_volume = pl->volume;
+    pl->volume = 0.0;
 
     pl->track = NULL;
     pl->timecoder = NULL;
@@ -153,47 +150,30 @@ void player_disconnect_timecoder(struct player_t *pl)
  * timecoder_get_pitch() and should be the only place which does for
  * any given timecoder_t */
 
-int player_sync(struct player_t *pl)
+static int sync_to_timecode(struct player_t *pl)
 {
     float pitch;
     unsigned int tcpos;
     signed int timecode;
     int when, alive, pitch_unavailable;
 
-    if(!pl->timecoder)
-        return 0;
-
     timecode = timecoder_get_position(pl->timecoder, &when);
     alive = timecoder_get_alive(pl->timecoder);
     pitch_unavailable = timecoder_get_pitch(pl->timecoder, &pitch);
 
-    if(timecode != -1 && alive)
-        pl->lost = 0;
-    
-    if(alive && !pl->lost)
-        pl->playing = 1;
-    
-    if(!alive)
-        pl->playing = 0;
-    
-    /* Automatically disconnect the timecoder if the needle is outside
-     * the 'safe' zone of the record */
+    /* Instruct the caller to disconnect the timecoder if the needle
+     * is outside the 'safe' zone of the record */
 
-    if(timecode != -1 && timecode > pl->safe) {
-        player_disconnect_timecoder(pl);
-        return 0;
-    }
+    if(timecode != -1 && timecode > pl->safe)
+        return -1;
 
     /* If the timecoder is alive and can tell us a current pitch based
      * on the sine wave, then use it */
-    
-    if(alive && !pitch_unavailable)
-        pl->pitch = (pl->pitch * (SMOOTHING - 1) + pitch) / SMOOTHING;
 
-    pl->target_volume = fabs(pl->pitch) * VOLUME;
-    
-    if(pl->target_volume > 1.0)
-        pl->target_volume = 1.0;
+    if(alive && !pitch_unavailable)
+        pl->target_pitch = pitch;
+    else if(!alive)
+        pl->target_pitch = 0.0;
 
     /* If we can read an absolute time from the timecode, then use it */
     
@@ -204,18 +184,13 @@ int player_sync(struct player_t *pl)
         tcpos = (long long)timecode * TIMECODER_RATE
             / timecoder_get_resolution(pl->timecoder);
 
-        pl->target_position = tcpos + pl->pitch * when;
-        
-        /* If reconnection has been requested, move the logical record
-         * on the vinyl so that the current position is right under
-         * the needle, and continue */
-
-        if(pl->reconnect) {
-            pl->offset = tcpos + pl->offset - pl->position;
-            pl->reconnect = 0;
-        }
+        pl->target_position = tcpos + pl->target_pitch * when;
     }
         
+    /* Apply filtering in every sync cycle */
+
+    pl->pitch = (pl->pitch * (SMOOTHING - 1) + pl->target_pitch) / SMOOTHING;
+
     return 0;
 }
 
@@ -234,11 +209,29 @@ int player_recue(struct player_t *pl)
 int player_collect(struct player_t *pl, signed short *pcm, int samples)
 {
     double diff;
-    
-    pl->sync_pitch = 1.0;
+    float target_volume;
 
-    if(pl->target_position != -1) {
-        
+    if(pl->timecoder) {
+        if(sync_to_timecode(pl) == -1)
+            player_disconnect_timecoder(pl);
+    }
+
+    if(pl->target_position == -1)
+        pl->sync_pitch = 1.0;
+    else {
+
+        /* If reconnection has been requested, move the logical record
+         * on the vinyl so that the current position is right under
+         * the needle, and continue */
+
+        if(pl->reconnect) {
+            pl->offset += pl->target_position - pl->position;
+            pl->reconnect = 0;
+        }
+
+        /* Calculate the pitch compensation required to get us back on
+         * track with the absolute timecode position */
+
         diff = pl->position - pl->target_position;
         pl->last_difference = diff; /* to print in user interface */
         
@@ -269,13 +262,19 @@ int player_collect(struct player_t *pl, signed short *pcm, int samples)
         
         pl->target_position = -1;
     }
-        
+
+    target_volume = fabs(pl->pitch) * VOLUME;
+    if(target_volume > 1.0)
+        target_volume = 1.0;
+
+    /* Sync pitch is applied post-filtering */
+
     pl->position += build_pcm(pcm, samples, pl->track,
                               pl->position - pl->offset,
                               pl->pitch * pl->sync_pitch,
-                              pl->volume, pl->target_volume);
+                              pl->volume, target_volume);
     
-    pl->volume = pl->target_volume;
+    pl->volume = target_volume;
 
     return 0;
 }

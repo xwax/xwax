@@ -823,14 +823,11 @@ static void draw_deck_status(SDL_Surface *surface,
     else
         sprintf(buf, "timecode:        ");
     
-    sprintf(buf + 17, "pitch:%+0.2f (sync %0.2f %+4.0f = %+0.2f)  "
-            "status:%s%s%s",
+    sprintf(buf + 17, "pitch:%+0.2f (sync %0.2f %+4.0f = %+0.2f)  %s",
             pl->pitch,
             pl->sync_pitch,
             pl->last_difference,
             pl->pitch * pl->sync_pitch,
-            pl->lost ? "LOST  " : "",
-            pl->playing ? "PLAY  " : "",
             pl->reconnect ? "RECN  " : "");
     
     draw_font_rect(surface, rect, buf, detail_font,
