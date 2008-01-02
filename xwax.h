@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007 Mark Hills <mark@pogo.org.uk>
+ * Copyright (C) 2008 Mark Hills <mark@pogo.org.uk>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,7 +20,7 @@
 #ifndef XWAX_H
 #define XWAX_H
 
-#define BANNER "xwax 0.3 (C) Copyright 2007 Mark Hills <mark@pogo.org.uk>"
+#define BANNER "xwax 0.3 (C) Copyright 2008 Mark Hills <mark@pogo.org.uk>"
 
 #define NOTICE \
   "This software is supplied WITHOUT ANY WARRANTY; without even the implied\n"\
