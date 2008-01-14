@@ -652,7 +652,7 @@ static void draw_overview(SDL_Surface *surface, const struct rect_t *rect,
 
         if(!tr->length)
             col = background_col;
-        else if(position > tr->length - TRACK_RATE * 20)
+        else if(position > tr->length - tr->rate * 20)
             col = warn_col;
         else
             col = elapsed_col;

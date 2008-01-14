@@ -78,7 +78,8 @@ static int start_import(struct track_t *tr, const char *path)
     tr->ppm = 0;
     tr->overview = 0;
     tr->eof = 0;
-    
+    tr->rate = TRACK_RATE;
+
     return 0;
 }
 
@@ -212,6 +213,7 @@ void track_init(struct track_t *tr, const char *importer)
     tr->blocks = 0;
     tr->bytes = 0;
     tr->length = 0;
+    tr->rate = 0;
 
     pthread_mutex_init(&tr->mx, 0); /* always returns zero */
 
