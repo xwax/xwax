@@ -54,7 +54,7 @@ static void alsa_error(const char *msg, int r)
 
 
 static int pcm_open(struct alsa_pcm_t *alsa, const char *device_name,
-                    snd_pcm_stream_t stream, int buffer_time)
+                    snd_pcm_stream_t stream, int rate, int buffer_time)
 {
     int r, dir;
     unsigned int p;
@@ -94,11 +94,11 @@ static int pcm_open(struct alsa_pcm_t *alsa, const char *device_name,
         return -1;
     }
 
-    r = snd_pcm_hw_params_set_rate(alsa->pcm, hw_params, DEVICE_RATE, 0);
+    r = snd_pcm_hw_params_set_rate(alsa->pcm, hw_params, rate, 0);
     if(r < 0) {
         alsa_error("hw_params_set_rate", r);
         fprintf(stderr, "%dHz sample rate not available. You may need to use "
-                "a 'plughw' device.\n", DEVICE_RATE);
+                "a 'plughw' device.\n", rate);
         return -1;
     }
     
@@ -389,7 +389,8 @@ static int clear(struct device_t *dv)
 
 /* Open ALSA device. Do not operate on audio until device_start() */
 
-int alsa_init(struct device_t *dv, const char *device_name, int buffer_time)
+int alsa_init(struct device_t *dv, const char *device_name,
+              int rate, int buffer_time)
 {
     struct alsa_t *alsa;
 
@@ -400,14 +401,14 @@ int alsa_init(struct device_t *dv, const char *device_name, int buffer_time)
     }
 
     if(pcm_open(&alsa->capture, device_name, SND_PCM_STREAM_CAPTURE,
-                buffer_time) < 0)
+                rate, buffer_time) < 0)
     {
         fputs("Failed to open device for capture.\n", stderr);
         goto fail;
     }
     
     if(pcm_open(&alsa->playback, device_name, SND_PCM_STREAM_PLAYBACK,
-                buffer_time) < 0)
+                rate, buffer_time) < 0)
     {
         fputs("Failed to open device for playback.\n", stderr);
         goto fail;

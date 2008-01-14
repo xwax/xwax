@@ -40,6 +40,8 @@
 
 #define DEFAULT_ALSA_BUFFER 8 /* milliseconds */
 
+#define DEFAULT_RATE 44100
+
 #define DEFAULT_IMPORTER "xwax_import"
 #define DEFAULT_TIMECODE "serato_2a"
 
@@ -108,8 +110,9 @@ void usage(FILE *fd)
 #ifdef WITH_ALSA
     fprintf(fd, "ALSA device options:\n"
       "  -a <device>    Build a deck connected to ALSA audio device\n"
+      "  -r <hz>        Sample rate (default %dHz)\n"
       "  -m <ms>        Buffer time (default %dms)\n\n",
-      DEFAULT_ALSA_BUFFER);
+      DEFAULT_RATE, DEFAULT_ALSA_BUFFER);
 #endif
 
     fprintf(fd, "Device options and -i apply to subsequent devices.\n"
@@ -130,7 +133,7 @@ void usage(FILE *fd)
 
 int main(int argc, char *argv[])
 {
-    int r, n, decks, oss_fragment, oss_buffers, alsa_buffer;
+    int r, n, decks, oss_fragment, oss_buffers, rate, alsa_buffer;
     char *endptr, *timecode, *importer;
 
     struct deck_t deck[MAX_DECKS];
@@ -149,6 +152,7 @@ int main(int argc, char *argv[])
     decks = 0;
     oss_fragment = DEFAULT_OSS_FRAGMENT;
     oss_buffers = DEFAULT_OSS_BUFFERS;
+    rate = DEFAULT_RATE;
     alsa_buffer = DEFAULT_ALSA_BUFFER;
     importer = DEFAULT_IMPORTER;
     timecode = DEFAULT_TIMECODE;
@@ -206,6 +210,24 @@ int main(int argc, char *argv[])
             argc -= 2;
             
 #ifdef WITH_ALSA
+        } else if(!strcmp(argv[0], "-r")) {
+
+            /* Set sample rate for subsequence devices */
+
+            if(argc < 2) {
+                fprintf(stderr, "-r requires an integer argument.\n");
+                return -1;
+            }
+
+            rate = strtol(argv[1], &endptr, 10);
+            if(*endptr != '\0') {
+                fprintf(stderr, "-r requires an integer argument.\n");
+                return -1;
+            }
+
+            argv += 2;
+            argc -= 2;  
+
         } else if(!strcmp(argv[0], "-m")) {
             
             /* Set size of ALSA buffer for subsequence devices */
@@ -257,7 +279,7 @@ int main(int argc, char *argv[])
                 break;
 #ifdef WITH_ALSA
             case 'a':
-                r = alsa_init(device, argv[1], alsa_buffer);
+                r = alsa_init(device, argv[1], rate, alsa_buffer);
                 break;
 #endif                   
             default:
