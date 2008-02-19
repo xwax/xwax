@@ -27,8 +27,8 @@
 #define ZERO_THRESHOLD 128
 #define SIGNAL_THRESHOLD 256
 
-#define ZERO_AVG (TIMECODER_RATE / 1024)
-#define SIGNAL_AVG (TIMECODER_RATE / 256)
+#define ZERO_AVG 1024
+#define SIGNAL_AVG 256
 
 #define MAX_BITS 32 /* bits in an int */
 
@@ -247,6 +247,7 @@ void timecoder_init(struct timecoder_t *tc)
     int c;
 
     tc->forwards = 1;
+    tc->rate = TIMECODER_RATE;
 
     tc->half_peak = 0;
     tc->wave_peak = 0;
@@ -303,7 +304,8 @@ void timecoder_monitor_clear(struct timecoder_t *tc)
 }
 
 
-static int detect_zero_crossing(int v, struct timecoder_channel_t *ch)
+static int detect_zero_crossing(struct timecoder_channel_t *ch,
+                                signed short v, int rate)
 {
     int swapped;
 
@@ -320,7 +322,7 @@ static int detect_zero_crossing(int v, struct timecoder_channel_t *ch)
         ch->crossing_ticker = 0;
     }
     
-    ch->zero = (ch->zero * (ZERO_AVG - 1) + v) / ZERO_AVG;
+    ch->zero += (v - ch->zero) * ZERO_AVG / rate;
     
     return swapped;
 }
@@ -351,12 +353,12 @@ int timecoder_submit(struct timecoder_t *tc, signed short *pcm, int samples)
     for(s = 0; s < samples; s++) {
         
         for(c = 0; c < TIMECODER_CHANNELS; c++)
-            detect_zero_crossing(pcm[offset + c], &tc->channel[c]);
-        
+            detect_zero_crossing(&tc->channel[c], pcm[offset + c], tc->rate);
+
         /* Read from the mono channel */
         
         v = pcm[offset] + pcm[offset + 1];
-        swapped = detect_zero_crossing(v, &tc->mono);
+        swapped = detect_zero_crossing(&tc->mono, v, tc->rate);
 
         /* If a sign change in the (zero corrected) audio has
          * happened, log the peak information */
@@ -461,10 +463,9 @@ int timecoder_submit(struct timecoder_t *tc, signed short *pcm, int samples)
             tc->wave_peak = w;
         
         /* Take a rolling average of zero and signal level */
-        
-        tc->signal_level = (tc->signal_level * (SIGNAL_AVG - 1) + w)
-            / SIGNAL_AVG;
-        
+
+        tc->signal_level += (w - tc->signal_level) * SIGNAL_AVG / tc->rate;
+
         /* Update the monitor to add the incoming sample */
         
         if(tc->mon) {
@@ -497,21 +498,20 @@ int timecoder_submit(struct timecoder_t *tc, signed short *pcm, int samples)
     /* Print debugging information */
     
 #if 0
-    fprintf(stderr, "%+6d +/%4d -/%4d (%d)\t= %d (%d) %c %d"
+    fprintf(stderr, "%+6d +/%4d -/%4d (%4d,%4d)\t= %d (%d) %c %d"
             "\t[crossings: %d %d]",
             tc->mono.zero,
             tc->half_peak,
             tc->wave_peak,
             tc->ref_level >> 1,
+            tc->signal_level,
             b, l, b == l ? ' ' : 'x',
             tc->valid_counter,
             tc->crossings,
             tc->pitch_ticker);
 
-    if(tc->pitch_ticker) {
-        fprintf(stderr, " = %d",
-                TIMECODER_RATE * tc->crossings / tc->pitch_ticker);
-    }
+    if(tc->pitch_ticker)
+        fprintf(stderr, " = %d", tc->rate * tc->crossings / tc->pitch_ticker);
 
     fputc('\n', stderr);
 #endif
@@ -533,7 +533,7 @@ int timecoder_get_pitch(struct timecoder_t *tc, float *pitch)
 
     /* Value of tc->crossings may be negative in reverse */
     
-    *pitch = TIMECODER_RATE * (float)tc->crossings / tc->pitch_ticker
+    *pitch = tc->rate * (float)tc->crossings / tc->pitch_ticker
         / (def->resolution * 2);
 
     tc->crossings = 0;

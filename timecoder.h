@@ -34,7 +34,7 @@ struct timecoder_channel_t {
 
 
 struct timecoder_t {
-    int forwards;
+    int forwards, rate;
 
     /* Signal levels */
 
