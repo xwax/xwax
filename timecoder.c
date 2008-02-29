@@ -335,11 +335,10 @@ int timecoder_submit(struct timecoder_t *tc, signed short *pcm, int samples)
     int b, l, /* bitstream and timecode bits */
         s, c,
         x, y, p, /* monitor coordinates */
-        v,
         offset,
         swapped,
         monitor_centre;
-    signed short w; /* pcm sample values */
+    signed int v, w; /* pcm sample value, sum of two short channels */
     unsigned int mask;
     
     b = 0;
@@ -482,8 +481,8 @@ int timecoder_submit(struct timecoder_t *tc, signed short *pcm, int samples)
             v = pcm[offset]; /* first channel */
             w = pcm[offset + 1]; /* second channel */
             
-            x = monitor_centre + (v * tc->mon_size * tc->mon_scale / 32768);
-            y = monitor_centre + (w * tc->mon_size * tc->mon_scale / 32768);
+            x = monitor_centre + (v * tc->mon_size * tc->mon_scale >> 16);
+            y = monitor_centre + (w * tc->mon_size * tc->mon_scale >> 16);
             
             /* Set the pixel value to white */
             

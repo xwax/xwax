@@ -58,6 +58,7 @@ static int pcm_open(struct alsa_pcm_t *alsa, const char *device_name,
 {
     int r, dir;
     unsigned int p;
+    size_t bytes;
     snd_pcm_hw_params_t *hw_params;
     
     r = snd_pcm_open(&alsa->pcm, device_name, stream, SND_PCM_NONBLOCK);
@@ -85,12 +86,11 @@ static int pcm_open(struct alsa_pcm_t *alsa, const char *device_name,
         return -1;
     }
     
-    r = snd_pcm_hw_params_set_format(alsa->pcm, hw_params,
-                                     SND_PCM_FORMAT_S16_LE);
+    r = snd_pcm_hw_params_set_format(alsa->pcm, hw_params, SND_PCM_FORMAT_S16);
     if(r < 0) {
         alsa_error("hw_params_set_format", r);
-        fprintf(stderr, "S16_LE format not available. You may need to use "
-                "a 'plughw' device.\n");
+        fprintf(stderr, "16-bit signed format is not available. "
+                "You may need to use a 'plughw' device.\n");
         return -1;
     }
 
@@ -134,11 +134,17 @@ static int pcm_open(struct alsa_pcm_t *alsa, const char *device_name,
 
     snd_pcm_hw_params_free(hw_params);
 
-    alsa->buf = malloc(alsa->period * DEVICE_CHANNELS * sizeof(signed short));
+    bytes = alsa->period * DEVICE_CHANNELS * sizeof(signed short);
+    alsa->buf = malloc(bytes);
     if(!alsa->buf) {
         perror("malloc");
         return -1;
     }
+
+    /* snd_pcm_readi() returns uninitialised memory on first call,
+     * possibly caused by premature POLLIN. Keep valgrind happy. */
+
+    memset(alsa->buf, 0, bytes);
 
     return 0;
 }

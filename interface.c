@@ -89,7 +89,7 @@
 
 #define SPINNER_SIZE (CLOCK_FONT_SIZE * 2 - 6)
 #define SCOPE_SIZE (CLOCK_FONT_SIZE * 2 - 6)
-#define SCOPE_SCALE 2
+#define SCOPE_SCALE 1
 
 #define SCROLLBAR_SIZE 10
 
