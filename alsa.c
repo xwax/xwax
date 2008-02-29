@@ -86,12 +86,11 @@ static int pcm_open(struct alsa_pcm_t *alsa, const char *device_name,
         return -1;
     }
     
-    r = snd_pcm_hw_params_set_format(alsa->pcm, hw_params,
-                                     SND_PCM_FORMAT_S16_LE);
+    r = snd_pcm_hw_params_set_format(alsa->pcm, hw_params, SND_PCM_FORMAT_S16);
     if(r < 0) {
         alsa_error("hw_params_set_format", r);
-        fprintf(stderr, "S16_LE format not available. You may need to use "
-                "a 'plughw' device.\n");
+        fprintf(stderr, "16-bit signed format is not available. "
+                "You may need to use a 'plughw' device.\n");
         return -1;
     }
 
