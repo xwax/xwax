@@ -333,11 +333,10 @@ int timecoder_submit(struct timecoder_t *tc, signed short *pcm, int samples)
     int b, l, /* bitstream and timecode bits */
         s, c,
         x, y, p, /* monitor coordinates */
-        v,
         offset,
         swapped,
         monitor_centre;
-    signed short w; /* pcm sample values */
+    signed int v, w; /* pcm sample value, sum of two short channels */
     unsigned int mask;
     
     b = 0;
