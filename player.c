@@ -215,9 +215,7 @@ int player_collect(struct player_t *pl, signed short *pcm, int samples)
             player_disconnect_timecoder(pl);
     }
 
-    if(!pl->target_valid)
-        pl->sync_pitch = 1.0;
-    else {
+    if(pl->target_valid) {
 
         /* If reconnection has been requested, move the logical record
          * on the vinyl so that the current position is right under
