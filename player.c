@@ -181,7 +181,7 @@ static int sync_to_timecode(struct player_t *pl)
         pl->target_position = -1;
     
     else {
-        tcpos = (long long)timecode * TIMECODER_RATE
+        tcpos = (long long)timecode * PLAYER_RATE
             / timecoder_get_resolution(pl->timecoder);
 
         pl->target_position = tcpos + pl->target_pitch * when;

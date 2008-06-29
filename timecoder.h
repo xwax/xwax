@@ -23,7 +23,6 @@
 #include "device.h"
 
 #define TIMECODER_CHANNELS DEVICE_CHANNELS
-#define TIMECODER_RATE DEVICE_RATE
 
 
 struct timecoder_channel_t {
