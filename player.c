@@ -31,7 +31,7 @@
 /* Bend playback speed to compensate for the difference between our
  * current position and that given by the timecode */
 
-#define SYNC_TIME (PLAYER_RATE / 2) /* time taken to reach sync */
+#define SYNC_TIME (1.0 / 2) /* time taken to reach sync */
 #define SYNC_PITCH 0.05 /* don't sync at low pitches */
 
 
@@ -39,7 +39,7 @@
  * the timecode is greater than this value, recover by jumping
  * straight to the position given by the timecode. */
 
-#define SKIP_THRESHOLD (PLAYER_RATE / 8) /* before dropping audio */
+#define SKIP_THRESHOLD (1.0 / 8) /* before dropping audio */
 
 
 /* Smooth the pitch returned from the timecoder. Smooth it too much
@@ -74,7 +74,7 @@ static double build_pcm(signed short *pcm, int frame, struct track_t *tr,
     float f, vol;
 
     for(s = 0; s < frame; s++) {
-        sample = position + (double)pitch * s;
+        sample = position * tr->rate + (double)pitch * s;
         pcm_s = pcm + s * PLAYER_CHANNELS;
 
         /* Calculate the pcm samples which sample falls
@@ -105,7 +105,7 @@ static double build_pcm(signed short *pcm, int frame, struct track_t *tr,
         }
     }
 
-    return (double)pitch * frame;
+    return (double)pitch * frame / PLAYER_RATE;
 }
 
 
@@ -114,9 +114,9 @@ void player_init(struct player_t *pl)
     pl->reconnect = 0;
 
     pl->position = 0.0;
-    pl->offset = 0;
-    pl->target_position = -1;
-    pl->last_difference = 0;
+    pl->offset = 0.0;
+    pl->target_valid = 0;
+    pl->last_difference = 0.0;
 
     pl->pitch = 1.0;
     pl->sync_pitch = 1.0;
@@ -153,7 +153,7 @@ void player_disconnect_timecoder(struct player_t *pl)
 static int sync_to_timecode(struct player_t *pl)
 {
     float pitch;
-    unsigned int tcpos;
+    double tcpos;
     signed int timecode;
     int when, alive, pitch_unavailable;
 
@@ -178,13 +178,12 @@ static int sync_to_timecode(struct player_t *pl)
     /* If we can read an absolute time from the timecode, then use it */
     
     if(timecode == -1)
-        pl->target_position = -1;
+	pl->target_valid = 0;
     
     else {
-        tcpos = (long long)timecode * PLAYER_RATE
-            / timecoder_get_resolution(pl->timecoder);
-
-        pl->target_position = tcpos + pl->target_pitch * when;
+        tcpos = (double)timecode / timecoder_get_resolution(pl->timecoder);
+        pl->target_position = tcpos; /* FIXME: + pl->target_pitch * when */
+	pl->target_valid = 1;
     }
         
     /* Apply filtering in every sync cycle */
@@ -216,7 +215,7 @@ int player_collect(struct player_t *pl, signed short *pcm, int samples)
             player_disconnect_timecoder(pl);
     }
 
-    if(pl->target_position == -1)
+    if(!pl->target_valid)
         pl->sync_pitch = 1.0;
     else {
 
@@ -241,16 +240,16 @@ int player_collect(struct player_t *pl, signed short *pcm, int samples)
             
             pl->position = pl->target_position;
             pl->sync_pitch = 1.0;
-            
-            fprintf(stderr, "Seek to new position %.0lf.\n", pl->position);
-            
+
+            fprintf(stderr, "Seek to new position %.2lfs.\n", pl->position);
+
         } else if(fabs(pl->pitch) > SYNC_PITCH) {
             
             /* Pull the track into line. It wouldn't suprise me if
              * there is a mistake in here. A simplification of
              *
-             * move = samples * pl->pitch;
-             * end = diff - diff * samples / SYNC_TIME;
+             * move = dt * pl->pitch;
+             * end = diff - diff * dt / SYNC_TIME;
              * pl->sync_pitch = (move + end - diff) / move; */
             
             /* Divide by near-zero caught by pl->pitch > SYNC_PITCH */
@@ -260,7 +259,7 @@ int player_collect(struct player_t *pl, signed short *pcm, int samples)
         
         /* Acknowledge that we've accounted for the target position */
         
-        pl->target_position = -1;
+        pl->target_valid = 0;
     }
 
     target_volume = fabs(pl->pitch) * VOLUME;

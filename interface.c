@@ -540,7 +540,7 @@ static void draw_spinner(SDL_Surface *surface, const struct rect_t *rect,
     y = rect->y;
 
     position = pl->position - pl->offset;
-    rangle = (int)(pl->position * 1024 * 10 / 18 / TRACK_RATE) % 1024; 
+    rangle = (int)(pl->position * 1024 * 10 / 18) % 1024; 
 
     for(r = 0; r < SPINNER_SIZE; r++) {
         
@@ -583,7 +583,8 @@ static void draw_spinner(SDL_Surface *surface, const struct rect_t *rect,
 static void draw_deck_clocks(SDL_Surface *surface, const struct rect_t *rect,
                              struct player_t *pl)
 {
-    int elapse, remain, pos;
+    int elapse, remain;
+    float pos;
     struct rect_t upper, lower;
     SDL_Color col;
 
@@ -591,8 +592,8 @@ static void draw_deck_clocks(SDL_Surface *surface, const struct rect_t *rect,
 
     pos = pl->position - pl->offset;
 
-    elapse = (long long)pos * 1000 / TRACK_RATE;
-    remain = ((long long)pos - pl->track->length) * 1000 / TRACK_RATE;
+    elapse = pos * 1000;
+    remain = (pos - pl->track->length / pl->track->rate) * 1000;
 
     if(elapse < 0)
         col = warn_col;
@@ -823,7 +824,7 @@ static void draw_deck_status(SDL_Surface *surface,
     else
         sprintf(buf, "timecode:        ");
     
-    sprintf(buf + 17, "pitch:%+0.2f (sync %0.2f %+4.0f = %+0.2f)  %s",
+    sprintf(buf + 17, "pitch:%+0.2f (sync %0.2f %+.5f = %+0.2f)  %s",
             pl->pitch,
             pl->sync_pitch,
             pl->last_difference,
@@ -843,7 +844,7 @@ static void draw_deck(SDL_Surface *surface, const struct rect_t *rect,
     int position;
     struct rect_t track, top, meters, status, rest, lower;
 
-    position = pl->position - pl->offset;
+    position = (pl->position - pl->offset) * pl->track->rate;
 
     split_top(rect, &track, &rest, FONT_SPACE * 2, 0);
     if(rest.h < 160)

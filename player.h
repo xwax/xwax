@@ -29,16 +29,17 @@ struct player_t {
     int reconnect; /* Re-sync the offset at next opportunity */
 
     /* Current playback parameters */
-    
-    double position,
+
+    double position, /* seconds */
+        target_position, /* seconds */
+        offset, /* track start point in timecode */
         last_difference; /* last known position minus target_position */
     float target_pitch, /* pitch from turntable */
         sync_pitch, /* pitch required to sync to timecode signal */
         pitch, /* after filtering */
         volume;
 
-    signed int target_position,
-        offset, /* track start point in timecode */
+    int target_valid,
         safe; /* copied from timecoder_t */
 
     struct track_t *track;
