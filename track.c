@@ -213,7 +213,7 @@ void track_init(struct track_t *tr, const char *importer)
     tr->blocks = 0;
     tr->bytes = 0;
     tr->length = 0;
-    tr->rate = 0;
+    tr->rate = TRACK_RATE;
 
     pthread_mutex_init(&tr->mx, 0); /* always returns zero */
 
