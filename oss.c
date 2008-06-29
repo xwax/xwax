@@ -110,7 +110,7 @@ static int handle(struct device_t *dv)
             return -1;
         
         if(dv->timecoder)
-            timecoder_submit(dv->timecoder, pcm, samples);
+            timecoder_submit(dv->timecoder, pcm, samples, DEVICE_RATE);
     }
 
     /* Check the output buffer for playback */

@@ -247,7 +247,7 @@ void timecoder_init(struct timecoder_t *tc)
     int c;
 
     tc->forwards = 1;
-    tc->rate = TIMECODER_RATE;
+    tc->rate = 0;
 
     tc->half_peak = 0;
     tc->wave_peak = 0;
@@ -330,7 +330,8 @@ static int detect_zero_crossing(struct timecoder_channel_t *ch,
 
 /* Submit and decode a block of PCM audio data to the timecoder */
 
-int timecoder_submit(struct timecoder_t *tc, signed short *pcm, int samples)
+int timecoder_submit(struct timecoder_t *tc, signed short *pcm,
+		     int samples, int rate)
 {
     int b, l, /* bitstream and timecode bits */
         s, c,
@@ -340,7 +341,9 @@ int timecoder_submit(struct timecoder_t *tc, signed short *pcm, int samples)
         monitor_centre;
     signed int v, w; /* pcm sample value, sum of two short channels */
     unsigned int mask;
-    
+
+    tc->rate = rate;
+
     b = 0;
     l = 0;
     

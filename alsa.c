@@ -39,6 +39,7 @@ struct alsa_pcm_t {
 
     signed short *buf;
     snd_pcm_uframes_t period;
+    int rate;
 };
 
 
@@ -101,7 +102,8 @@ static int pcm_open(struct alsa_pcm_t *alsa, const char *device_name,
                 "a 'plughw' device.\n", rate);
         return -1;
     }
-    
+    alsa->rate = rate;
+
     r = snd_pcm_hw_params_set_channels(alsa->pcm, hw_params, DEVICE_CHANNELS);
     if(r < 0) {
         alsa_error("hw_params_set_channels", r);
@@ -298,8 +300,10 @@ static int capture(struct device_t *dv)
                 r, alsa->capture.period);
     }
     
-    if(dv->timecoder)
-        timecoder_submit(dv->timecoder, alsa->capture.buf, r);
+    if(dv->timecoder) {
+        timecoder_submit(dv->timecoder, alsa->capture.buf, r,
+                         alsa->capture.rate);
+    }
 
     return 0;
 }
