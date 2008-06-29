@@ -152,10 +152,10 @@ void player_disconnect_timecoder(struct player_t *pl)
 
 static int sync_to_timecode(struct player_t *pl)
 {
-    float pitch;
+    float pitch, when;
     double tcpos;
     signed int timecode;
-    int when, alive, pitch_unavailable;
+    int alive, pitch_unavailable;
 
     timecode = timecoder_get_position(pl->timecoder, &when);
     alive = timecoder_get_alive(pl->timecoder);
@@ -182,7 +182,7 @@ static int sync_to_timecode(struct player_t *pl)
     
     else {
         tcpos = (double)timecode / timecoder_get_resolution(pl->timecoder);
-        pl->target_position = tcpos; /* FIXME: + pl->target_pitch * when */
+        pl->target_position = tcpos + pl->target_pitch * when;
 	pl->target_valid = 1;
     }
         

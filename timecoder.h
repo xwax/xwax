@@ -78,7 +78,7 @@ int timecoder_submit(struct timecoder_t *tc, signed short *aud,
 		     int samples, int rate);
 
 int timecoder_get_pitch(struct timecoder_t *tc, float *pitch);
-signed int timecoder_get_position(struct timecoder_t *tc, int *when);
+signed int timecoder_get_position(struct timecoder_t *tc, float *when);
 int timecoder_get_alive(struct timecoder_t *tc);
 unsigned int timecoder_get_safe(struct timecoder_t *tc);
 int timecoder_get_resolution(struct timecoder_t *tc);

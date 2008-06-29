@@ -547,10 +547,10 @@ int timecoder_get_pitch(struct timecoder_t *tc, float *pitch)
 
 /* Return the known position in the timecode, or -1 if not known. If
  * two few bits have been error-checked, then this also counts as
- * invalid. If 'when' is given, return the time, in input samples since
- * this value was read. */
+ * invalid. If 'when' is given, return the time, in seconds since this
+ * value was read. */
 
-signed int timecoder_get_position(struct timecoder_t *tc, int *when)
+signed int timecoder_get_position(struct timecoder_t *tc, float *when)
 {
     signed int r;
 
@@ -559,7 +559,7 @@ signed int timecoder_get_position(struct timecoder_t *tc, int *when)
 
         if(r >= 0) {
             if(when) 
-                *when = tc->timecode_ticker;
+                *when = tc->timecode_ticker / tc->rate;
             return r;
         }
     }
