@@ -64,7 +64,7 @@
  * track position by. This is just a basic resampler which has
  * particular problems where pitch > 1.0. */
 
-static double build_pcm(signed short *pcm, int frame, int rate,
+static double build_pcm(signed short *pcm, int samples, int rate,
                         struct track_t *tr, double position, float pitch,
                         float start_vol, float end_vol)
 {
@@ -76,7 +76,7 @@ static double build_pcm(signed short *pcm, int frame, int rate,
     sample = position * tr->rate;
     step = (double)pitch * tr->rate / rate;
 
-    for(s = 0; s < frame; s++) {
+    for(s = 0; s < samples; s++) {
 
         /* Calculate the pcm samples which sample falls
          * inbetween. sample can be positive or negative */
@@ -87,7 +87,7 @@ static double build_pcm(signed short *pcm, int frame, int rate,
         sb = sa + 1;
         f = sample - sa;
 
-        vol = start_vol + ((end_vol - start_vol) * s / frame);
+        vol = start_vol + ((end_vol - start_vol) * s / samples);
 
         if(sa >= 0 && sa < tr->length)
             pa = track_get_sample(tr, sa);
@@ -108,7 +108,7 @@ static double build_pcm(signed short *pcm, int frame, int rate,
         sample += step;
     }
 
-    return (double)pitch * frame / rate;
+    return (double)pitch * samples / rate;
 }
 
 
