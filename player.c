@@ -227,6 +227,7 @@ int player_collect(struct player_t *pl, signed short *pcm,
 
         if(pl->reconnect) {
             pl->offset += pl->target_position - pl->position;
+	    pl->position = pl->target_position;
             pl->reconnect = 0;
         }
 
