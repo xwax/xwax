@@ -532,7 +532,8 @@ static void draw_scope(SDL_Surface *surface, const struct rect_t *rect,
 static void draw_spinner(SDL_Surface *surface, const struct rect_t *rect,
                          struct player_t *pl)
 {
-    int x, y, r, c, rangle, pangle, position;
+    int x, y, r, c, rangle, pangle;
+    double position;
     Uint8 *rp, *p;
     SDL_Color col;
 
@@ -542,37 +543,37 @@ static void draw_spinner(SDL_Surface *surface, const struct rect_t *rect,
     position = pl->position - pl->offset;
     rangle = (int)(pl->position * 1024 * 10 / 18) % 1024; 
 
+    if(position < 0 || position >= (double)pl->track->length / pl->track->rate)
+        col = warn_col;
+    else
+        col = ok_col;
+
     for(r = 0; r < SPINNER_SIZE; r++) {
-        
+
         /* Store a pointer to this row of the framebuffer */
-        
+
         rp = surface->pixels + (y + r) * surface->pitch;
-        
+
         for(c = 0; c < SPINNER_SIZE; c++) {
-            
+
             /* Use the lookup table to provide the angle at each
              * pixel */
-            
+
             pangle = spinner_angle[r * SPINNER_SIZE + c];
-            
-            if(position < 0 || position >= pl->track->length)
-                col = warn_col;
-            else
-                col = ok_col;
-            
-            if((rangle - pangle + 1024) % 1024 < 512) {
-                col.r >>= 2;
-                col.g >>= 2;
-                col.b >>= 2;
-            }
-            
+
             /* Calculate the final pixel location and set it */
-            
+
             p = rp + (x + c) * surface->format->BytesPerPixel;
-            
-            p[0] = col.b;
-            p[1] = col.g;
-            p[2] = col.r;  
+
+            if((rangle - pangle + 1024) % 1024 < 512) {
+                p[0] = col.b >> 2;
+                p[1] = col.g >> 2;
+                p[2] = col.r >> 2;
+            } else {
+                p[0] = col.b;
+                p[1] = col.g;
+                p[2] = col.r;
+            }
         }
     }    
 }
