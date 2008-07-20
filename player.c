@@ -242,24 +242,17 @@ int player_collect(struct player_t *pl, signed short *pcm,
             /* Jump the track to the time */
             
             pl->position = pl->target_position;
-            pl->sync_pitch = 1.0;
-
             fprintf(stderr, "Seek to new position %.2lfs.\n", pl->position);
 
         } else if(fabs(pl->pitch) > SYNC_PITCH) {
-            
-            /* Pull the track into line. It wouldn't suprise me if
-             * there is a mistake in here. A simplification of
-             *
-             * move = dt * pl->pitch;
-             * end = diff - diff * dt / SYNC_TIME;
-             * pl->sync_pitch = (move + end - diff) / move; */
-            
-            /* Divide by near-zero caught by pl->pitch > SYNC_PITCH */
-            
-            pl->sync_pitch = 1 - diff / (SYNC_TIME * pl->pitch);
+
+            /* Re-calculate the drift between the timecoder pitch from
+             * the sine wave and the timecode values */
+
+            pl->sync_pitch = pl->pitch / (diff / SYNC_TIME + pl->pitch);
+
         }
-        
+
         /* Acknowledge that we've accounted for the target position */
         
         pl->target_valid = 0;
