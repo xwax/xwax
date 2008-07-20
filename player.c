@@ -68,14 +68,15 @@ static double build_pcm(signed short *pcm, int frame, struct track_t *tr,
                         double position, float pitch, float start_vol,
                         float end_vol)
 {
-    signed short a, b, *pa, *pb, *pcm_s;
+    signed short a, b, *pa, *pb;
     int s, c, sa, sb;
-    double sample;
+    double sample, step;
     float f, vol;
 
+    sample = position * tr->rate;
+    step = pitch;
+
     for(s = 0; s < frame; s++) {
-        sample = position * tr->rate + (double)pitch * s;
-        pcm_s = pcm + s * PLAYER_CHANNELS;
 
         /* Calculate the pcm samples which sample falls
          * inbetween. sample can be positive or negative */
@@ -101,8 +102,10 @@ static double build_pcm(signed short *pcm, int frame, struct track_t *tr,
         for(c = 0; c < PLAYER_CHANNELS; c++) {
             a = pa ? *(pa + c) : 0;
             b = pb ? *(pb + c) : 0;
-            *(pcm_s + c) = vol * ((1.0 - f) * a + f * b);
+            *pcm++ = vol * ((1.0 - f) * a + f * b);
         }
+
+        sample += step;
     }
 
     return (double)pitch * frame / PLAYER_RATE;
