@@ -261,9 +261,10 @@ static int playback(struct device_t *dv)
     int r;
     struct alsa_t *alsa = (struct alsa_t*)dv->local;
 
-    if(dv->player)
-        player_collect(dv->player, alsa->playback.buf, alsa->playback.period);
-    else {
+    if(dv->player) {
+        player_collect(dv->player, alsa->playback.buf,
+                       alsa->playback.period, alsa->playback.rate);
+    } else {
         memset(alsa->playback.buf, 0,
                alsa->playback.period * DEVICE_CHANNELS * sizeof(short));
     }    

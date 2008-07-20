@@ -123,7 +123,7 @@ static int handle(struct device_t *dv)
          * devices in the system. */
         
         if(dv->player)
-            player_collect(dv->player, pcm, DEVICE_FRAME);
+            player_collect(dv->player, pcm, DEVICE_FRAME, DEVICE_RATE);
         else
             memset(pcm, 0, DEVICE_FRAME * DEVICE_CHANNELS * sizeof(short));
         

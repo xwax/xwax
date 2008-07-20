@@ -64,9 +64,9 @@
  * track position by. This is just a basic resampler which has
  * particular problems where pitch > 1.0. */
 
-static double build_pcm(signed short *pcm, int frame, struct track_t *tr,
-                        double position, float pitch, float start_vol,
-                        float end_vol)
+static double build_pcm(signed short *pcm, int frame, int rate,
+                        struct track_t *tr, double position, float pitch,
+                        float start_vol, float end_vol)
 {
     signed short a, b, *pa, *pb;
     int s, c, sa, sb;
@@ -74,7 +74,7 @@ static double build_pcm(signed short *pcm, int frame, struct track_t *tr,
     float f, vol;
 
     sample = position * tr->rate;
-    step = pitch;
+    step = (double)pitch * tr->rate / rate;
 
     for(s = 0; s < frame; s++) {
 
@@ -108,7 +108,7 @@ static double build_pcm(signed short *pcm, int frame, struct track_t *tr,
         sample += step;
     }
 
-    return (double)pitch * frame / PLAYER_RATE;
+    return (double)pitch * frame / rate;
 }
 
 
@@ -208,7 +208,8 @@ int player_recue(struct player_t *pl)
 
 /* Get a block of PCM audio data to send to the soundcard. */
 
-int player_collect(struct player_t *pl, signed short *pcm, int samples)
+int player_collect(struct player_t *pl, signed short *pcm,
+                   int samples, int rate)
 {
     double diff;
     float target_volume;
@@ -269,7 +270,8 @@ int player_collect(struct player_t *pl, signed short *pcm, int samples)
 
     /* Sync pitch is applied post-filtering */
 
-    pl->position += build_pcm(pcm, samples, pl->track,
+    pl->position += build_pcm(pcm, samples, rate,
+			      pl->track,
                               pl->position - pl->offset,
                               pl->pitch * pl->sync_pitch,
                               pl->volume, target_volume);
