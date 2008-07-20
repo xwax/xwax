@@ -60,7 +60,7 @@
 
 
 /* Build a block of PCM audio, resampled from the track. Always builds
- * 'frame' samples, and returns the number of samples to advance the
+ * 'frame' samples, and returns the number of seconds to advance the
  * track position by. This is just a basic resampler which has
  * particular problems where pitch > 1.0. */
 
