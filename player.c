@@ -47,7 +47,7 @@
  * timecode. Smooth too little and there will be audible
  * distortion. */
 
-#define SMOOTHING (128 / DEVICE_FRAME) /* result value is in frames */
+#define SMOOTHING 4 /* number calls to _submit() */
 
 
 /* The base volume level. A value of 1.0 leaves no headroom to play

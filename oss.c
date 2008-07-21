@@ -30,6 +30,8 @@
 #include "timecoder.h"
 #include "player.h"
 
+#define FRAME 32 /* maximum read size */
+
 
 struct oss_t {
     int fd;
@@ -98,14 +100,14 @@ static int pull(int fd, signed short *pcm, int samples)
 
 static int handle(struct device_t *dv)
 {
-    signed short pcm[DEVICE_FRAME * DEVICE_CHANNELS];
+    signed short pcm[FRAME * DEVICE_CHANNELS];
     int samples;
     struct oss_t *oss = (struct oss_t*)dv->local;
 
     /* Check input buffer for recording */
 
     if(oss->pe->revents & POLLIN) {
-        samples = pull(oss->fd, pcm, DEVICE_FRAME);
+        samples = pull(oss->fd, pcm, FRAME);
         if(samples == -1)
             return -1;
         
@@ -123,11 +125,11 @@ static int handle(struct device_t *dv)
          * devices in the system. */
         
         if(dv->player)
-            player_collect(dv->player, pcm, DEVICE_FRAME, DEVICE_RATE);
+            player_collect(dv->player, pcm, FRAME, DEVICE_RATE);
         else
-            memset(pcm, 0, DEVICE_FRAME * DEVICE_CHANNELS * sizeof(short));
+            memset(pcm, 0, FRAME * DEVICE_CHANNELS * sizeof(short));
         
-        samples = push(oss->fd, pcm, DEVICE_FRAME);
+        samples = push(oss->fd, pcm, FRAME);
         
         if(samples == -1)
             return -1;

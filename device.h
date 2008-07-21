@@ -24,7 +24,6 @@
 
 #define DEVICE_CHANNELS 2
 #define DEVICE_RATE 44100
-#define DEVICE_FRAME 32
 
 struct device_t {
     void *local;
