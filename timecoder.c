@@ -179,7 +179,7 @@ static inline unsigned int rev(unsigned int current,
 /* Setup globally, for a chosen timecode definition */
 
 int timecoder_build_lookup(char *timecode_name) {
-    unsigned int n, current;
+    unsigned int n, current, last;
 
     def = &timecode_def[0];
 
@@ -217,7 +217,9 @@ int timecoder_build_lookup(char *timecode_name) {
         }
         
         def->lookup[current] = n;
+        last = current;
         current = fwd(current, def);
+        assert(rev(current, def) == last);
     }
     
     return 0;    
