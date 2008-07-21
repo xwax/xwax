@@ -17,6 +17,7 @@
  *
  */
 
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -29,8 +30,6 @@
 
 #define ZERO_AVG 1024
 #define SIGNAL_AVG 256
-
-#define MAX_BITS 32 /* bits in an int */
 
 #define REF_PEAKS_AVG 48 /* in wave cycles */
 
@@ -55,9 +54,9 @@ struct timecode_def_t {
     char *name, *desc;
     int bits, /* number of bits in string */
         resolution, /* wave cycles per second */
-        tap[MAX_BITS], ntaps, /* LFSR taps */
         polarity; /* cycle begins POLARITY_POSITIVE or POLARITY_NEGATIVE */
     unsigned int seed, /* LFSR value at timecode zero */
+        taps, /* central LFSR taps, excluding end taps */
         length, /* in cycles */
         safe; /* last 'safe' timecode number (for auto disconnect) */
     signed int *lookup; /* pointer to built lookup table */
@@ -72,8 +71,7 @@ struct timecode_def_t timecode_def[] = {
         polarity: POLARITY_POSITIVE,
         bits: 20,
         seed: 0x59017,
-        tap: {2, 5, 6, 7, 8, 13, 14, 16, 17},
-        ntaps: 9,
+        taps: 0x361e4,
         length: 712000,
         safe: 707000,
         lookup: NULL
@@ -81,12 +79,11 @@ struct timecode_def_t timecode_def[] = {
     {
         name: "serato_2b",
         desc: "Serato 2nd Ed., side B",
-        seed: 0x8f3c6,
         resolution: 1000,
         polarity: POLARITY_POSITIVE,
         bits: 20,
-        tap: {3, 4, 6, 7, 12, 13, 14, 15, 18}, /* reverse of side A */
-        ntaps: 9,
+        seed: 0x8f3c6,
+        taps: 0x4f0d8, /* reverse of side A */
         length: 922000,
         safe: 917000,
         lookup: NULL
@@ -98,8 +95,7 @@ struct timecode_def_t timecode_def[] = {
         polarity: POLARITY_POSITIVE,
         bits: 20,
         seed: 0x84c0c,
-        tap: {2, 4, 6, 8, 10, 11, 14, 16, 17},
-        ntaps: 9,
+        taps: 0x34d54,
         length: 940000,
         safe: 930000,
         lookup: NULL
@@ -111,8 +107,7 @@ struct timecode_def_t timecode_def[] = {
         polarity: POLARITY_POSITIVE,
         bits: 23,
         seed: 0x134503,
-        tap: {6, 12, 18},
-        ntaps: 3,
+        taps: 0x041040,
         length: 1500000,
         safe: 1480000,
         lookup: NULL
@@ -124,8 +119,7 @@ struct timecode_def_t timecode_def[] = {
         polarity: POLARITY_POSITIVE,
         bits: 23,
         seed: 0x32066c,
-        tap: {6, 12, 18},
-        ntaps: 3,
+        taps: 0x041040, /* same as side A */
         length: 2110000,
         safe: 2090000,
         lookup: NULL
@@ -142,38 +136,43 @@ struct timecode_def_t *def;
 /* Linear Feeback Shift Register in the forward direction. New values
  * are generated at the least-significant bit. */
 
-static inline int lfsr(unsigned int code)
+static inline int lfsr(unsigned int code, unsigned int taps)
 {
-    unsigned int r;
-    char s, n;
+    unsigned int taken, xrs;
 
-    r = code & 1;
-
-    for(n = 0; n < def->ntaps; n++) {
-        s = *(def->tap + n);
-        r += (code & (1 << s)) >> s;
+    taken = code & taps;
+    xrs = 0;
+    while (taken != 0x0) {
+        xrs += taken & 0x1;
+        taken >>= 1;
     }
-    
-    return r & 0x1;
+
+    return xrs & 0x1;
 }
 
 
-/* Linear Feeback Shift Register in the reverse direction. New values
- * are generated at the most-significant bit. */
-
-static inline int lfsr_rev(unsigned int code)
+static inline unsigned int fwd(unsigned int current,
+                               struct timecode_def_t *def)
 {
-    unsigned int r;
-    char s, n;
+    unsigned int l;
 
-    r = (code & (1 << (def->bits - 1))) >> (def->bits - 1);
+    /* New bits are added at the MSB; shift right by one */
 
-    for(n = 0; n < def->ntaps; n++) {
-        s = *(def->tap + n) - 1;
-        r += (code & (1 << s)) >> s;
-    }
-    
-    return r & 0x1;
+    l = lfsr(current, def->taps | 0x1);
+    return (current >> 1) | (l << (def->bits - 1));
+}
+
+
+static inline unsigned int rev(unsigned int current,
+                               struct timecode_def_t *def)
+{
+    unsigned int l, mask;
+
+    /* New bits are added at the LSB; shift left one and mask */
+
+    mask = (1 << def->bits) - 1;
+    l = lfsr(current, (def->taps >> 1) | (0x1 << (def->bits - 1)));
+    return ((current << 1) & mask) | l;
 }
 
 
@@ -218,7 +217,7 @@ int timecoder_build_lookup(char *timecode_name) {
         }
         
         def->lookup[current] = n;
-        current = (current >> 1) + (lfsr(current) << (def->bits - 1));
+        current = fwd(current, def);
     }
     
     return 0;    
@@ -396,24 +395,18 @@ int timecoder_submit(struct timecoder_t *tc, signed short *pcm,
                  * direction. */
                 
                 if(tc->forwards) {
-                    l = lfsr(tc->timecode);
-                    
+                    tc->timecode = fwd(tc->timecode, def);
                     tc->bitstream = (tc->bitstream >> 1)
                         + (b << (def->bits - 1));
-                    
-                    tc->timecode = (tc->timecode >> 1)
-                        + (l << (def->bits - 1));
-                    
+
                 } else {
-                    l = lfsr_rev(tc->timecode);
-                    
+                    tc->timecode = rev(tc->timecode, def);
                     tc->bitstream = ((tc->bitstream << 1) & mask) + b;
-                    tc->timecode = ((tc->timecode << 1) & mask) + l;
                 }
                 
-                if(b == l) {
+                if(tc->timecode == tc->bitstream)
                     tc->valid_counter++;
-                } else {
+                else {
                     tc->timecode = tc->bitstream;
                     tc->valid_counter = 0;
                 }
