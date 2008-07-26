@@ -55,9 +55,9 @@ struct timecode_def_t {
     int bits, /* number of bits in string */
         resolution, /* wave cycles per second */
         polarity; /* cycle begins POLARITY_POSITIVE or POLARITY_NEGATIVE */
-    unsigned int seed, /* LFSR value at timecode zero */
-        taps, /* central LFSR taps, excluding end taps */
-        length, /* in cycles */
+    bits_t seed, /* LFSR value at timecode zero */
+        taps; /* central LFSR taps, excluding end taps */
+    unsigned int length, /* in cycles */
         safe; /* last 'safe' timecode number (for auto disconnect) */
     signed int *lookup; /* pointer to built lookup table */
 };
@@ -136,9 +136,10 @@ struct timecode_def_t *def;
 /* Linear Feeback Shift Register in the forward direction. New values
  * are generated at the least-significant bit. */
 
-static inline int lfsr(unsigned int code, unsigned int taps)
+static inline bits_t lfsr(bits_t code, bits_t taps)
 {
-    unsigned int taken, xrs;
+    bits_t taken;
+    int xrs;
 
     taken = code & taps;
     xrs = 0;
@@ -151,10 +152,9 @@ static inline int lfsr(unsigned int code, unsigned int taps)
 }
 
 
-static inline unsigned int fwd(unsigned int current,
-                               struct timecode_def_t *def)
+static inline bits_t fwd(bits_t current, struct timecode_def_t *def)
 {
-    unsigned int l;
+    bits_t l;
 
     /* New bits are added at the MSB; shift right by one */
 
@@ -163,10 +163,9 @@ static inline unsigned int fwd(unsigned int current,
 }
 
 
-static inline unsigned int rev(unsigned int current,
-                               struct timecode_def_t *def)
+static inline bits_t rev(bits_t current, struct timecode_def_t *def)
 {
-    unsigned int l, mask;
+    bits_t l, mask;
 
     /* New bits are added at the LSB; shift left one and mask */
 
@@ -179,7 +178,8 @@ static inline unsigned int rev(unsigned int current,
 /* Setup globally, for a chosen timecode definition */
 
 int timecoder_build_lookup(char *timecode_name) {
-    unsigned int n, current, last;
+    unsigned int n;
+    bits_t current, last;
 
     def = &timecode_def[0];
 
@@ -334,14 +334,14 @@ static int detect_zero_crossing(struct timecoder_channel_t *ch,
 int timecoder_submit(struct timecoder_t *tc, signed short *pcm,
 		     int samples, int rate)
 {
-    int b, l, /* bitstream and timecode bits */
-        s, c,
+    int s, c,
         x, y, p, /* monitor coordinates */
         offset,
         swapped,
         monitor_centre;
     signed int v, w; /* pcm sample value, sum of two short channels */
-    unsigned int mask;
+    bits_t b, l, /* bitstream and timecode bits */
+	mask;
 
     tc->rate = rate;
 

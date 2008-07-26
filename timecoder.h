@@ -25,6 +25,9 @@
 #define TIMECODER_CHANNELS DEVICE_CHANNELS
 
 
+typedef unsigned int bits_t;
+
+
 struct timecoder_channel_t {
     int positive; /* wave is in positive part of cycle */
     signed int zero;
@@ -48,7 +51,7 @@ struct timecoder_t {
 
     /* Numerical timecode */
 
-    unsigned int bitstream, /* actual bits from the record */
+    bits_t bitstream, /* actual bits from the record */
         timecode; /* corrected timecode */
     int valid_counter, /* number of successful error checks */
         timecode_ticker; /* samples since valid timecode was read */
