@@ -912,8 +912,7 @@ static void draw_decks(SDL_Surface *surface, const struct rect_t *rect,
 static void draw_status(SDL_Surface *sf, const struct rect_t *rect,
                         const char *text)
 {
-    draw_font(sf, rect->x, rect->y, rect->w, FONT_SPACE, text, detail_font,
-              detail_col, background_col);
+    draw_font_rect(sf, rect, text, detail_font, detail_col, background_col);
 }
 
 
@@ -922,36 +921,28 @@ static void draw_status(SDL_Surface *sf, const struct rect_t *rect,
 static void draw_search(SDL_Surface *surface, const struct rect_t *rect,
                         const char *search, int entries)
 {
+    int s;
     const char *buf;
     char cm[32];
-    int x, y, w, s;
     SDL_Rect cursor;
-    
-    x = rect->x;
-    y = rect->y;
-    w = rect->w;
+    struct rect_t rtext;
+
+    split_left(rect, NULL, &rtext, SCROLLBAR_SIZE, SPACER);
 
     if(search[0] != '\0')
         buf = search;
     else
         buf = NULL;
-    
-    x += SCROLLBAR_SIZE + SPACER;
-    w -= SCROLLBAR_SIZE + SPACER;
 
-    s = draw_font(surface, x, y, w, FONT_SPACE, buf, font,
-                  text_col, background_col);
+    s = draw_font_rect(surface, &rtext, buf, font, text_col, background_col);
 
-    x += s;
-    w -= s;
-
-    cursor.x = x;
-    cursor.y = y;
+    cursor.x = rtext.x + s;
+    cursor.y = rtext.y;
     cursor.w = CURSOR_WIDTH;
-    cursor.h = FONT_SPACE;
+    cursor.h = rtext.h;
 
     SDL_FillRect(surface, &cursor, palette(surface, &cursor_col));
-    
+
     if(entries > 1)
         sprintf(cm, "%d matches", entries);
     else if(entries > 0)
@@ -959,11 +950,10 @@ static void draw_search(SDL_Surface *surface, const struct rect_t *rect,
     else
         sprintf(cm, "no matches");
 
-    x += CURSOR_WIDTH + SPACER;
-    w -= CURSOR_WIDTH + SPACER;
-    
-    w = draw_font(surface, x, y, w, FONT_SPACE, cm, em_font,
-                  detail_col, background_col);
+    rtext.x += s + CURSOR_WIDTH + SPACER;
+    rtext.w -= s + CURSOR_WIDTH + SPACER;
+
+    draw_font_rect(surface, &rtext, cm, em_font, detail_col, background_col);
 }
 
 
