@@ -80,10 +80,10 @@ struct timecode_def_t timecode_def[] = {
         .resolution = 1000,
         .flags = 0,
         .bits = 20,
-        .seed = 0x84c0c,
+        .seed = 0xd8b40,
         .taps = 0x34d54,
-        .length = 940000,
-        .safe = 930000,
+        .length = 950000,
+        .safe = 940000,
         .lookup = NULL
     },
     {
