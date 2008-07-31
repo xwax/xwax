@@ -15,7 +15,7 @@
 # MA 02110-1301, USA.
 #
 
-CFLAGS += -Wall -O3
+CFLAGS += -Wall -O3 -MMD
 
 SDL_CFLAGS = `sdl-config --cflags`
 SDL_LIBS = `sdl-config --libs` -lSDL_ttf
@@ -51,11 +51,7 @@ interface.o:	CFLAGS += $(SDL_CFLAGS)
 
 xwax.o:		CFLAGS += $(DEVICE_CPPFLAGS)
 
-depend:		device.c interface.c library.c player.c rig.c timecoder.c \
-		track.c xwax.c
-		$(CC) -MM $^ > .depend
-
 clean:
-		rm -f .depend xwax *.o *~
+		rm -f .depend xwax *.o *.d *~
 
--include .depend
+-include *.d
