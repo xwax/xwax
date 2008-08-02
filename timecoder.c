@@ -339,7 +339,7 @@ int timecoder_submit(struct timecoder_t *tc, signed short *pcm,
         offset,
         swapped,
         monitor_centre;
-    signed int v, w; /* pcm sample value, sum of two short channels */
+    signed int g, m, v, w; /* pcm sample value, sum of two short channels */
     bits_t b, l, /* bitstream and timecode bits */
 	mask;
 
@@ -360,8 +360,8 @@ int timecoder_submit(struct timecoder_t *tc, signed short *pcm,
 
         /* Read from the mono channel */
         
-        v = pcm[offset] + pcm[offset + 1];
-        swapped = detect_zero_crossing(&tc->mono, v, tc->rate);
+        g = pcm[offset] + pcm[offset + 1];
+        swapped = detect_zero_crossing(&tc->mono, g, tc->rate);
 
         /* If a sign change in the (zero corrected) audio has
          * happened, log the peak information */
@@ -455,13 +455,13 @@ int timecoder_submit(struct timecoder_t *tc, signed short *pcm,
         /* Find the zero-normalised sample of the peak value from
          * the input */
         
-        w = abs(v - tc->mono.zero);
-        if(w > tc->wave_peak)
-            tc->wave_peak = w;
+        m = abs(g - tc->mono.zero);
+        if(m > tc->wave_peak)
+            tc->wave_peak = m;
         
         /* Take a rolling average of zero and signal level */
 
-        tc->signal_level += (w - tc->signal_level) * SIGNAL_AVG / tc->rate;
+        tc->signal_level += (m - tc->signal_level) * SIGNAL_AVG / tc->rate;
 
         /* Update the monitor to add the incoming sample */
         
