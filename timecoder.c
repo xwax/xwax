@@ -28,8 +28,10 @@
 #define ZERO_THRESHOLD 128
 #define SIGNAL_THRESHOLD 256
 
-#define ZERO_AVG 1024
-#define SIGNAL_AVG 256
+/* Time constants for the filters */
+
+#define ZERO_RC 0.001
+#define SIGNAL_RC 0.004
 
 #define REF_PEAKS_AVG 48 /* in wave cycles */
 
@@ -305,7 +307,7 @@ void timecoder_monitor_clear(struct timecoder_t *tc)
 
 
 static int detect_zero_crossing(struct timecoder_channel_t *ch,
-                                signed short v, int rate)
+                                signed short v, float alpha)
 {
     int swapped;
 
@@ -322,7 +324,7 @@ static int detect_zero_crossing(struct timecoder_channel_t *ch,
         ch->crossing_ticker = 0;
     }
     
-    ch->zero += (v - ch->zero) * ZERO_AVG / rate;
+    ch->zero += alpha * (v - ch->zero);
     
     return swapped;
 }
@@ -339,11 +341,14 @@ int timecoder_submit(struct timecoder_t *tc, signed short *pcm,
         swapped,
         monitor_centre;
     signed int g, m; /* pcm sample value, sum of two short channels */
-    float v, w;
+    float dt, v, w;
     bits_t b, l, /* bitstream and timecode bits */
 	mask;
 
     tc->rate = rate;
+    dt = 1.0 / rate;
+    tc->zero_alpha = dt / (ZERO_RC + dt);
+    tc->signal_alpha = dt / (SIGNAL_RC + dt);
 
     b = 0;
     l = 0;
@@ -355,13 +360,15 @@ int timecoder_submit(struct timecoder_t *tc, signed short *pcm,
 
     for(s = 0; s < samples; s++) {
         
-        for(c = 0; c < TIMECODER_CHANNELS; c++)
-            detect_zero_crossing(&tc->channel[c], pcm[offset + c], tc->rate);
+        for(c = 0; c < TIMECODER_CHANNELS; c++) {
+            detect_zero_crossing(&tc->channel[c], pcm[offset + c],
+				 tc->zero_alpha);
+	}
 
         /* Read from the mono channel */
         
         g = pcm[offset] + pcm[offset + 1];
-        swapped = detect_zero_crossing(&tc->mono, g, tc->rate);
+        swapped = detect_zero_crossing(&tc->mono, g, tc->zero_alpha);
 
         /* If a sign change in the (zero corrected) audio has
          * happened, log the peak information */
@@ -461,7 +468,7 @@ int timecoder_submit(struct timecoder_t *tc, signed short *pcm,
         
         /* Take a rolling average of zero and signal level */
 
-        tc->signal_level += (m - tc->signal_level) * SIGNAL_AVG / tc->rate;
+	tc->signal_level += tc->signal_alpha * (m - tc->signal_level);
 
         /* Update the monitor to add the incoming sample */
         

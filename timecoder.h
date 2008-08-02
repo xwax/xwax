@@ -43,6 +43,10 @@ struct timecoder_t {
     signed int signal_level, half_peak, wave_peak, ref_level;
     struct timecoder_channel_t mono, channel[TIMECODER_CHANNELS];
 
+    /* Filter precalculations */
+
+    float zero_alpha, signal_alpha;
+
     /* Pitch information */
 
     int crossings, /* number of zero crossings */
