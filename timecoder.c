@@ -306,6 +306,20 @@ void timecoder_monitor_clear(struct timecoder_t *tc)
 }
 
 
+static void set_sample_rate(struct timecoder_t *tc, int rate)
+{
+    float dt;
+
+    tc->rate = rate;
+
+    /* Pre-calculate the alpha values for the filters */
+
+    dt = 1.0 / rate;
+    tc->zero_alpha = dt / (ZERO_RC + dt);
+    tc->signal_alpha = dt / (SIGNAL_RC + dt);
+}
+
+
 static int detect_zero_crossing(struct timecoder_channel_t *ch,
                                 signed short v, float alpha)
 {
@@ -341,14 +355,11 @@ int timecoder_submit(struct timecoder_t *tc, signed short *pcm,
         swapped,
         monitor_centre;
     signed int g, m; /* pcm sample value, sum of two short channels */
-    float dt, v, w;
+    float v, w;
     bits_t b, l, /* bitstream and timecode bits */
 	mask;
 
-    tc->rate = rate;
-    dt = 1.0 / rate;
-    tc->zero_alpha = dt / (ZERO_RC + dt);
-    tc->signal_alpha = dt / (SIGNAL_RC + dt);
+    set_sample_rate(tc, rate);
 
     b = 0;
     l = 0;
