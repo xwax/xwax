@@ -59,7 +59,7 @@ struct timecoder_t {
     /* Feedback */
 
     unsigned char *mon; /* x-y array */
-    int mon_size, mon_counter, mon_scale,
+    int mon_size, mon_counter,
         log_fd; /* optional file descriptor to log to, or -1 for none */
 };
 
@@ -74,7 +74,7 @@ void timecoder_free_lookup(void);
 void timecoder_init(struct timecoder_t *tc);
 void timecoder_clear(struct timecoder_t *tc);
 
-void timecoder_monitor_init(struct timecoder_t *tc, int size, int scale);
+void timecoder_monitor_init(struct timecoder_t *tc, int size);
 void timecoder_monitor_clear(struct timecoder_t *tc);
 
 int timecoder_submit(struct timecoder_t *tc, signed short *aud,

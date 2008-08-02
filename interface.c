@@ -89,7 +89,6 @@
 
 #define SPINNER_SIZE (CLOCK_FONT_SIZE * 2 - 6)
 #define SCOPE_SIZE (CLOCK_FONT_SIZE * 2 - 6)
-#define SCOPE_SCALE 1
 
 #define SCROLLBAR_SIZE 10
 
@@ -1170,7 +1169,7 @@ int interface_run(struct interface_t *in)
     view_offset = 0;
 
     for(p = 0; p < in->timecoders; p++)
-        timecoder_monitor_init(in->timecoder[p], SCOPE_SIZE, SCOPE_SCALE);
+        timecoder_monitor_init(in->timecoder[p], SCOPE_SIZE);
     
     calculate_spinner_lookup(spinner_angle, NULL, SPINNER_SIZE);
 

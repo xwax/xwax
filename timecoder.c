@@ -284,10 +284,9 @@ void timecoder_clear(struct timecoder_t *tc)
  * display of the incoming audio. Initialise one for the given
  * timecoder */
 
-void timecoder_monitor_init(struct timecoder_t *tc, int size, int scale)
+void timecoder_monitor_init(struct timecoder_t *tc, int size)
 {
     tc->mon_size = size;
-    tc->mon_scale = scale;
     tc->mon = malloc(SQ(tc->mon_size));
     memset(tc->mon, 0, SQ(tc->mon_size));
     tc->mon_counter = 0;
@@ -339,7 +338,8 @@ int timecoder_submit(struct timecoder_t *tc, signed short *pcm,
         offset,
         swapped,
         monitor_centre;
-    signed int g, m, v, w; /* pcm sample value, sum of two short channels */
+    signed int g, m; /* pcm sample value, sum of two short channels */
+    float v, w;
     bits_t b, l, /* bitstream and timecode bits */
 	mask;
 
@@ -476,11 +476,11 @@ int timecoder_submit(struct timecoder_t *tc, signed short *pcm,
                 }
             }
             
-            v = pcm[offset]; /* first channel */
-            w = pcm[offset + 1]; /* second channel */
+            v = (float)pcm[offset] / tc->ref_level; /* first channel */
+            w = (float)pcm[offset + 1] / tc->ref_level; /* second channel */
             
-            x = monitor_centre + (v * tc->mon_size * tc->mon_scale >> 16);
-            y = monitor_centre + (w * tc->mon_size * tc->mon_scale >> 16);
+            x = monitor_centre + (v * tc->mon_size);
+            y = monitor_centre + (w * tc->mon_size);
             
             /* Set the pixel value to white */
             
