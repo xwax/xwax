@@ -26,6 +26,7 @@
 #include "device.h"
 #include "interface.h"
 #include "library.h"
+#include "listing.h"
 #include "oss.h"
 #include "player.h"
 #include "rig.h"
@@ -377,7 +378,8 @@ int main(int argc, char *argv[])
     
     fprintf(stderr, "Indexing music library...\n");
     listing_init(&listing);
-    library_get_listing(&library, &listing);
+    if(listing_add_library(&listing, &library) == -1)
+        return -1;
     listing_sort(&listing);
     iface.listing = &listing;
     

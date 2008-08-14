@@ -20,8 +20,6 @@
 #ifndef LIBRARY_H
 #define LIBRARY_H
 
-#include "listing.h"
-
 #define MAX_ARTIST 128
 #define MAX_TITLE 128
 #define MAX_NAME 512
@@ -45,6 +43,5 @@ int library_init(struct library_t *li);
 void library_clear(struct library_t *li);
 int library_add(struct library_t *li, struct record_t *lr);
 int library_import(struct library_t *li, char *path);
-int library_get_listing(struct library_t *li, struct listing_t *ls);
 
 #endif

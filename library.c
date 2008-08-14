@@ -195,14 +195,3 @@ int library_import(struct library_t *li, char *path)
 
     return 0;
 }
-
-
-int library_get_listing(struct library_t *li, struct listing_t *ls)
-{
-    int n;
-
-    for(n = 0; n < li->entries; n++)
-        listing_add(ls, &li->record[n]);
-   
-    return 0;
-}

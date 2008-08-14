@@ -102,6 +102,19 @@ int listing_add(struct listing_t *ls, struct record_t *lr)
 }
 
 
+int listing_add_library(struct listing_t *ls, struct library_t *lb)
+{
+    int n;
+
+    for(n = 0; n < lb->entries; n++) {
+        if(listing_add(ls, &lb->record[n]) == -1)
+            return -1;
+    }
+
+    return 0;
+}
+
+
 void listing_sort(struct listing_t *ls)
 {
     int i, changed;
