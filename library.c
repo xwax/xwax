@@ -17,7 +17,6 @@
  *
  */
 
-#include <ctype.h>
 #include <dirent.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -31,30 +30,6 @@
 #define BLOCK 256 /* number of library entries */
 
 #define MIN(a, b) (a<b?a:b)
-
-static int strmatch(char *little, char *big)
-{
-    size_t n, m, match, little_len;
-
-    little_len = strlen(little);
-
-    for(n = 0; n + little_len <= strlen(big); n++) {
-        
-        match = 1;
-
-        for(m = 0; m < little_len; m++) {
-            if(tolower(little[m]) != tolower(big[n + m])) {
-                match = 0;
-                break;
-            }
-        }
-
-        if(match)
-            return 1;
-    }
-
-    return 0;
-}
 
 
 /* Copy src (ms characters) to dest (length md, including '\0'), and
@@ -230,102 +205,4 @@ int library_get_listing(struct library_t *li, struct listing_t *ls)
         listing_add(ls, &li->record[n]);
    
     return 0;
-}
-
-
-int listing_init(struct listing_t *ls)
-{
-    ls->record = malloc(sizeof(struct record_t*) * BLOCK);
-    if(ls->record == NULL) {
-        perror("malloc");
-        return -1;
-    }
-    
-    ls->size = BLOCK;
-    ls->entries = 0;
-    
-    return 0;
-}
-
-
-void listing_clear(struct listing_t *ls)
-{
-    free(ls->record);
-}
-
-
-void listing_blank(struct listing_t *ls)
-{
-    ls->entries = 0;
-}
-
-
-int listing_add(struct listing_t *ls, struct record_t *lr)
-{
-    struct record_t **ln;
-
-    if(ls->entries == ls->size) {
-        ln = realloc(ls->record, sizeof(struct listing_t) * ls->size * 2);
-        
-        if(!ln) {
-            perror("realloc");
-            return -1;
-        }
-        
-        ls->record = ln;
-        ls->size *= 2;
-    }
-    
-    ls->record[ls->entries++] = lr;
-    
-    return 0;
-}
-
-
-void listing_sort(struct listing_t *ls)
-{
-    int i, changed;
-    struct record_t *re;
-    
-    do {
-        changed = 0;
-        
-        for(i = 0; i < ls->entries - 1; i++) {
-            if(strcmp(ls->record[i]->name, ls->record[i + 1]->name) > 0) {
-                re = ls->record[i];
-                ls->record[i] = ls->record[i + 1];
-                ls->record[i + 1] = re;
-                changed++;
-            }
-        }
-    } while(changed);
-}
-
-
-int listing_match(struct listing_t *src, struct listing_t *dest, char *match)
-{
-    int n;
-    struct record_t *re;
-
-    fprintf(stderr, "Matching '%s'\n", match);
-
-    for(n = 0; n < src->entries; n++) {
-        re = src->record[n];
-        
-        if(strmatch(match, re->name)) {
-            if(listing_add(dest, re) == -1)
-                return -1;
-        }
-    }
-
-    return 0;
-}
-
-
-void listing_debug(struct listing_t *ls)
-{
-    int n;
-
-    for(n = 0; n < ls->entries; n++)
-        fprintf(stderr, "%d: %s\n", n, ls->record[n]->name);
 }

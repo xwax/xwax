@@ -32,6 +32,7 @@
 
 #include "interface.h"
 #include "library.h"
+#include "listing.h"
 #include "player.h"
 #include "rig.h"
 #include "timecoder.h"
