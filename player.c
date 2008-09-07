@@ -121,7 +121,7 @@ void player_init(struct player_t *pl)
     pl->target_valid = 0;
     pl->last_difference = 0.0;
 
-    pl->pitch = 1.0;
+    pl->pitch = 0.0;
     pl->sync_pitch = 1.0;
     pl->volume = 0.0;
 
