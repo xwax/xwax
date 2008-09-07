@@ -33,6 +33,7 @@
 
 #define SYNC_TIME (1.0 / 2) /* time taken to reach sync */
 #define SYNC_PITCH 0.05 /* don't sync at low pitches */
+#define SYNC_RC 0.05 /* filter to 1.0 when no timecodes available */
 
 
 /* If the difference between our current position and that given by
@@ -210,16 +211,23 @@ int player_collect(struct player_t *pl, signed short *pcm,
     double diff;
     float dt, target_volume;
 
+    dt = (float)samples / rate;
+
     if(pl->timecoder) {
         if(sync_to_timecode(pl) == -1)
             player_disconnect_timecoder(pl);
-        else {
-            dt = (float)samples / rate;
+        else
             pl->pitch += dt / (PITCH_RC + dt) * (pl->target_pitch - pl->pitch);
-        }
     }
 
-    if(pl->target_valid) {
+    if(!pl->target_valid) {
+
+        /* Without timecode sync, tend sync_pitch towards 1.0, to
+         * avoid using outlier values from scratching for too long */
+
+        pl->sync_pitch += dt / (SYNC_RC + dt) * (1.0 - pl->sync_pitch);
+
+    } else {
 
         /* If reconnection has been requested, move the logical record
          * on the vinyl so that the current position is right under
