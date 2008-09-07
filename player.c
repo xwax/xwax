@@ -47,7 +47,7 @@
  * timecode. Smooth too little and there will be audible
  * distortion. */
 
-#define SMOOTHING 4 /* number calls to _submit() */
+#define PITCH_RC 0.004
 
 
 /* The base volume level. A value of 1.0 leaves no headroom to play
@@ -188,10 +188,6 @@ static int sync_to_timecode(struct player_t *pl)
         pl->target_position = tcpos + pl->target_pitch * when;
 	pl->target_valid = 1;
     }
-        
-    /* Apply filtering in every sync cycle */
-
-    pl->pitch = (pl->pitch * (SMOOTHING - 1) + pl->target_pitch) / SMOOTHING;
 
     return 0;
 }
@@ -212,11 +208,15 @@ int player_collect(struct player_t *pl, signed short *pcm,
                    int samples, int rate)
 {
     double diff;
-    float target_volume;
+    float dt, target_volume;
 
     if(pl->timecoder) {
         if(sync_to_timecode(pl) == -1)
             player_disconnect_timecoder(pl);
+        else {
+            dt = (float)samples / rate;
+            pl->pitch += dt / (PITCH_RC + dt) * (pl->target_pitch - pl->pitch);
+        }
     }
 
     if(pl->target_valid) {
