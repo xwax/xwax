@@ -321,7 +321,7 @@ static void set_sample_rate(struct timecoder_t *tc, int rate)
 
 
 static int detect_zero_crossing(struct timecoder_channel_t *ch,
-                                signed short v, float alpha)
+                                signed int v, float alpha)
 {
     int swapped;
 
