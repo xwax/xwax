@@ -16,6 +16,7 @@
 #
 
 CFLAGS += -Wall -O3 -MMD
+LDFLAGS += -O3
 
 SDL_CFLAGS = `sdl-config --cflags`
 SDL_LIBS = `sdl-config --libs` -lSDL_ttf
@@ -46,7 +47,8 @@ endif
 .PHONY:		clean depend
 
 xwax:		$(OBJS) $(DEVICE_OBJS)
-		$(CC) $(CFLAGS) -o $@ $^ -pthread $(SDL_LIBS) $(DEVICE_LIBS)
+xwax:		LDLIBS += $(SDL_LIBS) $(DEVICE_LIBS)
+xwax:		LDFLAGS += -pthread
 
 interface.o:	CFLAGS += $(SDL_CFLAGS)
 
