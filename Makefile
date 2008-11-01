@@ -21,6 +21,7 @@ LDFLAGS += -O3
 SDL_CFLAGS = `sdl-config --cflags`
 SDL_LIBS = `sdl-config --libs` -lSDL_ttf
 ALSA_LIBS = -lasound
+JACK_LIBS = -ljack
 
 # Import the optional configuration
 
@@ -40,6 +41,12 @@ ifdef ALSA
 DEVICE_OBJS += alsa.o
 DEVICE_CPPFLAGS += -DWITH_ALSA
 DEVICE_LIBS += $(ALSA_LIBS)
+endif
+
+ifdef JACK
+DEVICE_OBJS += jack.o
+DEVICE_CPPFLAGS += -DWITH_JACK
+DEVICE_LIBS += $(JACK_LIBS)
 endif
 
 # Rules

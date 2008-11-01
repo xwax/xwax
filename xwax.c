@@ -25,6 +25,7 @@
 #include "alsa.h"
 #include "device.h"
 #include "interface.h"
+#include "jack.h"
 #include "library.h"
 #include "listing.h"
 #include "oss.h"
@@ -114,6 +115,11 @@ void usage(FILE *fd)
       "  -r <hz>        Sample rate (default %dHz)\n"
       "  -m <ms>        Buffer time (default %dms)\n\n",
       DEFAULT_RATE, DEFAULT_ALSA_BUFFER);
+#endif
+
+#ifdef WITH_JACK
+    fprintf(fd, "JACK device options:\n"
+      "  -j <name>      Use a JACK deck with the given name\n\n");
 #endif
 
     fprintf(fd, "Device options and -i apply to subsequent devices.\n"
@@ -248,12 +254,14 @@ int main(int argc, char *argv[])
             argc -= 2;
 #endif
             
-        } else if(!strcmp(argv[0], "-d") || !strcmp(argv[0], "-a")) {
+        } else if(!strcmp(argv[0], "-d") || !strcmp(argv[0], "-a") ||
+		  !strcmp(argv[0], "-j"))
+	{
 
             /* Create a deck */
 
             if(argc < 2) {
-                fprintf(stderr, "-%c requires a device path as an argument.\n",
+                fprintf(stderr, "-%c requires a device name as an argument.\n",
                         argv[0][1]);
                 return -1;
             }
@@ -282,7 +290,12 @@ int main(int argc, char *argv[])
             case 'a':
                 r = alsa_init(device, argv[1], rate, alsa_buffer);
                 break;
-#endif                   
+#endif
+#ifdef WITH_JACK
+            case 'j':
+                r = jack_init(device, argv[1]);
+                break;
+#endif
             default:
                 fprintf(stderr, "Device type is not supported by this "
                         "distribution of xwax.\n");
