@@ -165,6 +165,20 @@ static int start_jack_client(void)
 }
 
 
+/* Close the JACK client, at which happens when all decks have been
+ * cleared */
+
+static int stop_jack_client(void)
+{
+    if(jack_client_close(client) != 0) {
+        fprintf(stderr, "jack_client_close: Failed\n");
+        return -1;
+    }
+    client = NULL;
+    return 0;
+}
+
+
 /* Register the JACK ports needed for a single deck */
 
 static int register_ports(struct jack_t *jack, const char *name)
@@ -244,7 +258,37 @@ static int stop(struct device_t *dv)
 
 static int clear(struct device_t *dv)
 {
+    struct jack_t *jack = (struct jack_t*)dv->local;
+    int n;
+
+    /* Unregister ports */
+
+    for(n = 0; n < DEVICE_CHANNELS; n++) {
+        if(jack_port_unregister(client, jack->input_port[n]) != 0)
+            return -1;
+        if(jack_port_unregister(client, jack->output_port[n]) != 0)
+            return -1;
+    }
+
     free(dv->local);
+
+    /* Remove this from the global list, so that potentially xwax could
+     * continue to run even if a deck is removed */
+
+    for(n = 0; n < decks; n++) {
+        if(device[n] == dv)
+            break;
+    }
+    assert(n != decks);
+
+    if(decks == 1) { /* this is the last remaining deck */
+        stop_jack_client();
+        decks = 0;
+    } else {
+        device[n] = device[decks - 1]; /* compact the list */
+        decks--;
+    }
+
     return 0;
 }
 
