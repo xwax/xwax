@@ -112,7 +112,7 @@ static void process_deck(struct device_t *dv, jack_nframes_t nframes)
 /* Process callback, which triggers the processing of audio on all
  * decks controlled by this file */
 
-static int process_callback(jack_nframes_t nframes, void *arg)
+static int process_callback(jack_nframes_t nframes, void *local)
 {
     int n;
     struct jack_t *jack;
@@ -129,7 +129,7 @@ static int process_callback(jack_nframes_t nframes, void *arg)
 
 /* Shutdown callback */
 
-static void shutdown_callback(void *arg)
+static void shutdown_callback(void *local)
 {
 }
 
@@ -151,12 +151,12 @@ static int start_jack_client(void)
         return -1;
     }
 
-    if(jack_set_process_callback(client, process_callback, 0) != 0) {
+    if(jack_set_process_callback(client, process_callback, NULL) != 0) {
         fprintf(stderr, "JACK: Failed to set process callback\n");
         return -1;
     }
 
-    jack_on_shutdown(client, shutdown_callback, 0);
+    jack_on_shutdown(client, shutdown_callback, NULL);
 
     rate = jack_get_sample_rate(client);
     fprintf(stderr, "JACK: %dHz\n", rate);
