@@ -22,15 +22,19 @@ OUTPUT=.config
 # Set some defaults and parse the command line
 
 ALSA=0
+JACK=0
 
 while [ $# -ge 1 ]; do
 	case $1 in
 	--help)
-		echo "Usage: configure [--enable-alsa]"
+		echo "Usage: configure [--enable-alsa] [--enable-jack]"
 		exit 0
 		;;
 	--enable-alsa)
 		ALSA=1
+		;;
+	--enable-jack)
+		JACK=1
 		;;
 	esac
 
@@ -46,6 +50,13 @@ if [ $ALSA = 1 ]; then
 	echo "ALSA = yes" >> $OUTPUT
 else
 	echo "ALSA disabled"
+fi
+
+if [ $JACK = 1 ]; then
+	echo "JACK enabled"
+	echo "JACK = yes" >> $OUTPUT
+else
+	echo "JACK disabled"
 fi
 
 # Explain the next step
