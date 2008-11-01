@@ -259,9 +259,11 @@ int rig_stop(struct rig_t *rig)
 
     rig->finished = 1;
 
-    if(pthread_join(rig->pt_realtime, NULL) != 0) {
-        perror("pthread_join");
-        return -1;
+    if(rig->npt > 0) {
+        if(pthread_join(rig->pt_realtime, NULL) != 0) {
+            perror("pthread_join");
+            return -1;
+        }
     }
 
     /* Stop audio rolling on devices */

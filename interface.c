@@ -124,9 +124,10 @@
 
 /* List of directories to use as search path for fonts. */
 
-char *font_dirs[] = {
+static const char *font_dirs[] = {
     "/usr/X11R6/lib/X11/fonts/TTF",
     "/usr/share/fonts/truetype/ttf-bitstream-vera",
+    "/usr/share/fonts/ttf-bitstream-vera", /* Gentoo Linux */
     "/usr/share/fonts/TTF",
     NULL
 };
@@ -295,7 +296,8 @@ static int calculate_spinner_lookup(int *angle, int *distance, int size)
 
 static TTF_Font* open_font(const char *name, int size) {
     int r;
-    char buf[256], **dir;
+    char buf[256];
+    const char **dir;
     struct stat st;
     TTF_Font *font;
 

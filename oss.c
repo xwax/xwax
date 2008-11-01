@@ -197,7 +197,14 @@ int oss_init(struct device_t *dv, const char *filename,
         goto fail;
     }
 
-    if(fcntl(fd, F_SETFL, O_NONBLOCK) == -1) {
+    p = fcntl(fd, F_GETFL);
+    if(p == -1) {
+        perror("F_GETFL");
+        goto fail;
+    }
+
+    p |= O_NONBLOCK;
+    if(fcntl(fd, F_SETFL, p) == -1) {
         perror("fcntl");
         return -1;
     }
