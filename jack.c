@@ -32,12 +32,15 @@
 
 
 struct jack_t {
+    int started;
     jack_port_t *input_port[DEVICE_CHANNELS],
         *output_port[DEVICE_CHANNELS];
 };
 
 static jack_client_t *client = NULL;
-static int rate, decks = 0;
+static int rate,
+    decks = 0,
+    started = 0;
 struct device_t *device[MAX_DECKS];
 
 
@@ -112,9 +115,13 @@ static void process_deck(struct device_t *dv, jack_nframes_t nframes)
 static int process_callback(jack_nframes_t nframes, void *arg)
 {
     int n;
+    struct jack_t *jack;
 
-    for(n = 0; n < decks; n++)
-        process_deck(device[n], nframes);
+    for(n = 0; n < decks; n++) {
+        jack = (struct jack_t*)device[n]->local;
+        if (jack->started)
+            process_deck(device[n], nframes);
+    }
 
     return 0;
 }
@@ -193,12 +200,20 @@ static int register_ports(struct jack_t *jack, const char *name)
 
 static int start(struct device_t *dv)
 {
+    struct jack_t *jack = (struct jack_t*)dv->local;
+
     /* On the first call to start, start audio rolling for all decks */
 
-    if(jack_activate(client) != 0) {
-        fprintf(stderr, "jack_activate: Failed\n");
-        return -1;
+    if(started == 0) {
+        if(jack_activate(client) != 0) {
+            fprintf(stderr, "jack_activate: Failed\n");
+            return -1;
+        }
     }
+
+    started++;
+    jack->started = 1;
+
     return 0;
 }
 
@@ -207,6 +222,20 @@ static int start(struct device_t *dv)
 
 static int stop(struct device_t *dv)
 {
+    struct jack_t *jack = (struct jack_t*)dv->local;
+
+    jack->started = 0;
+    started--;
+
+    /* On the final stop call, stop JACK rolling */
+
+    if(started == 0) {
+        if(jack_deactivate(client) != 0) {
+            fprintf(stderr, "jack_deactivate: Failed\n");
+            return -1;
+        }
+    }
+
     return 0;
 }
 
@@ -240,6 +269,7 @@ int jack_init(struct device_t *dv, const char *name)
         return -1;
     }
 
+    jack->started = 0;
     if(register_ports(jack, name) == -1)
 	return -1;
 
