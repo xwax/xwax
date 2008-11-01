@@ -315,7 +315,7 @@ int jack_init(struct device_t *dv, const char *name)
 
     jack->started = 0;
     if(register_ports(jack, name) == -1)
-	return -1;
+        goto fail;
 
     dv->local = jack;
 
