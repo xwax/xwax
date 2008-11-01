@@ -119,7 +119,7 @@ void usage(FILE *fd)
 
 #ifdef WITH_JACK
     fprintf(fd, "JACK device options:\n"
-      "  -j <name>      Use a JACK deck with the given name\n\n");
+      "  -j <name>      Create a JACK deck with the given name\n\n");
 #endif
 
     fprintf(fd, "Device options and -i apply to subsequent devices.\n"
@@ -134,7 +134,12 @@ void usage(FILE *fd)
 #ifdef WITH_ALSA
     fprintf(fd, "eg. Use OSS and ALSA devices simultaneously\n"
             "  xwax -l ~/music -d /dev/dsp -a hw:1\n\n");
-#endif    
+#endif
+
+#ifdef WITH_JACK
+    fprintf(fd, "eg. Use OSS and JACK devices simultaneously\n"
+            "  xwax -l ~/music -d /dev/dsp -j deck0\n\n");
+#endif
 }
 
 
