@@ -20,7 +20,7 @@
 #ifndef JACK_H
 #define JACK_H
 
-#include "jack.h"
+#include "device.h"
 
 int jack_init(struct device_t *dv, const char *name);
 
