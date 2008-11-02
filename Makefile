@@ -51,7 +51,7 @@ endif
 
 # Rules
 
-.PHONY:		clean depend
+.PHONY:		clean
 
 xwax:		$(OBJS) $(DEVICE_OBJS)
 xwax:		LDLIBS += $(SDL_LIBS) $(DEVICE_LIBS)
@@ -62,6 +62,6 @@ interface.o:	CFLAGS += $(SDL_CFLAGS)
 xwax.o:		CFLAGS += $(DEVICE_CPPFLAGS)
 
 clean:
-		rm -f .depend xwax *.o *.d *~
+		rm -f xwax *.o *.d *~
 
 -include *.d
