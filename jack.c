@@ -28,6 +28,7 @@
 #include "timecoder.h"
 
 #define MAX_DECKS 4
+#define MAX_BLOCK 512 /* samples */
 #define SCALE 32768
 
 
@@ -82,30 +83,41 @@ static void uninterleave(jack_default_audio_sample_t *jbuf[],
 static void process_deck(struct device_t *dv, jack_nframes_t nframes)
 {
     int n;
-    signed short buf[1024 * 2];
-    jack_default_audio_sample_t *jbuf[DEVICE_CHANNELS];
+    signed short buf[MAX_BLOCK * DEVICE_CHANNELS];
+    jack_default_audio_sample_t *in[DEVICE_CHANNELS], *out[DEVICE_CHANNELS];
+    jack_nframes_t remain, block;
     struct jack_t *jack = (struct jack_t*)dv->local;
 
-    /* Timecode input */
-
     for(n = 0; n < DEVICE_CHANNELS; n++) {
-        jbuf[n] = jack_port_get_buffer(jack->input_port[n], nframes);
-        assert(jbuf[n] != NULL);
+        in[n] = jack_port_get_buffer(jack->input_port[n], nframes);
+        assert(in[n] != NULL);
+        out[n] = jack_port_get_buffer(jack->output_port[n], nframes);
+        assert(out[n] != NULL);
     }
 
-    interleave(buf, jbuf, nframes);
-    if(dv->timecoder)
-        timecoder_submit(dv->timecoder, buf, nframes, rate);
+    /* For large values of nframes, communicate with the timecoder and
+     * player in smaller blocks */
 
-    /* Audio output */
+    remain = nframes;
+    while(remain > 0) {
+        if(remain < MAX_BLOCK)
+            block = remain;
+        else
+            block = MAX_BLOCK;
 
-    for(n = 0; n < DEVICE_CHANNELS; n++) {
-        jbuf[n] = jack_port_get_buffer(jack->output_port[n], nframes);
-        assert(jbuf[n] != NULL);
+        /* Timecode input */
+
+        interleave(buf, in, block);
+        if(dv->timecoder)
+            timecoder_submit(dv->timecoder, buf, block, rate);
+
+        /* Audio output -- handle in the same loop for finer granularity */
+
+        player_collect(dv->player, buf, block, rate);
+        uninterleave(out, buf, block);
+
+	remain -= block;
     }
-
-    player_collect(dv->player, buf, nframes, rate);
-    uninterleave(jbuf, buf, nframes);
 }
 
 
