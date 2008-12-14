@@ -28,7 +28,7 @@
 #define BLOCK 256
 
 
-static int strmatch(char *little, char *big)
+static int strmatch(const char *little, const char *big)
 {
     size_t n, m, match, little_len;
 
@@ -115,6 +115,26 @@ int listing_add_library(struct listing_t *ls, struct library_t *lb)
 }
 
 
+static int record_cmp(const struct record_t *a, const struct record_t *b)
+{
+    int r;
+
+    r = strcmp(a->artist, b->artist);
+    if (r < 0)
+        return -1;
+    else if (r > 0)
+        return 1;
+
+    r = strcmp(a->title, b->title);
+    if (r < 0)
+        return -1;
+    else if (r > 0)
+        return 1;
+
+    return 0;
+}
+
+
 void listing_sort(struct listing_t *ls)
 {
     int i, changed;
@@ -124,7 +144,7 @@ void listing_sort(struct listing_t *ls)
         changed = 0;
 
         for(i = 0; i < ls->entries - 1; i++) {
-            if(strcmp(ls->record[i]->name, ls->record[i + 1]->name) > 0) {
+            if(record_cmp(ls->record[i], ls->record[i + 1]) > 0) {
                 re = ls->record[i];
                 ls->record[i] = ls->record[i + 1];
                 ls->record[i + 1] = re;
@@ -145,7 +165,7 @@ int listing_match(struct listing_t *src, struct listing_t *dest, char *match)
     for(n = 0; n < src->entries; n++) {
         re = src->record[n];
 
-        if(strmatch(match, re->name)) {
+        if(strmatch(match, re->pathname)) {
             if(listing_add(dest, re) == -1)
                 return -1;
         }

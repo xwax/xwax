@@ -1,0 +1,28 @@
+#!/bin/sh
+#
+# Take a pathname as an argument and output a playlist to standard
+# output and errors to standard error.
+#
+# The output format is repeated sequences of:
+#
+#   <pathname>\0<name>\0<artist>\0<title>\0
+#
+# If the name field is given in the output then it is used in place
+# of the artist and title.
+
+DIR=$1
+
+find $DIR | sed -n '
+{
+# /[<num>[.]] <artist> - <title>.ext
+s:/\([0-9]\+.\? \+\)\?\([^/]*\) \+- \+\([^/]*\)\.[a-zA-Z0-9]*$:\0\x0\x0\2\x0\3:p
+t
+
+# /<artist> - <album>[/Disc <n>.*]/[<num>[.]] <title>.ext
+s:/\([^/]*\) \+- \+\([^/]*\)\(/Disc [0-9][^/]*\)\?/\([0-9]\+.\? \+\)\?\([^/]*\)\.[a-zA-Z0-9]*$:\0\x0\x0\1\x0\5:p
+t
+
+# /[<num>[.]] <name>.ext
+s:/\([0-9]\+.\? \+\)\?\([^/]*\)\.[a-zA-Z0-9]*$:\0\x0\2\x0\x0:p
+}
+' | tr '\n' '\0'

@@ -369,7 +369,8 @@ int main(int argc, char *argv[])
 
             /* Load in a music library */
 
-            library_import(&library, argv[1]);
+            if(library_import(&library, argv[1]) == -1)
+		return -1;
 
             argv += 2;
             argc -= 2;
