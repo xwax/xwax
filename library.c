@@ -130,15 +130,13 @@ int library_add(struct library_t *li, struct record_t *lr)
             perror("realloc");
             return -1;
         }
-        
+
         li->record = ln;
         li->size *= 2;
-
-
     }
 
     memcpy(&li->record[li->entries++], lr, sizeof(struct record_t));
-    
+
     return 0;
 }
 
