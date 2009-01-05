@@ -20,7 +20,6 @@
 #include <dirent.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <unistd.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -135,7 +134,7 @@ int library_add(struct library_t *li, struct record_t *lr)
         li->size *= 2;
     }
 
-    memcpy(&li->record[li->entries++], lr, sizeof(struct record_t));
+    li->record[li->entries++] = *lr;
 
     return 0;
 }
