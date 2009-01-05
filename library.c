@@ -31,21 +31,6 @@
 #define BLOCK 256 /* number of library entries */
 
 
-/* Copy src (ms characters) to dest (length md, including '\0'), and
- * ensure the result is safe and null terminated */
-
-static int strmcpy(char *dest, int md, char *src, int ms)
-{
-    strncpy(dest, src, MIN(ms, md));
-    if(ms < md)
-        dest[ms] = '\0';
-    else
-        dest[md - 1] = '\0';
-
-    return 0;
-}
-
-
 int library_init(struct library_t *li)
 {
     li->record = malloc(sizeof(struct record_t) * BLOCK);
