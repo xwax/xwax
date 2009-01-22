@@ -630,7 +630,8 @@ static void draw_deck_clocks(SDL_Surface *surface, const struct rect_t *rect,
 static void draw_overview(SDL_Surface *surface, const struct rect_t *rect,
                           struct track_t *tr, int position)
 {
-    int x, y, w, h, r, c, sp, fade, bytes_per_pixel, pitch, height;
+    int x, y, w, h, r, c, sp, fade, bytes_per_pixel, pitch, height,
+        current_position;
     Uint8 *pixels, *p;
     SDL_Color col;
 
@@ -642,6 +643,11 @@ static void draw_overview(SDL_Surface *surface, const struct rect_t *rect,
     pixels = surface->pixels;
     bytes_per_pixel = surface->format->BytesPerPixel;
     pitch = surface->pitch;
+
+    if(tr->length)
+        current_position = (long long)position * w / tr->length;
+    else
+        current_position = 0;
 
     for(c = 0; c < w; c++) {
 
@@ -656,24 +662,31 @@ static void draw_overview(SDL_Surface *surface, const struct rect_t *rect,
 
         /* Choose a base colour to display in */
 
-        if(!tr->length)
+        if(!tr->length) {
             col = background_col;
-        else if(position > tr->length - tr->rate * METER_WARNING_TIME)
+            fade = 0;
+        } else if(c == current_position) {
+            col = needle_col;
+            fade = 1;
+        } else if(position > tr->length - tr->rate * METER_WARNING_TIME) {
             col = warn_col;
-        else
+            fade = 3;
+        } else {
             col = elapsed_col;
+            fade = 3;
+        }
 
-        fade = 0;
+        if(tr->status == TRACK_STATUS_IMPORTING) {
+            col.b >>= 1;
+            col.g >>= 1;
+            col.r >>= 1;
+        }
 
-        if(tr->status == TRACK_STATUS_IMPORTING)
-            fade++;
-
-        if(tr->length && c <= (long long)position * w / tr->length)
-            fade++;
-
-        col.r >>= fade;
-        col.g >>= fade;
-        col.b >>= fade;
+        if(c < current_position) {
+            col.b >>= 1;
+            col.g >>= 1;
+            col.r >>= 1;
+        }
 
         /* Store a pointer to this column of the framebuffer */
 
@@ -681,9 +694,9 @@ static void draw_overview(SDL_Surface *surface, const struct rect_t *rect,
 
         r = h;
         while(r > height) {
-            p[0] = col.b >> 2;
-            p[1] = col.g >> 2;
-            p[2] = col.r >> 2;
+            p[0] = col.b >> fade;
+            p[1] = col.g >> fade;
+            p[2] = col.r >> fade;
             p += pitch;
             r--;
         }
