@@ -216,8 +216,9 @@ int rig_start(struct rig_t *rig)
         pe += r;
 
         /* Start the audio rolling on the device */
-        
-        device_start(dv);
+
+        if(device_start(dv) == -1)
+            return -1;
     }
 
     rig->npt = pe - rig->pt;
