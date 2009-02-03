@@ -29,7 +29,8 @@ typedef unsigned int bits_t;
 
 
 struct timecoder_channel_t {
-    int positive; /* wave is in positive part of cycle */
+    int positive, /* wave is in positive part of cycle */
+	swapped; /* wave recently swapped polarity */
     signed int zero;
     int crossing_ticker; /* samples since we last crossed zero */
 };
@@ -40,8 +41,8 @@ struct timecoder_t {
 
     /* Signal levels */
 
-    signed int signal_level, half_peak, wave_peak, ref_level;
-    struct timecoder_channel_t mono, channel[TIMECODER_CHANNELS];
+    signed int signal_level, ref_level;
+    struct timecoder_channel_t primary, secondary;
 
     /* Filter precalculations */
 
