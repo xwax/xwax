@@ -325,16 +325,45 @@ static void detect_zero_crossing(struct timecoder_channel_t *ch,
 }
 
 
+/* Plot the given sample value in the monitor (scope) */
+
+static void update_monitor(struct timecoder_t *tc, signed int x, signed int y)
+{
+    int px, py, p;
+    float v, w;
+
+    if(!tc->mon)
+        return;
+
+    /* Decay the pixels already in the montior */
+        
+    if(++tc->mon_counter % MONITOR_DECAY_EVERY == 0) {
+        for(p = 0; p < SQ(tc->mon_size); p++) {
+            if(tc->mon[p])
+                tc->mon[p] = tc->mon[p] * 7 / 8;
+        }
+    }
+        
+    v = (float)x / tc->ref_level;
+    w = (float)y / tc->ref_level;
+        
+    px = tc->mon_size / 2 + (v * tc->mon_size / 2);
+    py = tc->mon_size / 2 + (w * tc->mon_size / 2);
+
+    /* Set the pixel value to white */
+            
+    if(px > 0 && px < tc->mon_size && py > 0 && py < tc->mon_size)
+        tc->mon[py * tc->mon_size + px] = 0xff;
+}
+
+
 /* Submit and decode a block of PCM audio data to the timecoder */
 
 int timecoder_submit(struct timecoder_t *tc, signed short *pcm,
 		     int samples, int rate)
 {
-    int s,
-        x, y, p, /* monitor coordinates */
-        monitor_centre;
+    int s;
     signed int primary, secondary, m; /* pcm sample value, sum of two short */
-    float v, w;
     bits_t b, /* bitstream and timecode bits */
 	mask;
 
@@ -343,7 +372,6 @@ int timecoder_submit(struct timecoder_t *tc, signed short *pcm,
     b = 0;
     
     mask = ((1 << def->bits) - 1);
-    monitor_centre = tc->mon_size / 2;
 
     for(s = 0; s < samples; s++) {
 
@@ -439,32 +467,8 @@ int timecoder_submit(struct timecoder_t *tc, signed short *pcm,
         /* Take a rolling average of signal level, primary channel */
 
 	tc->signal_level += tc->signal_alpha * (m - tc->signal_level);
-
-        /* Update the monitor to add the incoming sample */
         
-        if(tc->mon) {
-            
-            /* Decay the pixels already in the montior */
-            
-            if(++tc->mon_counter % MONITOR_DECAY_EVERY == 0) {
-                for(p = 0; p < SQ(tc->mon_size); p++) {
-                    if(tc->mon[p])
-                        tc->mon[p] = tc->mon[p] * 7 / 8;
-                }
-            }
-            
-            v = (float)pcm[0] / tc->ref_level;
-            w = (float)pcm[1] / tc->ref_level;
-            
-            x = monitor_centre + (v * tc->mon_size / 2);
-            y = monitor_centre + (w * tc->mon_size / 2);
-            
-            /* Set the pixel value to white */
-            
-            if(x > 0 && x < tc->mon_size && y > 0 && y < tc->mon_size)
-                tc->mon[y * tc->mon_size + x] = 0xff;
-        }
-
+        update_monitor(tc, pcm[0], pcm[1]);
         pcm += TIMECODER_CHANNELS;
 
     } /* for each sample */
