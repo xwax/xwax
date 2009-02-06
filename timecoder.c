@@ -344,8 +344,8 @@ static void update_monitor(struct timecoder_t *tc, signed int x, signed int y)
         }
     }
         
-    v = (float)x / tc->ref_level;
-    w = (float)y / tc->ref_level;
+    v = (float)x / tc->ref_level / 2;
+    w = (float)y / tc->ref_level / 2;
         
     px = tc->mon_size / 2 + (v * tc->mon_size / 2);
     py = tc->mon_size / 2 + (w * tc->mon_size / 2);
