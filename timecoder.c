@@ -49,6 +49,8 @@
 /* Timecode definitions */
 
 #define SWITCH_PHASE 0x1 /* tone phase difference of 270 (not 90) degrees */
+#define SWITCH_PRIMARY 0x2 /* use left channel (not right) as primary */
+#define SWITCH_POLARITY 0x4 /* read bit values in negative (not positive) */
 
 struct timecode_def_t {
     char *name, *desc;
@@ -104,7 +106,7 @@ struct timecode_def_t timecode_def[] = {
         name: "traktor_a",
         desc: "Traktor Scratch, side A",
         resolution: 2000,
-        flags: 0,
+        flags: SWITCH_PRIMARY | SWITCH_POLARITY,
         bits: 23,
         seed: 0x134503,
         taps: 0x041040,
@@ -116,7 +118,7 @@ struct timecode_def_t timecode_def[] = {
         name: "traktor_b",
         desc: "Traktor Scratch, side B",
         resolution: 2000,
-        flags: 0,
+        flags: SWITCH_PRIMARY | SWITCH_POLARITY,
         bits: 23,
         seed: 0x32066c,
         taps: 0x041040, /* same as side A */
@@ -395,8 +397,13 @@ int timecoder_submit(struct timecoder_t *tc, signed short *pcm,
 
     for(s = 0; s < samples; s++) {
 
-        primary = pcm[1];
-        secondary = pcm[0];
+        if (def->flags & SWITCH_PRIMARY) {
+            primary = pcm[0];
+            secondary = pcm[1];
+        } else {
+            primary = pcm[1];
+            secondary = pcm[0];
+        }
 
         detect_zero_crossing(&tc->primary, primary, tc->zero_alpha);
 	detect_zero_crossing(&tc->secondary, secondary, tc->zero_alpha);
@@ -431,7 +438,9 @@ int timecoder_submit(struct timecoder_t *tc, signed short *pcm,
         /* If we have crossed the primary channel in the right polarity,
          * it's time to read off a timecode 0 or 1 value */
 
-        if(tc->secondary.swapped && tc->primary.positive) {
+        if(tc->secondary.swapped &&
+           tc->primary.positive == ((def->flags & SWITCH_POLARITY) == 0))
+        {
             b = m > tc->ref_level;
 
             /* Log binary timecode */
