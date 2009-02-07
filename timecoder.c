@@ -67,79 +67,79 @@ struct timecode_def_t {
 
 struct timecode_def_t timecode_def[] = {
     {
-        name: "serato_2a",
-        desc: "Serato 2nd Ed., side A",
-        resolution: 1000,
-        flags: 0,
-        bits: 20,
-        seed: 0x59017,
-        taps: 0x361e4,
-        length: 712000,
-        safe: 707000,
-        lookup: NULL
+        .name = "serato_2a",
+        .desc = "Serato 2nd Ed., side A",
+        .resolution = 1000,
+        .flags = 0,
+        .bits = 20,
+        .seed = 0x59017,
+        .taps = 0x361e4,
+        .length = 712000,
+        .safe = 707000,
+        .lookup = NULL
     },
     {
-        name: "serato_2b",
-        desc: "Serato 2nd Ed., side B",
-        resolution: 1000,
-        flags: 0,
-        bits: 20,
-        seed: 0x8f3c6,
-        taps: 0x4f0d8, /* reverse of side A */
-        length: 922000,
-        safe: 917000,
-        lookup: NULL
+        .name = "serato_2b",
+        .desc = "Serato 2nd Ed., side B",
+        .resolution = 1000,
+        .flags = 0,
+        .bits = 20,
+        .seed = 0x8f3c6,
+        .taps = 0x4f0d8, /* reverse of side A */
+        .length = 922000,
+        .safe = 917000,
+        .lookup = NULL
     },
     {
-        name: "serato_cd",
-        desc: "Serato CD",
-        resolution: 1000,
-        flags: 0,
-        bits: 20,
-        seed: 0x84c0c,
-        taps: 0x34d54,
-        length: 940000,
-        safe: 930000,
-        lookup: NULL
+        .name = "serato_cd",
+        .desc = "Serato CD",
+        .resolution = 1000,
+        .flags = 0,
+        .bits = 20,
+        .seed = 0x84c0c,
+        .taps = 0x34d54,
+        .length = 940000,
+        .safe = 930000,
+        .lookup = NULL
     },
     {
-        name: "traktor_a",
-        desc: "Traktor Scratch, side A",
-        resolution: 2000,
-        flags: SWITCH_PRIMARY | SWITCH_POLARITY,
-        bits: 23,
-        seed: 0x134503,
-        taps: 0x041040,
-        length: 1500000,
-        safe: 1480000,
-        lookup: NULL
+        .name = "traktor_a",
+        .desc = "Traktor Scratch, side A",
+        .resolution = 2000,
+        .flags = SWITCH_PRIMARY | SWITCH_POLARITY,
+        .bits = 23,
+        .seed = 0x134503,
+        .taps = 0x041040,
+        .length = 1500000,
+        .safe = 1480000,
+        .lookup = NULL
     },
     {
-        name: "traktor_b",
-        desc: "Traktor Scratch, side B",
-        resolution: 2000,
-        flags: SWITCH_PRIMARY | SWITCH_POLARITY,
-        bits: 23,
-        seed: 0x32066c,
-        taps: 0x041040, /* same as side A */
-        length: 2110000,
-        safe: 2090000,
-        lookup: NULL
+        .name = "traktor_b",
+        .desc = "Traktor Scratch, side B",
+        .resolution = 2000,
+        .flags = SWITCH_PRIMARY | SWITCH_POLARITY,
+        .bits = 23,
+        .seed = 0x32066c,
+        .taps = 0x041040, /* same as side A */
+        .length = 2110000,
+        .safe = 2090000,
+        .lookup = NULL
     },
     {
-        name: "mixvibes_v2",
-        desc: "MixVibes V2",
-        resolution: 1300,
-        flags: SWITCH_PHASE,
-        bits: 20,
-        seed: 0x22c90,
-        taps: 0x00008,
-        length: 950000,
-        safe: 923000,
-        lookup: NULL
+        .name = "mixvibes_v2",
+        .desc = "MixVibes V2",
+        .resolution = 1300,
+        .flags = SWITCH_PHASE,
+        .bits = 20,
+        .seed = 0x22c90,
+        .taps = 0x00008,
+        .length = 950000,
+        .safe = 923000,
+        .lookup = NULL
     },
     {
-        name: NULL
+        .name = NULL
     }
 };
 
