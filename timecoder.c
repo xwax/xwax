@@ -431,7 +431,7 @@ int timecoder_submit(struct timecoder_t *tc, signed short *pcm,
         /* If we have crossed the primary channel in the right polarity,
          * it's time to read off a timecode 0 or 1 value */
 
-        if(tc->secondary.swapped && !tc->primary.positive) {
+        if(tc->secondary.swapped && tc->primary.positive) {
             b = m > tc->ref_level;
 
             /* Log binary timecode */
