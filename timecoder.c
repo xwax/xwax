@@ -48,10 +48,13 @@
 
 /* Timecode definitions */
 
+#define SWITCH_PHASE 0x1 /* tone phase difference of 270 (not 90) degrees */
+
 struct timecode_def_t {
     char *name, *desc;
     int bits, /* number of bits in string */
-        resolution; /* wave cycles per second */
+        resolution, /* wave cycles per second */
+        flags;
     bits_t seed, /* LFSR value at timecode zero */
         taps; /* central LFSR taps, excluding end taps */
     unsigned int length, /* in cycles */
@@ -65,6 +68,7 @@ struct timecode_def_t timecode_def[] = {
         name: "serato_2a",
         desc: "Serato 2nd Ed., side A",
         resolution: 1000,
+        flags: 0,
         bits: 20,
         seed: 0x59017,
         taps: 0x361e4,
@@ -76,6 +80,7 @@ struct timecode_def_t timecode_def[] = {
         name: "serato_2b",
         desc: "Serato 2nd Ed., side B",
         resolution: 1000,
+        flags: 0,
         bits: 20,
         seed: 0x8f3c6,
         taps: 0x4f0d8, /* reverse of side A */
@@ -87,6 +92,7 @@ struct timecode_def_t timecode_def[] = {
         name: "serato_cd",
         desc: "Serato CD",
         resolution: 1000,
+        flags: 0,
         bits: 20,
         seed: 0x84c0c,
         taps: 0x34d54,
@@ -98,6 +104,7 @@ struct timecode_def_t timecode_def[] = {
         name: "traktor_a",
         desc: "Traktor Scratch, side A",
         resolution: 2000,
+        flags: 0,
         bits: 23,
         seed: 0x134503,
         taps: 0x041040,
@@ -109,6 +116,7 @@ struct timecode_def_t timecode_def[] = {
         name: "traktor_b",
         desc: "Traktor Scratch, side B",
         resolution: 2000,
+        flags: 0,
         bits: 23,
         seed: 0x32066c,
         taps: 0x041040, /* same as side A */
@@ -120,6 +128,7 @@ struct timecode_def_t timecode_def[] = {
         name: "mixvibes_v2",
         desc: "MixVibes V2",
         resolution: 1300,
+        flags: SWITCH_PHASE,
         bits: 20,
         seed: 0x22c90,
         taps: 0x00008,
@@ -397,10 +406,15 @@ int timecoder_submit(struct timecoder_t *tc, signed short *pcm,
         /* If an axis has been crossed, use the direction of the crossing
          * to work out the direction of the vinyl */
 
-        if(tc->primary.swapped)
+        if(tc->primary.swapped) {
             tc->forwards = (tc->primary.positive != tc->secondary.positive);
-        if(tc->secondary.swapped)
+            if(def->flags & SWITCH_PHASE)
+                tc->forwards = !tc->forwards;
+        } if(tc->secondary.swapped) {
             tc->forwards = (tc->primary.positive == tc->secondary.positive);
+            if(def->flags & SWITCH_PHASE)
+                tc->forwards = !tc->forwards;
+        }
 
         /* If any axis has been crossed, register movement using
          * the pitch counters */
