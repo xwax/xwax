@@ -28,6 +28,19 @@
 typedef unsigned int bits_t;
 
 
+struct timecode_def_t {
+    char *name, *desc;
+    int bits, /* number of bits in string */
+        resolution, /* wave cycles per second */
+        flags;
+    bits_t seed, /* LFSR value at timecode zero */
+        taps; /* central LFSR taps, excluding end taps */
+    unsigned int length, /* in cycles */
+        safe; /* last 'safe' timecode number (for auto disconnect) */
+    signed int *lookup; /* pointer to built lookup table */
+};
+
+
 struct timecoder_channel_t {
     int positive, /* wave is in positive part of cycle */
 	swapped; /* wave recently swapped polarity */
@@ -37,6 +50,7 @@ struct timecoder_channel_t {
 
 
 struct timecoder_t {
+    struct timecode_def_t *def;
     int forwards, rate;
 
     /* Signal levels */
@@ -76,7 +90,7 @@ struct timecoder_t {
 int timecoder_build_lookup(char *timecode_name);
 void timecoder_free_lookup(void);
 
-void timecoder_init(struct timecoder_t *tc);
+int timecoder_init(struct timecoder_t *tc, const char *def_name);
 void timecoder_clear(struct timecoder_t *tc);
 
 void timecoder_monitor_init(struct timecoder_t *tc, int size);

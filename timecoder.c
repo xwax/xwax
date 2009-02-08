@@ -52,18 +52,6 @@
 #define SWITCH_PRIMARY 0x2 /* use left channel (not right) as primary */
 #define SWITCH_POLARITY 0x4 /* read bit values in negative (not positive) */
 
-struct timecode_def_t {
-    char *name, *desc;
-    int bits, /* number of bits in string */
-        resolution, /* wave cycles per second */
-        flags;
-    bits_t seed, /* LFSR value at timecode zero */
-        taps; /* central LFSR taps, excluding end taps */
-    unsigned int length, /* in cycles */
-        safe; /* last 'safe' timecode number (for auto disconnect) */
-    signed int *lookup; /* pointer to built lookup table */
-};
-
 
 struct timecode_def_t timecode_def[] = {
     {
@@ -144,9 +132,6 @@ struct timecode_def_t timecode_def[] = {
 };
 
 
-struct timecode_def_t *def;
-
-
 /* Linear Feeback Shift Register in the forward direction. New values
  * are generated at the least-significant bit. */
 
@@ -189,25 +174,29 @@ static inline bits_t rev(bits_t current, struct timecode_def_t *def)
 }
 
 
-/* Setup globally, for a chosen timecode definition */
+static struct timecode_def_t* find_definition(const char *name)
+{
+    struct timecode_def_t *def;
 
-int timecoder_build_lookup(char *timecode_name) {
+    def = &timecode_def[0];
+    while(def->name) {
+        if(!strcmp(def->name, name))
+            return def;
+        def++;
+    }
+    return NULL;
+}
+
+
+/* Where necessary, build the lookup table required for this timecode */
+
+static int build_lookup(struct timecode_def_t *def)
+{
     unsigned int n;
     bits_t current, last;
 
-    def = &timecode_def[0];
-
-    while(def->name) {
-        if(!strcmp(def->name, timecode_name))
-            break;
-        def++;
-    }
-
-    if(!def->name) {
-        fprintf(stderr, "Timecode definition '%s' is not known.\n",
-                timecode_name);
-        return -1;
-    }
+    if(def->lookup != NULL)
+        return 0;
 
     fprintf(stderr, "Allocating %d slots (%zuKb) for %d bit timecode (%s)\n",
             2 << def->bits, (2 << def->bits) * sizeof(unsigned int) / 1024,
@@ -236,10 +225,17 @@ int timecoder_build_lookup(char *timecode_name) {
 }
 
 
-/* Free the timecoder lookup table when it is no longer needed */
+/* Free the timecoder lookup tables when they are no longer needed */
 
 void timecoder_free_lookup(void) {
-    free(def->lookup);
+    struct timecode_def_t *def;
+
+    def = &timecode_def[0];
+    while(def->name) {
+        if(def->lookup != NULL)
+            free(def->lookup);
+        def++;
+    }
 }
 
 
@@ -253,8 +249,19 @@ static void init_channel(struct timecoder_channel_t *ch)
 
 /* Initialise a timecode decoder */
 
-void timecoder_init(struct timecoder_t *tc)
+int timecoder_init(struct timecoder_t *tc, const char *def_name)
 {
+    /* A definition contains a lookup table which can be shared
+     * across multiple timecoders */
+
+    tc->def = find_definition(def_name);
+    if (tc->def == NULL) {
+        fprintf(stderr, "Timecode definition '%s' is not known.\n", def_name);
+        return -1;
+    }
+    if(build_lookup(tc->def) == -1)
+        return -1;
+
     tc->forwards = 1;
     tc->rate = 0;
 
@@ -274,6 +281,8 @@ void timecoder_init(struct timecoder_t *tc)
 
     tc->mon = NULL;
     tc->log_fd = -1;
+
+    return 0;
 }
 
 
@@ -389,11 +398,11 @@ int timecoder_submit(struct timecoder_t *tc, signed short *pcm,
 
     b = 0;
     
-    mask = ((1 << def->bits) - 1);
+    mask = ((1 << tc->def->bits) - 1);
 
     for(s = 0; s < samples; s++) {
 
-        if (def->flags & SWITCH_PRIMARY) {
+        if (tc->def->flags & SWITCH_PRIMARY) {
             primary = pcm[0];
             secondary = pcm[1];
         } else {
@@ -411,11 +420,11 @@ int timecoder_submit(struct timecoder_t *tc, signed short *pcm,
 
         if(tc->primary.swapped) {
             tc->forwards = (tc->primary.positive != tc->secondary.positive);
-            if(def->flags & SWITCH_PHASE)
+            if(tc->def->flags & SWITCH_PHASE)
                 tc->forwards = !tc->forwards;
         } if(tc->secondary.swapped) {
             tc->forwards = (tc->primary.positive == tc->secondary.positive);
-            if(def->flags & SWITCH_PHASE)
+            if(tc->def->flags & SWITCH_PHASE)
                 tc->forwards = !tc->forwards;
         }
 
@@ -435,7 +444,7 @@ int timecoder_submit(struct timecoder_t *tc, signed short *pcm,
          * it's time to read off a timecode 0 or 1 value */
 
         if(tc->secondary.swapped &&
-           tc->primary.positive == ((def->flags & SWITCH_POLARITY) == 0))
+           tc->primary.positive == ((tc->def->flags & SWITCH_POLARITY) == 0))
         {
             b = m > tc->ref_level;
 
@@ -451,12 +460,12 @@ int timecoder_submit(struct timecoder_t *tc, signed short *pcm,
              * placed on the vinyl, regardless of the direction. */
 
             if(tc->forwards) {
-                tc->timecode = fwd(tc->timecode, def);
+                tc->timecode = fwd(tc->timecode, tc->def);
                 tc->bitstream = (tc->bitstream >> 1)
-                    + (b << (def->bits - 1));
+                    + (b << (tc->def->bits - 1));
 
             } else {
-                tc->timecode = rev(tc->timecode, def);
+                tc->timecode = rev(tc->timecode, tc->def);
                 tc->bitstream = ((tc->bitstream << 1) & mask) + b;
             }
     
@@ -521,7 +530,7 @@ int timecoder_get_pitch(struct timecoder_t *tc, float *pitch)
     /* Value of tc->crossings may be negative in reverse */
     
     *pitch = tc->rate * (float)tc->crossings / tc->pitch_ticker
-        / (def->resolution * 4); /* number of axis crossings per cycle */
+        / (tc->def->resolution * 4); /* number of axis crossings per cycle */
 
     tc->crossings = 0;
     tc->pitch_ticker = 0;
@@ -540,7 +549,7 @@ signed int timecoder_get_position(struct timecoder_t *tc, float *when)
     signed int r;
 
     if(tc->valid_counter > VALID_BITS) {
-        r = def->lookup[tc->bitstream];
+        r = tc->def->lookup[tc->bitstream];
 
         if(r >= 0) {
             if(when) 
@@ -570,7 +579,7 @@ int timecoder_get_alive(struct timecoder_t *tc)
 
 unsigned int timecoder_get_safe(struct timecoder_t *tc)
 {
-    return def->safe;
+    return tc->def->safe;
 }
 
 
@@ -579,5 +588,5 @@ unsigned int timecoder_get_safe(struct timecoder_t *tc)
 
 int timecoder_get_resolution(struct timecoder_t *tc)
 {
-    return def->resolution;
+    return tc->def->resolution;
 }

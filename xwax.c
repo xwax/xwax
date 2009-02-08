@@ -59,12 +59,15 @@ struct deck_t {
 };
 
 
-static void deck_init(struct deck_t *deck, const char *importer)
+static int deck_init(struct deck_t *deck, const char *timecode,
+                     const char *importer)
 {
+    if(timecoder_init(&deck->timecoder, timecode) == -1)
+        return -1;
     track_init(&deck->track, importer);
-    timecoder_init(&deck->timecoder);
     player_init(&deck->player);
     player_connect_track(&deck->player, &deck->track);    
+    return 0;
 }
 
 
@@ -122,7 +125,7 @@ void usage(FILE *fd)
       "  -j <name>      Create a JACK deck with the given name\n\n");
 #endif
 
-    fprintf(fd, "Device options and -i apply to subsequent devices.\n"
+    fprintf(fd, "Device options, -t and -i apply to subsequent devices.\n"
       "Decks and audio directories can be specified multiple times.\n\n"
       "Available timecodes (for use with -t):\n"
       "  serato_2a (default), serato_2b, serato_cd,\n"
@@ -280,7 +283,8 @@ int main(int argc, char *argv[])
             
             fprintf(stderr, "Initialising deck %d (%s)...\n", decks, argv[1]);
 
-            deck_init(&deck[decks], importer);
+            if(deck_init(&deck[decks], timecode, importer) == -1)
+                return -1;
 
             /* Work out which device type we are using, and initialise
              * an appropriate device. */
@@ -384,10 +388,6 @@ int main(int argc, char *argv[])
 
     iface.players = decks;
     iface.timecoders = decks;
-
-    fprintf(stderr, "Building timecode lookup tables...\n");
-    if(timecoder_build_lookup(timecode) == -1) 
-        return -1;
 
     /* Connect everything up. Do this after selecting a timecode and
      * built the lookup tables. */
