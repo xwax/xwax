@@ -216,7 +216,7 @@ int timecoder_build_lookup(char *timecode_name) {
     def->lookup = malloc((2 << def->bits) * sizeof(unsigned int));
     if(!def->lookup) {
         perror("malloc");
-        return 0;
+        return -1;
     }
     
     for(n = 0; n < ((unsigned int)2 << def->bits); n++)
