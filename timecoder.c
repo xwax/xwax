@@ -225,11 +225,7 @@ int timecoder_build_lookup(char *timecode_name) {
     current = def->seed;
     
     for(n = 0; n < def->length; n++) {
-        if(def->lookup[current] != -1) {
-            fprintf(stderr, "Timecode has wrapped; finishing here.\n");
-            return -1;
-        }
-        
+        assert(def->lookup[current] == -1); /* timecode must not wrap */
         def->lookup[current] = n;
         last = current;
         current = fwd(current, def);
