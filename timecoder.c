@@ -524,7 +524,7 @@ int timecoder_get_pitch(struct timecoder_t *tc, float *pitch)
 {
     /* Let the caller know if there's no data to gather pitch from */
 
-    if(tc->crossings == 0)
+    if(tc->pitch_ticker == 0)
         return -1;
 
     /* Value of tc->crossings may be negative in reverse */
