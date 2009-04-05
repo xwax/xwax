@@ -21,6 +21,7 @@
 #define TIMECODER_H
 
 #include "device.h"
+#include "pitch.h"
 
 #define TIMECODER_CHANNELS DEVICE_CHANNELS
 
@@ -64,9 +65,8 @@ struct timecoder_t {
 
     /* Pitch information */
 
-    int crossings, /* number of zero crossings */
-        pitch_ticker, /* number of samples from which crossings counted */
-        crossing_ticker; /* stored for incrementing pitch_ticker */
+    struct pitch_t pitch;
+    unsigned int crossing_ticker; /* time in samples since last observation */
 
     /* Numerical timecode */
 
@@ -99,7 +99,7 @@ void timecoder_monitor_clear(struct timecoder_t *tc);
 int timecoder_submit(struct timecoder_t *tc, signed short *aud,
 		     int samples, int rate);
 
-int timecoder_get_pitch(struct timecoder_t *tc, float *pitch);
+float timecoder_get_pitch(struct timecoder_t *tc);
 signed int timecoder_get_position(struct timecoder_t *tc, float *when);
 int timecoder_get_alive(struct timecoder_t *tc);
 unsigned int timecoder_get_safe(struct timecoder_t *tc);

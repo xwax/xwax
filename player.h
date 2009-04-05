@@ -34,9 +34,8 @@ struct player_t {
         target_position, /* seconds */
         offset, /* track start point in timecode */
         last_difference; /* last known position minus target_position */
-    float target_pitch, /* pitch from turntable */
+    float pitch, /* from timecoder */
         sync_pitch, /* pitch required to sync to timecode signal */
-        pitch, /* after filtering */
         volume;
 
     int target_valid,

@@ -270,9 +270,8 @@ int timecoder_init(struct timecoder_t *tc, const char *def_name)
 
     init_channel(&tc->primary);
     init_channel(&tc->secondary);
-        
-    tc->crossings = 0;
-    tc->pitch_ticker = 0;
+
+    pitch_init(&tc->pitch, 1.0 / 96000);
 
     tc->bitstream = 0;
     tc->timecode = 0;
@@ -338,7 +337,7 @@ static void detect_zero_crossing(struct timecoder_channel_t *ch,
     ch->crossing_ticker++;
 
     ch->swapped = 0;
-    if(v >= ch->zero + ZERO_THRESHOLD && !ch->positive) {
+    if(v > ch->zero + ZERO_THRESHOLD && !ch->positive) {
         ch->swapped = 1;
         ch->positive = 1;
         ch->crossing_ticker = 0;
@@ -432,13 +431,17 @@ int timecoder_submit(struct timecoder_t *tc, signed short *pcm,
          * the pitch counters */
 
         if(tc->primary.swapped || tc->secondary.swapped) {
-            if (tc->forwards)
-                tc->crossings++;
-            else
-                tc->crossings--;
-            tc->pitch_ticker += tc->crossing_ticker;
+	    float dx;
+
+	    dx = 1.0 / tc->def->resolution / 4;
+	    if (!tc->forwards)
+		dx = -dx;
+
+	    pitch_dt_observation(&tc->pitch, dx);
             tc->crossing_ticker = 0;
-        }
+        } else {
+	    pitch_dt_observation(&tc->pitch, 0.0);
+	}
 
         /* If we have crossed the primary channel in the right polarity,
          * it's time to read off a timecode 0 or 1 value */
@@ -516,26 +519,11 @@ int timecoder_submit(struct timecoder_t *tc, signed short *pcm,
 }
 
 
-/* Return the timecode pitch, based on cycles of the sine wave. This
- * function can only be called by one context, at it resets the state
- * of the counter in the timecoder. */
+/* Return the timecode pitch, based on cycles of the sine wave */
 
-int timecoder_get_pitch(struct timecoder_t *tc, float *pitch)
+float timecoder_get_pitch(struct timecoder_t *tc)
 {
-    /* Let the caller know if there's no data to gather pitch from */
-
-    if(tc->pitch_ticker == 0)
-        return -1;
-
-    /* Value of tc->crossings may be negative in reverse */
-    
-    *pitch = tc->rate * (float)tc->crossings / tc->pitch_ticker
-        / (tc->def->resolution * 4); /* number of axis crossings per cycle */
-
-    tc->crossings = 0;
-    tc->pitch_ticker = 0;
-
-    return 0;
+    return pitch_current(&tc->pitch);
 }
 
 

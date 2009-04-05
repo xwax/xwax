@@ -156,14 +156,11 @@ void player_disconnect_timecoder(struct player_t *pl)
 
 static int sync_to_timecode(struct player_t *pl)
 {
-    float pitch, when;
+    float when;
     double tcpos;
     signed int timecode;
-    int alive, pitch_unavailable;
 
     timecode = timecoder_get_position(pl->timecoder, &when);
-    alive = timecoder_get_alive(pl->timecoder);
-    pitch_unavailable = timecoder_get_pitch(pl->timecoder, &pitch);
 
     /* Instruct the caller to disconnect the timecoder if the needle
      * is outside the 'safe' zone of the record */
@@ -171,22 +168,18 @@ static int sync_to_timecode(struct player_t *pl)
     if(timecode != -1 && timecode > pl->safe)
         return -1;
 
-    /* If the timecoder is alive and can tell us a current pitch based
-     * on the sine wave, then use it */
+    /* If the timecoder is alive, use the pitch from the sine wave */
 
-    if(alive && !pitch_unavailable)
-        pl->target_pitch = pitch;
-    else if(!alive)
-        pl->target_pitch = 0.0;
+    pl->pitch = timecoder_get_pitch(pl->timecoder);
 
     /* If we can read an absolute time from the timecode, then use it */
     
     if(timecode == -1)
 	pl->target_valid = 0;
-    
+
     else {
         tcpos = (double)timecode / timecoder_get_resolution(pl->timecoder);
-        pl->target_position = tcpos + pl->target_pitch * when;
+        pl->target_position = tcpos + pl->pitch * when;
 	pl->target_valid = 1;
     }
 
@@ -214,10 +207,8 @@ int player_collect(struct player_t *pl, signed short *pcm,
     dt = (float)samples / rate;
 
     if(pl->timecoder) {
-        if(sync_to_timecode(pl) == -1)
+        if (sync_to_timecode(pl) == -1)
             player_disconnect_timecoder(pl);
-        else
-            pl->pitch += dt / (PITCH_RC + dt) * (pl->target_pitch - pl->pitch);
     }
 
     if(!pl->target_valid) {
