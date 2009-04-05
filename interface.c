@@ -93,6 +93,8 @@
 
 #define SCROLLBAR_SIZE 10
 
+#define METER_WARNING_TIME 20 /* time in seconds for "red waveform" warning */
+
 
 /* Function key (F1-F12) definitions */
 
@@ -656,7 +658,7 @@ static void draw_overview(SDL_Surface *surface, const struct rect_t *rect,
 
         if(!tr->length)
             col = background_col;
-        else if(position > tr->length - tr->rate * 20)
+        else if(position > tr->length - tr->rate * METER_WARNING_TIME)
             col = warn_col;
         else
             col = elapsed_col;
