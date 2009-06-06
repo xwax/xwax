@@ -301,10 +301,8 @@ static int capture(struct device_t *dv)
                 r, alsa->capture.period);
     }
     
-    if(dv->timecoder) {
-        timecoder_submit(dv->timecoder, alsa->capture.buf, r,
-                         alsa->capture.rate);
-    }
+    if(dv->timecoder)
+        timecoder_submit(dv->timecoder, alsa->capture.buf, r);
 
     return 0;
 }

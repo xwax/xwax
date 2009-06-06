@@ -109,7 +109,7 @@ static void process_deck(struct device_t *dv, jack_nframes_t nframes)
 
         interleave(buf, in, block);
         if(dv->timecoder)
-            timecoder_submit(dv->timecoder, buf, block, rate);
+            timecoder_submit(dv->timecoder, buf, block);
 
         /* Audio output -- handle in the same loop for finer granularity */
 

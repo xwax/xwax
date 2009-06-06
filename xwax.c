@@ -60,9 +60,9 @@ struct deck_t {
 
 
 static int deck_init(struct deck_t *deck, const char *timecode,
-                     const char *importer)
+                     const char *importer, unsigned int sample_rate)
 {
-    if(timecoder_init(&deck->timecoder, timecode) == -1)
+    if(timecoder_init(&deck->timecoder, timecode, sample_rate) == -1)
         return -1;
     track_init(&deck->track, importer);
     player_init(&deck->player);
@@ -266,6 +266,7 @@ int main(int argc, char *argv[])
         } else if(!strcmp(argv[0], "-d") || !strcmp(argv[0], "-a") ||
 		  !strcmp(argv[0], "-j"))
 	{
+	    unsigned int sample_rate;
 
             /* Create a deck */
 
@@ -282,9 +283,6 @@ int main(int argc, char *argv[])
             }
             
             fprintf(stderr, "Initialising deck %d (%s)...\n", decks, argv[1]);
-
-            if(deck_init(&deck[decks], timecode, importer) == -1)
-                return -1;
 
             /* Work out which device type we are using, and initialise
              * an appropriate device. */
@@ -313,6 +311,11 @@ int main(int argc, char *argv[])
             }
 
             if(r == -1)
+                return -1;
+
+	    sample_rate = device_sample_rate(device);
+
+            if(deck_init(&deck[decks], timecode, importer, sample_rate) == -1)
                 return -1;
 
             /* The timecoder and player are driven by requests from

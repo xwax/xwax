@@ -245,8 +245,11 @@ static void init_channel(struct timecoder_channel_t *ch)
 
 /* Initialise a timecode decoder */
 
-int timecoder_init(struct timecoder_t *tc, const char *def_name)
+int timecoder_init(struct timecoder_t *tc, const char *def_name,
+		   unsigned int sample_rate)
 {
+    float dt;
+
     /* A definition contains a lookup table which can be shared
      * across multiple timecoders */
 
@@ -258,15 +261,17 @@ int timecoder_init(struct timecoder_t *tc, const char *def_name)
     if(build_lookup(tc->def) == -1)
         return -1;
 
-    tc->forwards = 1;
-    tc->rate = 0;
+    dt = 1.0 / sample_rate;
 
+    tc->forwards = 1;
+    tc->rate = sample_rate;
     tc->ref_level = 32768.0;
+    tc->zero_alpha = dt / (ZERO_RC + dt);
 
     init_channel(&tc->primary);
     init_channel(&tc->secondary);
 
-    pitch_init(&tc->pitch, 1.0 / 96000);
+    pitch_init(&tc->pitch, dt);
 
     tc->bitstream = 0;
     tc->timecode = 0;
@@ -309,19 +314,6 @@ void timecoder_monitor_clear(struct timecoder_t *tc)
         free(tc->mon);
         tc->mon = NULL;
     }
-}
-
-
-static void set_sample_rate(struct timecoder_t *tc, int rate)
-{
-    float dt;
-
-    tc->rate = rate;
-
-    /* Pre-calculate the alpha values for the filters */
-
-    dt = 1.0 / rate;
-    tc->zero_alpha = dt / (ZERO_RC + dt);
 }
 
 
@@ -380,14 +372,12 @@ static void update_monitor(struct timecoder_t *tc, signed int x, signed int y)
 /* Submit and decode a block of PCM audio data to the timecoder */
 
 int timecoder_submit(struct timecoder_t *tc, signed short *pcm,
-		     int samples, int rate)
+                     int samples)
 {
     int s;
     signed int primary, secondary, m; /* pcm sample value, sum of two short */
     bits_t b, /* bitstream and timecode bits */
 	mask;
-
-    set_sample_rate(tc, rate);
 
     b = 0;
     

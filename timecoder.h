@@ -90,14 +90,15 @@ struct timecoder_t {
 int timecoder_build_lookup(char *timecode_name);
 void timecoder_free_lookup(void);
 
-int timecoder_init(struct timecoder_t *tc, const char *def_name);
+int timecoder_init(struct timecoder_t *tc, const char *def_name,
+		   unsigned int sample_rate);
 void timecoder_clear(struct timecoder_t *tc);
 
 void timecoder_monitor_init(struct timecoder_t *tc, int size);
 void timecoder_monitor_clear(struct timecoder_t *tc);
 
 int timecoder_submit(struct timecoder_t *tc, signed short *aud,
-		     int samples, int rate);
+		     int samples);
 
 float timecoder_get_pitch(struct timecoder_t *tc);
 signed int timecoder_get_position(struct timecoder_t *tc, float *when);

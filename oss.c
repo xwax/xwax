@@ -112,7 +112,7 @@ static int handle(struct device_t *dv)
             return -1;
         
         if(dv->timecoder)
-            timecoder_submit(dv->timecoder, pcm, samples, DEVICE_RATE);
+            timecoder_submit(dv->timecoder, pcm, samples);
     }
 
     /* Check the output buffer for playback */
@@ -200,7 +200,7 @@ int oss_init(struct device_t *dv, const char *filename,
         perror("SNDCTL_DSP_SETFMT");
         goto fail;
     }
-    
+
     p = DEVICE_CHANNELS;
     if(ioctl(fd, SNDCTL_DSP_CHANNELS, &p) == -1) {
         perror("SNDCTL_DSP_CHANNELS");

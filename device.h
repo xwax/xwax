@@ -47,6 +47,8 @@ struct device_type_t {
 void device_connect_timecoder(struct device_t *dv, struct timecoder_t *tc);
 void device_connect_player(struct device_t *dv, struct player_t *pl);
 
+unsigned int device_sample_rate(struct device_t *dv);
+
 int device_start(struct device_t *dv);
 int device_stop(struct device_t *dv);
 
