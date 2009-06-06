@@ -1,0 +1,29 @@
+v0.5 (2009-09-03)
+-----------------------
+
+* Configurable sample rates
+* Timecode support for MixVibes vinyls
+* Rewritten timecode decoder with 4x resolution
+* Rewritten timecode tracking with improved accuracy
+* JACK audio device support
+* Clearer display of current position in the track overview
+* Minor fixes
+
+Acknowledgements: Daniel Fasnacht, Yves Adler
+
+v0.4 (2008-05-07)
+-----------------
+
+* Timecode improvements
+
+v0.3 (2007-12-04)
+-----------------
+
+* ALSA device support
+* Timecode optimisations
+* Minor fixes
+
+v0.2 (2007-06-12)
+-----------------
+
+* First open-source release
