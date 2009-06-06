@@ -46,7 +46,7 @@ struct timecoder_channel_t {
     int positive, /* wave is in positive part of cycle */
 	swapped; /* wave recently swapped polarity */
     signed int zero;
-    int crossing_ticker; /* samples since we last crossed zero */
+    unsigned int crossing_ticker; /* samples since we last crossed zero */
 };
 
 
@@ -68,7 +68,7 @@ struct timecoder_t {
     signed int ref_level;
     bits_t bitstream, /* actual bits from the record */
         timecode; /* corrected timecode */
-    int valid_counter, /* number of successful error checks */
+    unsigned int valid_counter, /* number of successful error checks */
         timecode_ticker; /* samples since valid timecode was read */
 
     /* Feedback */
