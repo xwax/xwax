@@ -290,12 +290,17 @@ void timecoder_clear(struct timecoder_t *tc)
  * display of the incoming audio. Initialise one for the given
  * timecoder */
 
-void timecoder_monitor_init(struct timecoder_t *tc, int size)
+int timecoder_monitor_init(struct timecoder_t *tc, int size)
 {
     tc->mon_size = size;
     tc->mon = malloc(SQ(tc->mon_size));
+    if (tc->mon == NULL) {
+        perror("malloc");
+        return -1;
+    }
     memset(tc->mon, 0, SQ(tc->mon_size));
     tc->mon_counter = 0;
+    return 0;
 }
 
 

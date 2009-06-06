@@ -1171,8 +1171,10 @@ int interface_run(struct interface_t *in)
     selected = 0;
     view_offset = 0;
 
-    for(p = 0; p < in->timecoders; p++)
-        timecoder_monitor_init(in->timecoder[p], SCOPE_SIZE);
+    for(p = 0; p < in->timecoders; p++) {
+        if (timecoder_monitor_init(in->timecoder[p], SCOPE_SIZE) == -1)
+	    return -1;
+    }
     
     calculate_spinner_lookup(spinner_angle, NULL, SPINNER_SIZE);
 
