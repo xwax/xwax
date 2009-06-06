@@ -149,10 +149,6 @@ void player_disconnect_timecoder(struct player_t *pl)
 }
 
 
-/* Synchronise this player to the timecode. This function calls
- * timecoder_get_pitch() and should be the only place which does for
- * any given timecoder_t */
-
 static int sync_to_timecode(struct player_t *pl)
 {
     float when;
