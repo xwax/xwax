@@ -26,12 +26,8 @@
 #include "timecoder.h"
 
 #define ZERO_THRESHOLD 128
-#define SIGNAL_THRESHOLD 256
 
-/* Time constants for the filters */
-
-#define ZERO_RC 0.001
-#define SIGNAL_RC 0.004
+#define ZERO_RC 0.001 /* time constant for zero/rumble filter */
 
 #define REF_PEAKS_AVG 48 /* in wave cycles */
 
@@ -266,7 +262,6 @@ int timecoder_init(struct timecoder_t *tc, const char *def_name)
     tc->rate = 0;
 
     tc->ref_level = -1;
-    tc->signal_level = 0;
 
     init_channel(&tc->primary);
     init_channel(&tc->secondary);
@@ -506,10 +501,6 @@ int timecoder_submit(struct timecoder_t *tc, signed short *pcm,
         tc->crossing_ticker++;
         tc->timecode_ticker++;
 
-        /* Take a rolling average of signal level, primary channel */
-
-	tc->signal_level += tc->signal_alpha * (m - tc->signal_level);
-        
         update_monitor(tc, pcm[0], pcm[1]);
         pcm += TIMECODER_CHANNELS;
 
@@ -547,17 +538,6 @@ signed int timecoder_get_position(struct timecoder_t *tc, float *when)
     }
     
     return -1;
-}
-
-
-/* Return non-zero if there is any timecode signal available */
-
-int timecoder_get_alive(struct timecoder_t *tc)
-{
-    if(tc->signal_level < SIGNAL_THRESHOLD)
-        return 0;
-    
-    return 1;
 }
 
 
