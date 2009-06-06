@@ -61,7 +61,7 @@ struct timecoder_t {
 
     /* Filter precalculations */
 
-    float zero_alpha, signal_alpha;
+    float zero_alpha;
 
     /* Pitch information */
 

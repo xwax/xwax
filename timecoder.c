@@ -261,7 +261,7 @@ int timecoder_init(struct timecoder_t *tc, const char *def_name)
     tc->forwards = 1;
     tc->rate = 0;
 
-    tc->ref_level = -1;
+    tc->ref_level = 32768.0;
 
     init_channel(&tc->primary);
     init_channel(&tc->secondary);
@@ -322,7 +322,6 @@ static void set_sample_rate(struct timecoder_t *tc, int rate)
 
     dt = 1.0 / rate;
     tc->zero_alpha = dt / (ZERO_RC + dt);
-    tc->signal_alpha = dt / (SIGNAL_RC + dt);
 }
 
 
@@ -480,12 +479,8 @@ int timecoder_submit(struct timecoder_t *tc, signed short *pcm,
 
             /* Adjust the reference level based on this new peak */
 
-            if(tc->ref_level == -1)
-                tc->ref_level = m;
-            else {
-                tc->ref_level = (tc->ref_level * (REF_PEAKS_AVG - 1) + m)
-                    / REF_PEAKS_AVG;
-            }
+	    tc->ref_level = (tc->ref_level * (REF_PEAKS_AVG - 1) + m)
+		    / REF_PEAKS_AVG;
 
 #ifdef DEBUG_BITSTREAM
             fprintf(stderr, "%+6d zero, %+6d (ref %+6d)\t= %d%c (%5d)\n",
