@@ -52,23 +52,20 @@ struct timecoder_channel_t {
 
 struct timecoder_t {
     struct timecode_def_t *def;
-    int forwards;
 
-    /* Signal levels */
-
-    signed int ref_level;
-    struct timecoder_channel_t primary, secondary;
-
-    /* Filter precalculations */
+    /* Precomputed values */
 
     float dt, zero_alpha;
 
     /* Pitch information */
 
+    int forwards;
+    struct timecoder_channel_t primary, secondary;
     struct pitch_t pitch;
 
     /* Numerical timecode */
 
+    signed int ref_level;
     bits_t bitstream, /* actual bits from the record */
         timecode; /* corrected timecode */
     int valid_counter, /* number of successful error checks */

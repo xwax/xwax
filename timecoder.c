@@ -259,15 +259,14 @@ int timecoder_init(struct timecoder_t *tc, const char *def_name,
         return -1;
 
     tc->dt = 1.0 / sample_rate;
-    tc->forwards = 1;
-    tc->ref_level = 32768.0;
     tc->zero_alpha = tc->dt / (ZERO_RC + tc->dt);
 
+    tc->forwards = 1;
     init_channel(&tc->primary);
     init_channel(&tc->secondary);
-
     pitch_init(&tc->pitch, tc->dt);
 
+    tc->ref_level = 32768.0;
     tc->bitstream = 0;
     tc->timecode = 0;
     tc->valid_counter = 0;
