@@ -305,6 +305,15 @@ static int clear(struct device_t *dv)
 }
 
 
+static struct device_type_t jack_type = {
+    .pollfds = NULL,
+    .handle = NULL, /* done via JACK's own callbacks */
+    .start = start,
+    .stop = stop,
+    .clear = clear
+};
+
+
 /* Initialise a new JACK deck, creating a new JACK client if required,
  * and the approporiate input and output ports */
 
@@ -330,12 +339,7 @@ int jack_init(struct device_t *dv, const char *name)
         goto fail;
 
     dv->local = jack;
-
-    dv->pollfds = NULL;
-    dv->handle = NULL;
-    dv->start = start;
-    dv->stop = stop;
-    dv->clear = clear;
+    dv->type = &jack_type;
 
     assert(decks < MAX_DECKS);
     device[decks] = dv;

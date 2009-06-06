@@ -155,6 +155,15 @@ int pollfds(struct device_t *dv, struct pollfd *pe, int n)
 }
 
 
+static struct device_type_t oss_type = {
+    .pollfds = pollfds,
+    .handle = handle,
+    .start = NULL,
+    .stop = NULL,
+    .clear = clear
+};
+
+
 int oss_init(struct device_t *dv, const char *filename,
              unsigned short buffers, unsigned short fragment)
 {
@@ -220,11 +229,7 @@ int oss_init(struct device_t *dv, const char *filename,
     oss->fd = fd;
     oss->pe = NULL;
 
-    dv->pollfds = pollfds;
-    dv->handle = handle;
-    dv->start = NULL;
-    dv->stop = NULL;
-    dv->clear = clear;
+    dv->type = &oss_type;
 
     return 0;
 

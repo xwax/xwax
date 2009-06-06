@@ -38,8 +38,8 @@ void device_connect_player(struct device_t *dv, struct player_t *pl)
 
 int device_start(struct device_t *dv)
 {
-    if(dv->start)
-        return dv->start(dv);
+    if(dv->type->start)
+        return dv->type->start(dv);
     else
         return 0;
 }
@@ -49,8 +49,8 @@ int device_start(struct device_t *dv)
 
 int device_stop(struct device_t *dv)
 {
-    if(dv->stop)
-        return dv->stop(dv);
+    if(dv->type->stop)
+        return dv->type->stop(dv);
     else
         return 0;
 }
@@ -61,8 +61,8 @@ int device_stop(struct device_t *dv)
 
 int device_clear(struct device_t *dv)
 {
-    if(dv->clear)
-        return dv->clear(dv);
+    if(dv->type->clear)
+        return dv->type->clear(dv);
     else
         return 0;
 }
@@ -77,8 +77,8 @@ int device_clear(struct device_t *dv)
 
 int device_pollfds(struct device_t *dv, struct pollfd *pe, int n)
 {
-    if(dv->pollfds)
-        return dv->pollfds(dv, pe, n);
+    if(dv->type->pollfds)
+        return dv->type->pollfds(dv, pe, n);
     else
         return 0;
 }
@@ -90,8 +90,8 @@ int device_pollfds(struct device_t *dv, struct pollfd *pe, int n)
 
 int device_handle(struct device_t *dv)
 {
-    if(dv->handle)
-        return dv->handle(dv);
+    if(dv->type->handle)
+        return dv->type->handle(dv);
     else
         return 0;
 }

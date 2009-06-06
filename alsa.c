@@ -398,6 +398,15 @@ static int clear(struct device_t *dv)
 }
 
 
+static struct device_type_t alsa_type = {
+    .pollfds = pollfds,
+    .handle = handle,
+    .start = start,
+    .stop = NULL,
+    .clear = clear
+};
+
+
 /* Open ALSA device. Do not operate on audio until device_start() */
 
 int alsa_init(struct device_t *dv, const char *device_name,
@@ -426,12 +435,7 @@ int alsa_init(struct device_t *dv, const char *device_name,
     }
 
     dv->local = alsa;
-
-    dv->pollfds = pollfds;
-    dv->handle = handle;
-    dv->start = start;
-    dv->stop = NULL;
-    dv->clear = clear;
+    dv->type = &alsa_type;
 
     return 0;
 
