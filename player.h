@@ -38,8 +38,7 @@ struct player_t {
         sync_pitch, /* pitch required to sync to timecode signal */
         volume;
 
-    int target_valid,
-        safe; /* copied from timecoder_t */
+    int target_valid;
 
     struct track_t *track;
     struct timecoder_t *timecoder;

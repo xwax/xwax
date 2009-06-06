@@ -140,7 +140,6 @@ void player_connect_timecoder(struct player_t *pl, struct timecoder_t *tc)
 {
     pl->timecoder = tc;
     pl->reconnect = 1;
-    pl->safe = timecoder_get_safe(tc);
 }
 
 
@@ -165,7 +164,7 @@ static int sync_to_timecode(struct player_t *pl)
     /* Instruct the caller to disconnect the timecoder if the needle
      * is outside the 'safe' zone of the record */
 
-    if(timecode != -1 && timecode > pl->safe)
+    if(timecode != -1 && timecode > timecoder_get_safe(pl->timecoder))
         return -1;
 
     /* If the timecoder is alive, use the pitch from the sine wave */
