@@ -155,9 +155,16 @@ int pollfds(struct device_t *dv, struct pollfd *pe, int n)
 }
 
 
+static unsigned int sample_rate(struct device_t *dv)
+{
+    return DEVICE_RATE;
+}
+
+
 static struct device_type_t oss_type = {
     .pollfds = pollfds,
     .handle = handle,
+    .sample_rate = sample_rate,
     .start = NULL,
     .stop = NULL,
     .clear = clear

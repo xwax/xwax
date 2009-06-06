@@ -34,6 +34,14 @@ void device_connect_player(struct device_t *dv, struct player_t *pl)
 }
 
 
+/* Return the sample rate of the device in Hz */
+
+unsigned int device_sample_rate(struct device_t *dv)
+{
+    return dv->type->sample_rate(dv);
+}
+
+
 /* Start the device inputting and outputting audio */
 
 int device_start(struct device_t *dv)

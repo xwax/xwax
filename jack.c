@@ -221,6 +221,13 @@ static int register_ports(struct jack_t *jack, const char *name)
     return 0;
 }
 
+/* Return the sample rate */
+
+static unsigned int sample_rate(struct device_t *dv)
+{
+    return rate; /* the same rate is used for all decks */
+}
+
 
 /* Start audio rolling on this deck */
 
@@ -306,6 +313,7 @@ static void clear(struct device_t *dv)
 static struct device_type_t jack_type = {
     .pollfds = NULL,
     .handle = NULL, /* done via JACK's own callbacks */
+    .sample_rate = sample_rate,
     .start = start,
     .stop = stop,
     .clear = clear

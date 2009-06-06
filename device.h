@@ -37,6 +37,7 @@ struct device_type_t {
     int (*pollfds)(struct device_t *dv, struct pollfd *pe, int n);
     int (*handle)(struct device_t *dv);
 
+    unsigned int (*sample_rate)(struct device_t *dv);
     int (*start)(struct device_t *dv);
     int (*stop)(struct device_t *dv);
 

@@ -384,6 +384,14 @@ static int handle(struct device_t *dv)
 }
 
 
+static unsigned int sample_rate(struct device_t *dv)
+{
+    struct alsa_t *alsa = (struct alsa_t*)dv->local;
+
+    return alsa->capture.rate;
+}
+
+
 /* Close ALSA device and clear any allocations */
 
 static void clear(struct device_t *dv)
@@ -399,6 +407,7 @@ static void clear(struct device_t *dv)
 static struct device_type_t alsa_type = {
     .pollfds = pollfds,
     .handle = handle,
+    .sample_rate = sample_rate,
     .start = start,
     .stop = NULL,
     .clear = clear
