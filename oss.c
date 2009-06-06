@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008 Mark Hills <mark@pogo.org.uk>
+ * Copyright (C) 2009 Mark Hills <mark@pogo.org.uk>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -30,25 +30,28 @@
 #include "timecoder.h"
 #include "player.h"
 
+#define FRAME 32 /* maximum read size */
+
 
 struct oss_t {
     int fd;
     struct pollfd *pe;
+    unsigned int rate;
 };
 
 
-static int clear(struct device_t *dv)
+static void clear(struct device_t *dv)
 {
     int r;
     struct oss_t *oss = (struct oss_t*)dv->local;
 
     r = close(oss->fd);
-    if(r == -1)
+    if(r == -1) {
         perror("close");
+        abort();
+    }
 
     free(dv->local);
-    
-    return r;
 }
 
 
@@ -98,14 +101,14 @@ static int pull(int fd, signed short *pcm, int samples)
 
 static int handle(struct device_t *dv)
 {
-    signed short pcm[DEVICE_FRAME * DEVICE_CHANNELS];
+    signed short pcm[FRAME * DEVICE_CHANNELS];
     int samples;
     struct oss_t *oss = (struct oss_t*)dv->local;
 
     /* Check input buffer for recording */
 
     if(oss->pe->revents & POLLIN) {
-        samples = pull(oss->fd, pcm, DEVICE_FRAME);
+        samples = pull(oss->fd, pcm, FRAME);
         if(samples == -1)
             return -1;
         
@@ -123,11 +126,11 @@ static int handle(struct device_t *dv)
          * devices in the system. */
         
         if(dv->player)
-            player_collect(dv->player, pcm, DEVICE_FRAME);
+            player_collect(dv->player, pcm, FRAME, oss->rate);
         else
-            memset(pcm, 0, DEVICE_FRAME * DEVICE_CHANNELS * sizeof(short));
+            memset(pcm, 0, FRAME * DEVICE_CHANNELS * sizeof(short));
         
-        samples = push(oss->fd, pcm, DEVICE_FRAME);
+        samples = push(oss->fd, pcm, FRAME);
         
         if(samples == -1)
             return -1;
@@ -137,24 +140,41 @@ static int handle(struct device_t *dv)
 }
 
 
-int pollfds(struct device_t *dv, struct pollfd *pe, int n)
+static ssize_t pollfds(struct device_t *dv, struct pollfd *pe, size_t z)
 {
     struct oss_t *oss = (struct oss_t*)dv->local;
 
-    if(n < 1)
+    if(z < 1)
         return -1;
     
     pe->fd = oss->fd;
     pe->events = POLLIN | POLLOUT | POLLHUP;
-
     oss->pe = pe;
 
     return 1;
 }
 
 
-int oss_init(struct device_t *dv, const char *filename,
-             unsigned short buffers, unsigned short fragment)
+static unsigned int sample_rate(struct device_t *dv)
+{
+    struct oss_t *oss = (struct oss_t*)dv->local;
+
+    return oss->rate;
+}
+
+
+static struct device_type_t oss_type = {
+    .pollfds = pollfds,
+    .handle = handle,
+    .sample_rate = sample_rate,
+    .start = NULL,
+    .stop = NULL,
+    .clear = clear
+};
+
+
+int oss_init(struct device_t *dv, const char *filename, unsigned int rate,
+	     unsigned short buffers, unsigned short fragment)
 {
     int p, fd;
     struct oss_t *oss;
@@ -182,14 +202,14 @@ int oss_init(struct device_t *dv, const char *filename,
         perror("SNDCTL_DSP_SETFMT");
         goto fail;
     }
-    
+
     p = DEVICE_CHANNELS;
     if(ioctl(fd, SNDCTL_DSP_CHANNELS, &p) == -1) {
         perror("SNDCTL_DSP_CHANNELS");
         goto fail;
     }
 
-    p = DEVICE_RATE;
+    p = rate;
     if(ioctl(fd, SNDCTL_DSP_SPEED, &p) == -1) {
         perror("SNDCTL_DSP_SPEED");
         goto fail;
@@ -217,12 +237,9 @@ int oss_init(struct device_t *dv, const char *filename,
 
     oss->fd = fd;
     oss->pe = NULL;
+    oss->rate = rate;
 
-    dv->pollfds = pollfds;
-    dv->handle = handle;
-    dv->start = NULL;
-    dv->stop = NULL;
-    dv->clear = clear;
+    dv->type = &oss_type;
 
     return 0;
 

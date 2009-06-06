@@ -4,12 +4,12 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * version 2, as published by the Free Software Foundation.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * General Public License version 2 for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * version 2 along with this program; if not, write to the Free
  * Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
@@ -17,36 +17,25 @@
  *
  */
 
-#ifndef RIG_H
-#define RIG_H
+#ifndef LISTING_H
+#define LISTING_H
 
-#define MAX_DEVICES 4
-#define MAX_TRACKS 8
-#define MAX_PLAYERS 4
-#define MAX_TIMECODERS 4
+#include "library.h"
 
-#define MAX_DEVICE_POLLFDS 32
+/* Listing points to records within a library */
 
-struct rig_t {
-    int finished;
-    pthread_t pt_realtime, pt_service;
-
-    struct device_t *device[MAX_DEVICES];
-    struct track_t *track[MAX_TRACKS];
-    struct player_t *player[MAX_PLAYERS];
-    struct timecoder_t *timecoder[MAX_TIMECODERS];
-
-    int event[2]; /* pipe to wake up service thread */
-
-    /* Poll table for devices */
-    
-    int npt;
-    struct pollfd pt[MAX_DEVICE_POLLFDS];
+struct listing_t {
+    struct record_t **record;
+    int size, entries;
 };
 
-int rig_init(struct rig_t *rig);
-int rig_start(struct rig_t *rig);
-int rig_awaken(struct rig_t *rig);
-int rig_stop(struct rig_t *rig);
+int listing_init(struct listing_t *ls);
+void listing_clear(struct listing_t *ls);
+void listing_blank(struct listing_t *ls);
+int listing_add(struct listing_t *li, struct record_t *lr);
+int listing_add_library(struct listing_t *li, struct library_t *lb);
+int listing_match(struct listing_t *src, struct listing_t *dest, char *match);
+void listing_debug(struct listing_t *ls);
+void listing_sort(struct listing_t *ls);
 
 #endif

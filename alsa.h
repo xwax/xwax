@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008 Mark Hills <mark@pogo.org.uk>
+ * Copyright (C) 2009 Mark Hills <mark@pogo.org.uk>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -22,6 +22,7 @@
 
 #include "device.h"
 
-int alsa_init(struct device_t *dv, const char *name, int buffer_time);
+int alsa_init(struct device_t *dv, const char *name,
+              int rate, int buffer_time);
 
 #endif

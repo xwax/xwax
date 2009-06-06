@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008 Mark Hills <mark@pogo.org.uk>
+ * Copyright (C) 2009 Mark Hills <mark@pogo.org.uk>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -29,17 +29,16 @@ struct player_t {
     int reconnect; /* Re-sync the offset at next opportunity */
 
     /* Current playback parameters */
-    
-    double position,
+
+    double position, /* seconds */
+        target_position, /* seconds */
+        offset, /* track start point in timecode */
         last_difference; /* last known position minus target_position */
-    float target_pitch, /* pitch from turntable */
+    float pitch, /* from timecoder */
         sync_pitch, /* pitch required to sync to timecode signal */
-        pitch, /* after filtering */
         volume;
 
-    signed int target_position,
-        offset, /* track start point in timecode */
-        safe; /* copied from timecoder_t */
+    int target_valid;
 
     struct track_t *track;
     struct timecoder_t *timecoder;
@@ -55,7 +54,8 @@ int player_control(struct player_t *pl, float pitch, float volume,
                    int timecode_known, double target_position);
 int player_recue(struct player_t *pl);
 
-int player_collect(struct player_t *pl, signed short *pcm, int samples);
+int player_collect(struct player_t *pl, signed short *pcm,
+                   int samples, int rate);
 
 void player_connect_track(struct player_t *pl, struct track_t *tr);
 

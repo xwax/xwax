@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008 Mark Hills <mark@pogo.org.uk>
+ * Copyright (C) 2009 Mark Hills <mark@pogo.org.uk>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -78,7 +78,8 @@ static int start_import(struct track_t *tr, const char *path)
     tr->ppm = 0;
     tr->overview = 0;
     tr->eof = 0;
-    
+    tr->rate = TRACK_RATE;
+
     return 0;
 }
 
@@ -212,6 +213,7 @@ void track_init(struct track_t *tr, const char *importer)
     tr->blocks = 0;
     tr->bytes = 0;
     tr->length = 0;
+    tr->rate = TRACK_RATE;
 
     pthread_mutex_init(&tr->mx, 0); /* always returns zero */
 

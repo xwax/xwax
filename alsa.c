@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008 Mark Hills <mark@pogo.org.uk>
+ * Copyright (C) 2009 Mark Hills <mark@pogo.org.uk>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -35,10 +35,11 @@ struct alsa_pcm_t {
     snd_pcm_t *pcm;
 
     struct pollfd *pe;
-    int pe_count; /* number of pollfd entries */
+    size_t pe_count; /* number of pollfd entries */
 
     signed short *buf;
     snd_pcm_uframes_t period;
+    int rate;
 };
 
 
@@ -54,7 +55,7 @@ static void alsa_error(const char *msg, int r)
 
 
 static int pcm_open(struct alsa_pcm_t *alsa, const char *device_name,
-                    snd_pcm_stream_t stream, int buffer_time)
+                    snd_pcm_stream_t stream, int rate, int buffer_time)
 {
     int r, dir;
     unsigned int p;
@@ -94,14 +95,15 @@ static int pcm_open(struct alsa_pcm_t *alsa, const char *device_name,
         return -1;
     }
 
-    r = snd_pcm_hw_params_set_rate(alsa->pcm, hw_params, DEVICE_RATE, 0);
+    r = snd_pcm_hw_params_set_rate(alsa->pcm, hw_params, rate, 0);
     if(r < 0) {
         alsa_error("hw_params_set_rate", r);
         fprintf(stderr, "%dHz sample rate not available. You may need to use "
-                "a 'plughw' device.\n", DEVICE_RATE);
+                "a 'plughw' device.\n", rate);
         return -1;
     }
-    
+    alsa->rate = rate;
+
     r = snd_pcm_hw_params_set_channels(alsa->pcm, hw_params, DEVICE_CHANNELS);
     if(r < 0) {
         alsa_error("hw_params_set_channels", r);
@@ -165,24 +167,23 @@ static int pcm_close(struct alsa_pcm_t *alsa)
 }
 
 
-static int pcm_pollfds(struct alsa_pcm_t *alsa, struct pollfd *pe, int n)
+static ssize_t pcm_pollfds(struct alsa_pcm_t *alsa, struct pollfd *pe,
+			   size_t z)
 {
     int r, count;
 
     count = snd_pcm_poll_descriptors_count(alsa->pcm);
-    if(count > n)
+    if(count > z)
         return -1;
 
     if(count == 0) 
         alsa->pe = NULL;
     else {
         r = snd_pcm_poll_descriptors(alsa->pcm, pe, count);
-        
         if(r < 0) {
             alsa_error("poll_descriptors", r);
             return -1;
         }
-
         alsa->pe = pe;
     }
 
@@ -226,22 +227,22 @@ static int start(struct device_t *dv)
 /* Register this device's interest in a set of pollfd file
  * descriptors */
 
-static int pollfds(struct device_t *dv, struct pollfd *pe, int pe_size)
+static ssize_t pollfds(struct device_t *dv, struct pollfd *pe, size_t z)
 {
     int total, r;
     struct alsa_t *alsa = (struct alsa_t*)dv->local;
 
     total = 0;
 
-    r = pcm_pollfds(&alsa->capture, pe, pe_size);
+    r = pcm_pollfds(&alsa->capture, pe, z);
     if(r < 0)
         return -1;
     
     pe += r;
-    pe_size -= r;
+    z -= r;
     total += r;
     
-    r = pcm_pollfds(&alsa->playback, pe, pe_size);
+    r = pcm_pollfds(&alsa->playback, pe, z);
     if(r < 0)
         return -1;
     
@@ -259,9 +260,10 @@ static int playback(struct device_t *dv)
     int r;
     struct alsa_t *alsa = (struct alsa_t*)dv->local;
 
-    if(dv->player)
-        player_collect(dv->player, alsa->playback.buf, alsa->playback.period);
-    else {
+    if(dv->player) {
+        player_collect(dv->player, alsa->playback.buf,
+                       alsa->playback.period, alsa->playback.rate);
+    } else {
         memset(alsa->playback.buf, 0,
                alsa->playback.period * DEVICE_CHANNELS * sizeof(short));
     }    
@@ -379,23 +381,40 @@ static int handle(struct device_t *dv)
 }
 
 
+static unsigned int sample_rate(struct device_t *dv)
+{
+    struct alsa_t *alsa = (struct alsa_t*)dv->local;
+
+    return alsa->capture.rate;
+}
+
+
 /* Close ALSA device and clear any allocations */
 
-static int clear(struct device_t *dv)
+static void clear(struct device_t *dv)
 {
     struct alsa_t *alsa = (struct alsa_t*)dv->local;
 
     pcm_close(&alsa->capture);
     pcm_close(&alsa->playback);
     free(dv->local);
-
-    return 0;
 }
+
+
+static struct device_type_t alsa_type = {
+    .pollfds = pollfds,
+    .handle = handle,
+    .sample_rate = sample_rate,
+    .start = start,
+    .stop = NULL,
+    .clear = clear
+};
 
 
 /* Open ALSA device. Do not operate on audio until device_start() */
 
-int alsa_init(struct device_t *dv, const char *device_name, int buffer_time)
+int alsa_init(struct device_t *dv, const char *device_name,
+              int rate, int buffer_time)
 {
     struct alsa_t *alsa;
 
@@ -406,26 +425,21 @@ int alsa_init(struct device_t *dv, const char *device_name, int buffer_time)
     }
 
     if(pcm_open(&alsa->capture, device_name, SND_PCM_STREAM_CAPTURE,
-                buffer_time) < 0)
+                rate, buffer_time) < 0)
     {
         fputs("Failed to open device for capture.\n", stderr);
         goto fail;
     }
     
     if(pcm_open(&alsa->playback, device_name, SND_PCM_STREAM_PLAYBACK,
-                buffer_time) < 0)
+                rate, buffer_time) < 0)
     {
         fputs("Failed to open device for playback.\n", stderr);
         goto fail;
     }
 
     dv->local = alsa;
-
-    dv->pollfds = pollfds;
-    dv->handle = handle;
-    dv->start = start;
-    dv->stop = NULL;
-    dv->clear = clear;
+    dv->type = &alsa_type;
 
     return 0;
 

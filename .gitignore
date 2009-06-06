@@ -1,4 +1,4 @@
 xwax
 *.o
-.depend
+*.d
 .config

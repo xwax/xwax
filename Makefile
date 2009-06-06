@@ -1,4 +1,4 @@
-# Copyright (C) 2008 Mark Hills <mark@pogo.org.uk>
+# Copyright (C) 2009 Mark Hills <mark@pogo.org.uk>
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License version 2, as
@@ -15,11 +15,13 @@
 # MA 02110-1301, USA.
 #
 
-CFLAGS += -Wall -O3
+CFLAGS += -Wall -O3 -MMD
+LDFLAGS += -O3
 
 SDL_CFLAGS = `sdl-config --cflags`
 SDL_LIBS = `sdl-config --libs` -lSDL_ttf
 ALSA_LIBS = -lasound
+JACK_LIBS = -ljack
 
 # Import the optional configuration
 
@@ -27,7 +29,8 @@ ALSA_LIBS = -lasound
 
 # Core objects and libraries
 
-OBJS = interface.o library.o player.o rig.o timecoder.o track.o xwax.o
+OBJS = interface.o library.o listing.o player.o pitch.o rig.o \
+	timecoder.o track.o xwax.o
 DEVICE_OBJS = device.o oss.o
 DEVICE_CPPFLAGS =
 DEVICE_LIBS =
@@ -40,22 +43,25 @@ DEVICE_CPPFLAGS += -DWITH_ALSA
 DEVICE_LIBS += $(ALSA_LIBS)
 endif
 
+ifdef JACK
+DEVICE_OBJS += jack.o
+DEVICE_CPPFLAGS += -DWITH_JACK
+DEVICE_LIBS += $(JACK_LIBS)
+endif
+
 # Rules
 
-.PHONY:		clean depend
+.PHONY:		clean
 
 xwax:		$(OBJS) $(DEVICE_OBJS)
-		$(CC) $(CFLAGS) -o $@ $^ -pthread $(SDL_LIBS) $(DEVICE_LIBS)
+xwax:		LDLIBS += $(SDL_LIBS) $(DEVICE_LIBS)
+xwax:		LDFLAGS += -pthread
 
 interface.o:	CFLAGS += $(SDL_CFLAGS)
 
 xwax.o:		CFLAGS += $(DEVICE_CPPFLAGS)
 
-depend:		device.c interface.c library.c player.c rig.c timecoder.c \
-		track.c xwax.c
-		$(CC) -MM $^ > .depend
-
 clean:
-		rm -f .depend xwax *.o *~
+		rm -f xwax *.o *.d *~
 
--include .depend
+-include *.d

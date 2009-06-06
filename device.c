@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008 Mark Hills <mark@pogo.org.uk>
+ * Copyright (C) 2009 Mark Hills <mark@pogo.org.uk>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -34,12 +34,20 @@ void device_connect_player(struct device_t *dv, struct player_t *pl)
 }
 
 
+/* Return the sample rate of the device in Hz */
+
+unsigned int device_sample_rate(struct device_t *dv)
+{
+    return dv->type->sample_rate(dv);
+}
+
+
 /* Start the device inputting and outputting audio */
 
 int device_start(struct device_t *dv)
 {
-    if(dv->start)
-        return dv->start(dv);
+    if(dv->type->start)
+        return dv->type->start(dv);
     else
         return 0;
 }
@@ -49,8 +57,8 @@ int device_start(struct device_t *dv)
 
 int device_stop(struct device_t *dv)
 {
-    if(dv->stop)
-        return dv->stop(dv);
+    if(dv->type->stop)
+        return dv->type->stop(dv);
     else
         return 0;
 }
@@ -59,12 +67,9 @@ int device_stop(struct device_t *dv)
 /* Clear (destruct) the device. The corresponding constructor is
  * specific to each particular audio system. */
 
-int device_clear(struct device_t *dv)
+void device_clear(struct device_t *dv)
 {
-    if(dv->clear)
-        return dv->clear(dv);
-    else
-        return 0;
+    dv->type->clear(dv);
 }
 
 
@@ -75,10 +80,10 @@ int device_clear(struct device_t *dv)
  *
  * Returns the number of pollfd filled, or -1 on error. */
 
-int device_pollfds(struct device_t *dv, struct pollfd *pe, int n)
+ssize_t device_pollfds(struct device_t *dv, struct pollfd *pe, size_t z)
 {
-    if(dv->pollfds)
-        return dv->pollfds(dv, pe, n);
+    if(dv->type->pollfds)
+        return dv->type->pollfds(dv, pe, z);
     else
         return 0;
 }
@@ -90,8 +95,8 @@ int device_pollfds(struct device_t *dv, struct pollfd *pe, int n)
 
 int device_handle(struct device_t *dv)
 {
-    if(dv->handle)
-        return dv->handle(dv);
+    if(dv->type->handle)
+        return dv->type->handle(dv);
     else
         return 0;
 }

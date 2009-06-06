@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008 Mark Hills <mark@pogo.org.uk>
+ * Copyright (C) 2009 Mark Hills <mark@pogo.org.uk>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -32,6 +32,7 @@
 
 #include "interface.h"
 #include "library.h"
+#include "listing.h"
 #include "player.h"
 #include "rig.h"
 #include "timecoder.h"
@@ -89,9 +90,10 @@
 
 #define SPINNER_SIZE (CLOCK_FONT_SIZE * 2 - 6)
 #define SCOPE_SIZE (CLOCK_FONT_SIZE * 2 - 6)
-#define SCOPE_SCALE 1
 
 #define SCROLLBAR_SIZE 10
+
+#define METER_WARNING_TIME 20 /* time in seconds for "red waveform" warning */
 
 
 /* Function key (F1-F12) definitions */
@@ -534,7 +536,8 @@ static void draw_scope(SDL_Surface *surface, const struct rect_t *rect,
 static void draw_spinner(SDL_Surface *surface, const struct rect_t *rect,
                          struct player_t *pl)
 {
-    int x, y, r, c, rangle, pangle, position;
+    int x, y, r, c, rangle, pangle;
+    double position;
     Uint8 *rp, *p;
     SDL_Color col;
 
@@ -542,39 +545,39 @@ static void draw_spinner(SDL_Surface *surface, const struct rect_t *rect,
     y = rect->y;
 
     position = pl->position - pl->offset;
-    rangle = (int)(pl->position * 1024 * 10 / 18 / TRACK_RATE) % 1024; 
+    rangle = (int)(pl->position * 1024 * 10 / 18) % 1024; 
+
+    if(position < 0 || position >= (double)pl->track->length / pl->track->rate)
+        col = warn_col;
+    else
+        col = ok_col;
 
     for(r = 0; r < SPINNER_SIZE; r++) {
-        
+
         /* Store a pointer to this row of the framebuffer */
-        
+
         rp = surface->pixels + (y + r) * surface->pitch;
-        
+
         for(c = 0; c < SPINNER_SIZE; c++) {
-            
+
             /* Use the lookup table to provide the angle at each
              * pixel */
-            
+
             pangle = spinner_angle[r * SPINNER_SIZE + c];
-            
-            if(position < 0 || position >= pl->track->length)
-                col = warn_col;
-            else
-                col = ok_col;
-            
-            if((rangle - pangle + 1024) % 1024 < 512) {
-                col.r >>= 2;
-                col.g >>= 2;
-                col.b >>= 2;
-            }
-            
+
             /* Calculate the final pixel location and set it */
-            
+
             p = rp + (x + c) * surface->format->BytesPerPixel;
-            
-            p[0] = col.b;
-            p[1] = col.g;
-            p[2] = col.r;  
+
+            if((rangle - pangle + 1024) % 1024 < 512) {
+                p[0] = col.b >> 2;
+                p[1] = col.g >> 2;
+                p[2] = col.r >> 2;
+            } else {
+                p[0] = col.b;
+                p[1] = col.g;
+                p[2] = col.r;
+            }
         }
     }    
 }
@@ -585,7 +588,8 @@ static void draw_spinner(SDL_Surface *surface, const struct rect_t *rect,
 static void draw_deck_clocks(SDL_Surface *surface, const struct rect_t *rect,
                              struct player_t *pl)
 {
-    int elapse, remain, pos;
+    int elapse, remain;
+    float pos;
     struct rect_t upper, lower;
     SDL_Color col;
 
@@ -593,8 +597,8 @@ static void draw_deck_clocks(SDL_Surface *surface, const struct rect_t *rect,
 
     pos = pl->position - pl->offset;
 
-    elapse = (long long)pos * 1000 / TRACK_RATE;
-    remain = ((long long)pos - pl->track->length) * 1000 / TRACK_RATE;
+    elapse = pos * 1000;
+    remain = (pos - pl->track->length / pl->track->rate) * 1000;
 
     if(elapse < 0)
         col = warn_col;
@@ -626,7 +630,8 @@ static void draw_deck_clocks(SDL_Surface *surface, const struct rect_t *rect,
 static void draw_overview(SDL_Surface *surface, const struct rect_t *rect,
                           struct track_t *tr, int position)
 {
-    int x, y, w, h, r, c, sp, fade, bytes_per_pixel, pitch, height;
+    int x, y, w, h, r, c, sp, fade, bytes_per_pixel, pitch, height,
+        current_position;
     Uint8 *pixels, *p;
     SDL_Color col;
 
@@ -638,6 +643,11 @@ static void draw_overview(SDL_Surface *surface, const struct rect_t *rect,
     pixels = surface->pixels;
     bytes_per_pixel = surface->format->BytesPerPixel;
     pitch = surface->pitch;
+
+    if(tr->length)
+        current_position = (long long)position * w / tr->length;
+    else
+        current_position = 0;
 
     for(c = 0; c < w; c++) {
 
@@ -652,24 +662,31 @@ static void draw_overview(SDL_Surface *surface, const struct rect_t *rect,
 
         /* Choose a base colour to display in */
 
-        if(!tr->length)
+        if(!tr->length) {
             col = background_col;
-        else if(position > tr->length - TRACK_RATE * 20)
+            fade = 0;
+        } else if(c == current_position) {
+            col = needle_col;
+            fade = 1;
+        } else if(position > tr->length - tr->rate * METER_WARNING_TIME) {
             col = warn_col;
-        else
+            fade = 3;
+        } else {
             col = elapsed_col;
+            fade = 3;
+        }
 
-        fade = 0;
+        if(tr->status == TRACK_STATUS_IMPORTING) {
+            col.b >>= 1;
+            col.g >>= 1;
+            col.r >>= 1;
+        }
 
-        if(tr->status == TRACK_STATUS_IMPORTING)
-            fade++;
-
-        if(tr->length && c <= (long long)position * w / tr->length)
-            fade++;
-
-        col.r >>= fade;
-        col.g >>= fade;
-        col.b >>= fade;
+        if(c < current_position) {
+            col.b >>= 1;
+            col.g >>= 1;
+            col.r >>= 1;
+        }
 
         /* Store a pointer to this column of the framebuffer */
 
@@ -677,9 +694,9 @@ static void draw_overview(SDL_Surface *surface, const struct rect_t *rect,
 
         r = h;
         while(r > height) {
-            p[0] = col.b >> 2;
-            p[1] = col.g >> 2;
-            p[2] = col.r >> 2;
+            p[0] = col.b >> fade;
+            p[1] = col.g >> fade;
+            p[2] = col.r >> fade;
             p += pitch;
             r--;
         }
@@ -825,7 +842,7 @@ static void draw_deck_status(SDL_Surface *surface,
     else
         sprintf(buf, "timecode:        ");
     
-    sprintf(buf + 17, "pitch:%+0.2f (sync %0.2f %+4.0f = %+0.2f)  %s",
+    sprintf(buf + 17, "pitch:%+0.2f (sync %0.2f %+.5f = %+0.2f)  %s",
             pl->pitch,
             pl->sync_pitch,
             pl->last_difference,
@@ -845,7 +862,7 @@ static void draw_deck(SDL_Surface *surface, const struct rect_t *rect,
     int position;
     struct rect_t track, top, meters, status, rest, lower;
 
-    position = pl->position - pl->offset;
+    position = (pl->position - pl->offset) * pl->track->rate;
 
     split_top(rect, &track, &rest, FONT_SPACE * 2, 0);
     if(rest.h < 160)
@@ -1169,8 +1186,10 @@ int interface_run(struct interface_t *in)
     selected = 0;
     view_offset = 0;
 
-    for(p = 0; p < in->timecoders; p++)
-        timecoder_monitor_init(in->timecoder[p], SCOPE_SIZE, SCOPE_SCALE);
+    for(p = 0; p < in->timecoders; p++) {
+        if (timecoder_monitor_init(in->timecoder[p], SCOPE_SIZE) == -1)
+	    return -1;
+    }
     
     calculate_spinner_lookup(spinner_angle, NULL, SPINNER_SIZE);
 

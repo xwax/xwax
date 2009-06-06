@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008 Mark Hills <mark@pogo.org.uk>
+ * Copyright (C) 2009 Mark Hills <mark@pogo.org.uk>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -25,7 +25,9 @@
 #include "alsa.h"
 #include "device.h"
 #include "interface.h"
+#include "jack.h"
 #include "library.h"
+#include "listing.h"
 #include "oss.h"
 #include "player.h"
 #include "rig.h"
@@ -39,6 +41,8 @@
 #define DEFAULT_OSS_FRAGMENT 7
 
 #define DEFAULT_ALSA_BUFFER 8 /* milliseconds */
+
+#define DEFAULT_RATE 44100
 
 #define DEFAULT_IMPORTER "xwax_import"
 #define DEFAULT_TIMECODE "serato_2a"
@@ -55,12 +59,15 @@ struct deck_t {
 };
 
 
-static void deck_init(struct deck_t *deck, const char *importer)
+static int deck_init(struct deck_t *deck, const char *timecode,
+                     const char *importer, unsigned int sample_rate)
 {
+    if(timecoder_init(&deck->timecoder, timecode, sample_rate) == -1)
+        return -1;
     track_init(&deck->track, importer);
-    timecoder_init(&deck->timecoder);
     player_init(&deck->player);
     player_connect_track(&deck->player, &deck->track);    
+    return 0;
 }
 
 
@@ -101,21 +108,29 @@ void usage(FILE *fd)
 
     fprintf(fd, "OSS device options:\n"
       "  -d <device>    Build a deck connected to OSS audio device\n"
+      "  -r <hz>        Sample rate (default %dHz)\n"
       "  -b <n>         Number of buffers (default %d)\n"
       "  -f <n>         Buffer size to request (2^n bytes, default %d)\n\n",
-      DEFAULT_OSS_BUFFERS, DEFAULT_OSS_FRAGMENT);
+      DEFAULT_RATE, DEFAULT_OSS_BUFFERS, DEFAULT_OSS_FRAGMENT);
 
 #ifdef WITH_ALSA
     fprintf(fd, "ALSA device options:\n"
       "  -a <device>    Build a deck connected to ALSA audio device\n"
+      "  -r <hz>        Sample rate (default %dHz)\n"
       "  -m <ms>        Buffer time (default %dms)\n\n",
-      DEFAULT_ALSA_BUFFER);
+      DEFAULT_RATE, DEFAULT_ALSA_BUFFER);
 #endif
 
-    fprintf(fd, "Device options and -i apply to subsequent devices.\n"
+#ifdef WITH_JACK
+    fprintf(fd, "JACK device options:\n"
+      "  -j <name>      Create a JACK deck with the given name\n\n");
+#endif
+
+    fprintf(fd, "Device options, -t and -i apply to subsequent devices.\n"
       "Decks and audio directories can be specified multiple times.\n\n"
       "Available timecodes (for use with -t):\n"
-      "  serato_2a (default), serato_2b, serato_cd, traktor_a, traktor_b\n\n"
+      "  serato_2a (default), serato_2b, serato_cd,\n"
+      "  traktor_a, traktor_b, mixvibes_v2\n\n"
       "eg. Standard 2-deck setup\n"
       "  xwax -l ~/music -d /dev/dsp -d /dev/dsp1\n\n"
       "eg. Use a larger buffer on a third deck\n"
@@ -124,13 +139,18 @@ void usage(FILE *fd)
 #ifdef WITH_ALSA
     fprintf(fd, "eg. Use OSS and ALSA devices simultaneously\n"
             "  xwax -l ~/music -d /dev/dsp -a hw:1\n\n");
-#endif    
+#endif
+
+#ifdef WITH_JACK
+    fprintf(fd, "eg. Use OSS and JACK devices simultaneously\n"
+            "  xwax -l ~/music -d /dev/dsp -j deck0\n\n");
+#endif
 }
 
 
 int main(int argc, char *argv[])
 {
-    int r, n, decks, oss_fragment, oss_buffers, alsa_buffer;
+    int r, n, decks, oss_fragment, oss_buffers, rate, alsa_buffer;
     char *endptr, *timecode, *importer;
 
     struct deck_t deck[MAX_DECKS];
@@ -149,6 +169,7 @@ int main(int argc, char *argv[])
     decks = 0;
     oss_fragment = DEFAULT_OSS_FRAGMENT;
     oss_buffers = DEFAULT_OSS_BUFFERS;
+    rate = DEFAULT_RATE;
     alsa_buffer = DEFAULT_ALSA_BUFFER;
     importer = DEFAULT_IMPORTER;
     timecode = DEFAULT_TIMECODE;
@@ -206,6 +227,24 @@ int main(int argc, char *argv[])
             argc -= 2;
             
 #ifdef WITH_ALSA
+        } else if(!strcmp(argv[0], "-r")) {
+
+            /* Set sample rate for subsequence devices */
+
+            if(argc < 2) {
+                fprintf(stderr, "-r requires an integer argument.\n");
+                return -1;
+            }
+
+            rate = strtol(argv[1], &endptr, 10);
+            if(*endptr != '\0') {
+                fprintf(stderr, "-r requires an integer argument.\n");
+                return -1;
+            }
+
+            argv += 2;
+            argc -= 2;  
+
         } else if(!strcmp(argv[0], "-m")) {
             
             /* Set size of ALSA buffer for subsequence devices */
@@ -225,12 +264,15 @@ int main(int argc, char *argv[])
             argc -= 2;
 #endif
             
-        } else if(!strcmp(argv[0], "-d") || !strcmp(argv[0], "-a")) {
+        } else if(!strcmp(argv[0], "-d") || !strcmp(argv[0], "-a") ||
+		  !strcmp(argv[0], "-j"))
+	{
+	    unsigned int sample_rate;
 
             /* Create a deck */
 
             if(argc < 2) {
-                fprintf(stderr, "-%c requires a device path as an argument.\n",
+                fprintf(stderr, "-%c requires a device name as an argument.\n",
                         argv[0][1]);
                 return -1;
             }
@@ -243,8 +285,6 @@ int main(int argc, char *argv[])
             
             fprintf(stderr, "Initialising deck %d (%s)...\n", decks, argv[1]);
 
-            deck_init(&deck[decks], importer);
-
             /* Work out which device type we are using, and initialise
              * an appropriate device. */
 
@@ -253,13 +293,18 @@ int main(int argc, char *argv[])
             switch(argv[0][1]) {
 
             case 'd':
-                r = oss_init(device, argv[1], oss_buffers, oss_fragment);
+                r = oss_init(device, argv[1], rate, oss_buffers, oss_fragment);
                 break;
 #ifdef WITH_ALSA
             case 'a':
-                r = alsa_init(device, argv[1], alsa_buffer);
+                r = alsa_init(device, argv[1], rate, alsa_buffer);
                 break;
-#endif                   
+#endif
+#ifdef WITH_JACK
+            case 'j':
+                r = jack_init(device, argv[1]);
+                break;
+#endif
             default:
                 fprintf(stderr, "Device type is not supported by this "
                         "distribution of xwax.\n");
@@ -267,6 +312,11 @@ int main(int argc, char *argv[])
             }
 
             if(r == -1)
+                return -1;
+
+	    sample_rate = device_sample_rate(device);
+
+            if(deck_init(&deck[decks], timecode, importer, sample_rate) == -1)
                 return -1;
 
             /* The timecoder and player are driven by requests from
@@ -343,10 +393,6 @@ int main(int argc, char *argv[])
     iface.players = decks;
     iface.timecoders = decks;
 
-    fprintf(stderr, "Building timecode lookup tables...\n");
-    if(timecoder_build_lookup(timecode) == -1) 
-        return -1;
-
     /* Connect everything up. Do this after selecting a timecode and
      * built the lookup tables. */
 
@@ -355,7 +401,8 @@ int main(int argc, char *argv[])
     
     fprintf(stderr, "Indexing music library...\n");
     listing_init(&listing);
-    library_get_listing(&library, &listing);
+    if(listing_add_library(&listing, &library) == -1)
+        return -1;
     listing_sort(&listing);
     iface.listing = &listing;
     

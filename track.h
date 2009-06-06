@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008 Mark Hills <mark@pogo.org.uk>
+ * Copyright (C) 2009 Mark Hills <mark@pogo.org.uk>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -45,7 +45,7 @@ struct track_block_t {
 };
 
 struct track_t {
-    int status, fd, eof;
+    int status, fd, eof, rate;
     pid_t pid;
     struct pollfd *pe;
     pthread_mutex_t mx;
