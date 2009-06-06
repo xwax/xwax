@@ -444,16 +444,15 @@ static void process_sample(struct timecoder_t *tc,
     /* If any axis has been crossed, register movement using the pitch
      * counters */
 
-    if(tc->primary.swapped || tc->secondary.swapped) {
+    if(!tc->primary.swapped && !tc->secondary.swapped)
+	pitch_dt_observation(&tc->pitch, 0.0);
+    else {
 	float dx;
 
 	dx = 1.0 / tc->def->resolution / 4;
 	if (!tc->forwards)
 	    dx = -dx;
-
 	pitch_dt_observation(&tc->pitch, dx);
-    } else {
-	pitch_dt_observation(&tc->pitch, 0.0);
     }
 
     /* If we have crossed the primary channel in the right polarity,
