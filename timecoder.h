@@ -95,8 +95,7 @@ void timecoder_clear(struct timecoder_t *tc);
 void timecoder_monitor_init(struct timecoder_t *tc, int size);
 void timecoder_monitor_clear(struct timecoder_t *tc);
 
-int timecoder_submit(struct timecoder_t *tc, signed short *aud,
-		     int samples);
+void timecoder_submit(struct timecoder_t *tc, signed short *pcm, size_t npcm);
 
 signed int timecoder_get_position(struct timecoder_t *tc, float *when);
 
