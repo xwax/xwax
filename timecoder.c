@@ -239,7 +239,6 @@ static void init_channel(struct timecoder_channel_t *ch)
 {
     ch->positive = 0;
     ch->zero = 0;
-    ch->crossing_ticker = 0;
 }
 
 
@@ -464,7 +463,6 @@ static void process_sample(struct timecoder_t *tc,
 	    dx = -dx;
 
 	pitch_dt_observation(&tc->pitch, dx);
-	tc->crossing_ticker = 0;
     } else {
 	pitch_dt_observation(&tc->pitch, 0.0);
     }
@@ -478,7 +476,6 @@ static void process_sample(struct timecoder_t *tc,
 	process_bitstream(tc, m);
     }
 
-    tc->crossing_ticker++;
     tc->timecode_ticker++;
 }
 

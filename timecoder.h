@@ -66,7 +66,6 @@ struct timecoder_t {
     /* Pitch information */
 
     struct pitch_t pitch;
-    unsigned int crossing_ticker; /* time in samples since last observation */
 
     /* Numerical timecode */
 
