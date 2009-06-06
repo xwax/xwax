@@ -77,8 +77,7 @@ struct timecoder_t {
     /* Feedback */
 
     unsigned char *mon; /* x-y array */
-    int mon_size, mon_counter,
-        log_fd; /* optional file descriptor to log to, or -1 for none */
+    int mon_size, mon_counter;
 };
 
 

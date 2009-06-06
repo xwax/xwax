@@ -278,7 +278,6 @@ int timecoder_init(struct timecoder_t *tc, const char *def_name,
     tc->timecode_ticker = 0;
 
     tc->mon = NULL;
-    tc->log_fd = -1;
 
     return 0;
 }
@@ -375,11 +374,6 @@ static void process_bitstream(struct timecoder_t *tc, signed int m)
     bits_t b;
 
     b = m > tc->ref_level;
-
-    /* Log binary timecode */
-
-    if(tc->log_fd != -1)
-	write(tc->log_fd, b ? "1" : "0", 1);
 
     /* Add it to the bitstream, and work out what we were expecting
      * (timecode). */
