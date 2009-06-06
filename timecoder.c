@@ -369,21 +369,129 @@ static void update_monitor(struct timecoder_t *tc, signed int x, signed int y)
 }
 
 
+/* Process a single bitstream reading */
+
+static void process_bitstream(struct timecoder_t *tc, signed int m)
+{
+    bits_t b;
+
+    b = m > tc->ref_level;
+
+    /* Log binary timecode */
+
+    if(tc->log_fd != -1)
+	write(tc->log_fd, b ? "1" : "0", 1);
+
+    /* Add it to the bitstream, and work out what we were expecting
+     * (timecode). */
+
+    /* tc->bitstream is always in the order it is physically placed on
+     * the vinyl, regardless of the direction. */
+
+    if(tc->forwards) {
+	tc->timecode = fwd(tc->timecode, tc->def);
+	tc->bitstream = (tc->bitstream >> 1)
+	    + (b << (tc->def->bits - 1));
+
+    } else {
+	bits_t mask;
+
+	mask = ((1 << tc->def->bits) - 1);
+	tc->timecode = rev(tc->timecode, tc->def);
+	tc->bitstream = ((tc->bitstream << 1) & mask) + b;
+    }
+
+    if(tc->timecode == tc->bitstream)
+	tc->valid_counter++;
+    else {
+	tc->timecode = tc->bitstream;
+	tc->valid_counter = 0;
+    }
+
+    /* Take note of the last time we read a valid timecode */
+    
+    tc->timecode_ticker = 0;
+
+    /* Adjust the reference level based on this new peak */
+
+    tc->ref_level = (tc->ref_level * (REF_PEAKS_AVG - 1) + m) / REF_PEAKS_AVG;
+
+#ifdef DEBUG_BITSTREAM
+    fprintf(stderr, "%+6d zero, %+6d (ref %+6d)\t= %d%c (%5d)\n",
+	    tc->primary.zero,
+	    m,
+	    tc->ref_level,
+	    b,
+	    tc->valid_counter == 0 ? 'x' : ' ',
+	    tc->valid_counter);
+#endif
+}
+
+
+/* Process a single sample from the incoming audio */
+
+static void process_sample(struct timecoder_t *tc,
+			   signed int primary, signed int secondary)
+{
+    signed int m; /* pcm sample, sum of two shorts */
+
+    detect_zero_crossing(&tc->primary, primary, tc->zero_alpha);
+    detect_zero_crossing(&tc->secondary, secondary, tc->zero_alpha);
+
+    m = abs(primary - tc->primary.zero);
+
+    /* If an axis has been crossed, use the direction of the crossing
+     * to work out the direction of the vinyl */
+
+    if(tc->primary.swapped) {
+	tc->forwards = (tc->primary.positive != tc->secondary.positive);
+	if(tc->def->flags & SWITCH_PHASE)
+	    tc->forwards = !tc->forwards;
+    } if(tc->secondary.swapped) {
+	tc->forwards = (tc->primary.positive == tc->secondary.positive);
+	if(tc->def->flags & SWITCH_PHASE)
+	    tc->forwards = !tc->forwards;
+    }
+
+    /* If any axis has been crossed, register movement using the pitch
+     * counters */
+
+    if(tc->primary.swapped || tc->secondary.swapped) {
+	float dx;
+
+	dx = 1.0 / tc->def->resolution / 4;
+	if (!tc->forwards)
+	    dx = -dx;
+
+	pitch_dt_observation(&tc->pitch, dx);
+	tc->crossing_ticker = 0;
+    } else {
+	pitch_dt_observation(&tc->pitch, 0.0);
+    }
+
+    /* If we have crossed the primary channel in the right polarity,
+     * it's time to read off a timecode 0 or 1 value */
+
+    if(tc->secondary.swapped &&
+       tc->primary.positive == ((tc->def->flags & SWITCH_POLARITY) == 0))
+    {
+	process_bitstream(tc, m);
+    }
+
+    tc->crossing_ticker++;
+    tc->timecode_ticker++;
+}
+
+
 /* Submit and decode a block of PCM audio data to the timecoder */
 
 int timecoder_submit(struct timecoder_t *tc, signed short *pcm,
                      int samples)
 {
     int s;
-    signed int primary, secondary, m; /* pcm sample value, sum of two short */
-    bits_t b, /* bitstream and timecode bits */
-	mask;
-
-    b = 0;
-    
-    mask = ((1 << tc->def->bits) - 1);
 
     for(s = 0; s < samples; s++) {
+	signed int primary, secondary;
 
         if (tc->def->flags & SWITCH_PRIMARY) {
             primary = pcm[0];
@@ -393,98 +501,7 @@ int timecoder_submit(struct timecoder_t *tc, signed short *pcm,
             secondary = pcm[0];
         }
 
-        detect_zero_crossing(&tc->primary, primary, tc->zero_alpha);
-	detect_zero_crossing(&tc->secondary, secondary, tc->zero_alpha);
-
-        m = abs(primary - tc->primary.zero);
-
-        /* If an axis has been crossed, use the direction of the crossing
-         * to work out the direction of the vinyl */
-
-        if(tc->primary.swapped) {
-            tc->forwards = (tc->primary.positive != tc->secondary.positive);
-            if(tc->def->flags & SWITCH_PHASE)
-                tc->forwards = !tc->forwards;
-        } if(tc->secondary.swapped) {
-            tc->forwards = (tc->primary.positive == tc->secondary.positive);
-            if(tc->def->flags & SWITCH_PHASE)
-                tc->forwards = !tc->forwards;
-        }
-
-        /* If any axis has been crossed, register movement using
-         * the pitch counters */
-
-        if(tc->primary.swapped || tc->secondary.swapped) {
-	    float dx;
-
-	    dx = 1.0 / tc->def->resolution / 4;
-	    if (!tc->forwards)
-		dx = -dx;
-
-	    pitch_dt_observation(&tc->pitch, dx);
-            tc->crossing_ticker = 0;
-        } else {
-	    pitch_dt_observation(&tc->pitch, 0.0);
-	}
-
-        /* If we have crossed the primary channel in the right polarity,
-         * it's time to read off a timecode 0 or 1 value */
-
-        if(tc->secondary.swapped &&
-           tc->primary.positive == ((tc->def->flags & SWITCH_POLARITY) == 0))
-        {
-            b = m > tc->ref_level;
-
-            /* Log binary timecode */
-
-            if(tc->log_fd != -1)
-                write(tc->log_fd, b ? "1" : "0", 1);
-
-            /* Add it to the bitstream, and work out what we were
-             * expecting (timecode). */
-
-            /* tc->bitstream is always in the order it is physically
-             * placed on the vinyl, regardless of the direction. */
-
-            if(tc->forwards) {
-                tc->timecode = fwd(tc->timecode, tc->def);
-                tc->bitstream = (tc->bitstream >> 1)
-                    + (b << (tc->def->bits - 1));
-
-            } else {
-                tc->timecode = rev(tc->timecode, tc->def);
-                tc->bitstream = ((tc->bitstream << 1) & mask) + b;
-            }
-    
-            if(tc->timecode == tc->bitstream)
-                tc->valid_counter++;
-            else {
-                tc->timecode = tc->bitstream;
-                tc->valid_counter = 0;
-            }
-    
-            /* Take note of the last time we read a valid timecode */
-    
-            tc->timecode_ticker = 0;
-
-            /* Adjust the reference level based on this new peak */
-
-	    tc->ref_level = (tc->ref_level * (REF_PEAKS_AVG - 1) + m)
-		    / REF_PEAKS_AVG;
-
-#ifdef DEBUG_BITSTREAM
-            fprintf(stderr, "%+6d zero, %+6d (ref %+6d)\t= %d%c (%5d)\n",
-                    tc->primary.zero,
-                    m,
-                    tc->ref_level,
-                    b,
-                    tc->valid_counter == 0 ? 'x' : ' ',
-                    tc->valid_counter);
-#endif
-        }
-
-        tc->crossing_ticker++;
-        tc->timecode_ticker++;
+	process_sample(tc, primary, secondary);
 
         update_monitor(tc, pcm[0], pcm[1]);
         pcm += TIMECODER_CHANNELS;
