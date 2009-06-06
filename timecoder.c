@@ -247,8 +247,6 @@ static void init_channel(struct timecoder_channel_t *ch)
 int timecoder_init(struct timecoder_t *tc, const char *def_name,
 		   unsigned int sample_rate)
 {
-    float dt;
-
     /* A definition contains a lookup table which can be shared
      * across multiple timecoders */
 
@@ -260,17 +258,15 @@ int timecoder_init(struct timecoder_t *tc, const char *def_name,
     if(build_lookup(tc->def) == -1)
         return -1;
 
-    dt = 1.0 / sample_rate;
-
+    tc->dt = 1.0 / sample_rate;
     tc->forwards = 1;
-    tc->rate = sample_rate;
     tc->ref_level = 32768.0;
-    tc->zero_alpha = dt / (ZERO_RC + dt);
+    tc->zero_alpha = tc->dt / (ZERO_RC + tc->dt);
 
     init_channel(&tc->primary);
     init_channel(&tc->secondary);
 
-    pitch_init(&tc->pitch, dt);
+    pitch_init(&tc->pitch, tc->dt);
 
     tc->bitstream = 0;
     tc->timecode = 0;
@@ -517,7 +513,7 @@ signed int timecoder_get_position(struct timecoder_t *tc, float *when)
 
         if(r >= 0) {
             if(when) 
-                *when = tc->timecode_ticker / tc->rate;
+                *when = tc->timecode_ticker * tc->dt;
             return r;
         }
     }

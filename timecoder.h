@@ -52,7 +52,7 @@ struct timecoder_channel_t {
 
 struct timecoder_t {
     struct timecode_def_t *def;
-    int forwards, rate;
+    int forwards;
 
     /* Signal levels */
 
@@ -61,7 +61,7 @@ struct timecoder_t {
 
     /* Filter precalculations */
 
-    float zero_alpha;
+    float dt, zero_alpha;
 
     /* Pitch information */
 
