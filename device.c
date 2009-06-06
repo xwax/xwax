@@ -80,10 +80,10 @@ void device_clear(struct device_t *dv)
  *
  * Returns the number of pollfd filled, or -1 on error. */
 
-int device_pollfds(struct device_t *dv, struct pollfd *pe, int n)
+ssize_t device_pollfds(struct device_t *dv, struct pollfd *pe, size_t z)
 {
     if(dv->type->pollfds)
-        return dv->type->pollfds(dv, pe, n);
+        return dv->type->pollfds(dv, pe, z);
     else
         return 0;
 }

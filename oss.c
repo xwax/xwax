@@ -140,16 +140,15 @@ static int handle(struct device_t *dv)
 }
 
 
-int pollfds(struct device_t *dv, struct pollfd *pe, int n)
+static ssize_t pollfds(struct device_t *dv, struct pollfd *pe, size_t z)
 {
     struct oss_t *oss = (struct oss_t*)dv->local;
 
-    if(n < 1)
+    if(z < 1)
         return -1;
     
     pe->fd = oss->fd;
     pe->events = POLLIN | POLLOUT | POLLHUP;
-
     oss->pe = pe;
 
     return 1;

@@ -21,6 +21,7 @@
 #define DEVICE_H
 
 #include <sys/poll.h>
+#include <sys/types.h>
 
 #define DEVICE_CHANNELS 2
 
@@ -33,7 +34,7 @@ struct device_t {
 };
 
 struct device_type_t {
-    int (*pollfds)(struct device_t *dv, struct pollfd *pe, int n);
+    ssize_t (*pollfds)(struct device_t *dv, struct pollfd *pe, size_t z);
     int (*handle)(struct device_t *dv);
 
     unsigned int (*sample_rate)(struct device_t *dv);
@@ -53,7 +54,7 @@ int device_stop(struct device_t *dv);
 
 void device_clear(struct device_t *dv);
 
-int device_pollfds(struct device_t *dv, struct pollfd *pe, int n);
+ssize_t device_pollfds(struct device_t *dv, struct pollfd *pe, size_t z);
 int device_handle(struct device_t *dv);
 
 #endif

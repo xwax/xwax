@@ -35,7 +35,7 @@ struct alsa_pcm_t {
     snd_pcm_t *pcm;
 
     struct pollfd *pe;
-    int pe_count; /* number of pollfd entries */
+    size_t pe_count; /* number of pollfd entries */
 
     signed short *buf;
     snd_pcm_uframes_t period;
@@ -167,24 +167,23 @@ static int pcm_close(struct alsa_pcm_t *alsa)
 }
 
 
-static int pcm_pollfds(struct alsa_pcm_t *alsa, struct pollfd *pe, int n)
+static ssize_t pcm_pollfds(struct alsa_pcm_t *alsa, struct pollfd *pe,
+			   size_t z)
 {
     int r, count;
 
     count = snd_pcm_poll_descriptors_count(alsa->pcm);
-    if(count > n)
+    if(count > z)
         return -1;
 
     if(count == 0) 
         alsa->pe = NULL;
     else {
         r = snd_pcm_poll_descriptors(alsa->pcm, pe, count);
-        
         if(r < 0) {
             alsa_error("poll_descriptors", r);
             return -1;
         }
-
         alsa->pe = pe;
     }
 
@@ -228,22 +227,22 @@ static int start(struct device_t *dv)
 /* Register this device's interest in a set of pollfd file
  * descriptors */
 
-static int pollfds(struct device_t *dv, struct pollfd *pe, int pe_size)
+static ssize_t pollfds(struct device_t *dv, struct pollfd *pe, size_t z)
 {
     int total, r;
     struct alsa_t *alsa = (struct alsa_t*)dv->local;
 
     total = 0;
 
-    r = pcm_pollfds(&alsa->capture, pe, pe_size);
+    r = pcm_pollfds(&alsa->capture, pe, z);
     if(r < 0)
         return -1;
     
     pe += r;
-    pe_size -= r;
+    z -= r;
     total += r;
     
-    r = pcm_pollfds(&alsa->playback, pe, pe_size);
+    r = pcm_pollfds(&alsa->playback, pe, z);
     if(r < 0)
         return -1;
     
