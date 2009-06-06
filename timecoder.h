@@ -100,9 +100,33 @@ void timecoder_monitor_clear(struct timecoder_t *tc);
 int timecoder_submit(struct timecoder_t *tc, signed short *aud,
 		     int samples);
 
-float timecoder_get_pitch(struct timecoder_t *tc);
 signed int timecoder_get_position(struct timecoder_t *tc, float *when);
-unsigned int timecoder_get_safe(struct timecoder_t *tc);
-int timecoder_get_resolution(struct timecoder_t *tc);
+
+
+/* Return the pitch, based on filtered cycles of the sine wave */
+
+static inline float timecoder_get_pitch(struct timecoder_t *tc)
+{
+    return pitch_current(&tc->pitch);
+}
+
+
+/* The last 'safe' timecode value on the record. Beyond this value, we
+ * probably want to ignore the timecode values, as we will hit the
+ * label of the record. */
+
+static inline unsigned int timecoder_get_safe(struct timecoder_t *tc)
+{
+    return tc->def->safe;
+}
+
+
+/* The resolution of the timecode. This is the number of bits per
+ * second, which corresponds to the frequency of the sine wave */
+
+static inline int timecoder_get_resolution(struct timecoder_t *tc)
+{
+    return tc->def->resolution;
+}
 
 #endif

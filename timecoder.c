@@ -495,14 +495,6 @@ int timecoder_submit(struct timecoder_t *tc, signed short *pcm,
 }
 
 
-/* Return the timecode pitch, based on cycles of the sine wave */
-
-float timecoder_get_pitch(struct timecoder_t *tc)
-{
-    return pitch_current(&tc->pitch);
-}
-
-
 /* Return the known position in the timecode, or -1 if not known. If
  * two few bits have been error-checked, then this also counts as
  * invalid. If 'when' is given, return the time, in seconds since this
@@ -523,23 +515,4 @@ signed int timecoder_get_position(struct timecoder_t *tc, float *when)
     }
     
     return -1;
-}
-
-
-/* Return the last 'safe' timecode value on the record. Beyond this
- * value, we probably want to ignore the timecode values, as we will
- * hit the label of the record. */
-
-unsigned int timecoder_get_safe(struct timecoder_t *tc)
-{
-    return tc->def->safe;
-}
-
-
-/* Return the resolution of the timecode. This is the number of bits
- * per second, which corresponds to the frequency of the sine wave */
-
-int timecoder_get_resolution(struct timecoder_t *tc)
-{
-    return tc->def->resolution;
 }
