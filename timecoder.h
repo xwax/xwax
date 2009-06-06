@@ -78,11 +78,6 @@ struct timecoder_t {
 };
 
 
-/* Building the lookup table is global. Need a good way to share
- * lookup tables soon, so we can use a different timecode on 
- * each timecoder, and switch between them. */
-
-int timecoder_build_lookup(char *timecode_name);
 void timecoder_free_lookup(void);
 
 int timecoder_init(struct timecoder_t *tc, const char *def_name,
