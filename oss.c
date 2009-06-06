@@ -39,18 +39,18 @@ struct oss_t {
 };
 
 
-static int clear(struct device_t *dv)
+static void clear(struct device_t *dv)
 {
     int r;
     struct oss_t *oss = (struct oss_t*)dv->local;
 
     r = close(oss->fd);
-    if(r == -1)
+    if(r == -1) {
         perror("close");
+        abort();
+    }
 
     free(dv->local);
-    
-    return r;
 }
 
 

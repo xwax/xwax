@@ -386,15 +386,13 @@ static int handle(struct device_t *dv)
 
 /* Close ALSA device and clear any allocations */
 
-static int clear(struct device_t *dv)
+static void clear(struct device_t *dv)
 {
     struct alsa_t *alsa = (struct alsa_t*)dv->local;
 
     pcm_close(&alsa->capture);
     pcm_close(&alsa->playback);
     free(dv->local);
-
-    return 0;
 }
 
 

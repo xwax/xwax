@@ -268,7 +268,7 @@ static int stop(struct device_t *dv)
 
 /* Close JACK deck and any allocations */
 
-static int clear(struct device_t *dv)
+static void clear(struct device_t *dv)
 {
     struct jack_t *jack = (struct jack_t*)dv->local;
     int n;
@@ -277,9 +277,9 @@ static int clear(struct device_t *dv)
 
     for(n = 0; n < DEVICE_CHANNELS; n++) {
         if(jack_port_unregister(client, jack->input_port[n]) != 0)
-            return -1;
+            abort();
         if(jack_port_unregister(client, jack->output_port[n]) != 0)
-            return -1;
+            abort();
     }
 
     free(dv->local);
@@ -300,8 +300,6 @@ static int clear(struct device_t *dv)
         device[n] = device[decks - 1]; /* compact the list */
         decks--;
     }
-
-    return 0;
 }
 
 

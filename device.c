@@ -59,12 +59,9 @@ int device_stop(struct device_t *dv)
 /* Clear (destruct) the device. The corresponding constructor is
  * specific to each particular audio system. */
 
-int device_clear(struct device_t *dv)
+void device_clear(struct device_t *dv)
 {
-    if(dv->type->clear)
-        return dv->type->clear(dv);
-    else
-        return 0;
+    dv->type->clear(dv);
 }
 
 
