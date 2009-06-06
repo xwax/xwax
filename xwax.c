@@ -108,9 +108,10 @@ void usage(FILE *fd)
 
     fprintf(fd, "OSS device options:\n"
       "  -d <device>    Build a deck connected to OSS audio device\n"
+      "  -r <hz>        Sample rate (default %dHz)\n"
       "  -b <n>         Number of buffers (default %d)\n"
       "  -f <n>         Buffer size to request (2^n bytes, default %d)\n\n",
-      DEFAULT_OSS_BUFFERS, DEFAULT_OSS_FRAGMENT);
+      DEFAULT_RATE, DEFAULT_OSS_BUFFERS, DEFAULT_OSS_FRAGMENT);
 
 #ifdef WITH_ALSA
     fprintf(fd, "ALSA device options:\n"
@@ -292,7 +293,7 @@ int main(int argc, char *argv[])
             switch(argv[0][1]) {
 
             case 'd':
-                r = oss_init(device, argv[1], oss_buffers, oss_fragment);
+                r = oss_init(device, argv[1], rate, oss_buffers, oss_fragment);
                 break;
 #ifdef WITH_ALSA
             case 'a':

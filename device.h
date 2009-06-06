@@ -23,7 +23,6 @@
 #include <sys/poll.h>
 
 #define DEVICE_CHANNELS 2
-#define DEVICE_RATE 44100
 
 struct device_t {
     void *local;

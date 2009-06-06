@@ -36,6 +36,7 @@
 struct oss_t {
     int fd;
     struct pollfd *pe;
+    unsigned int rate;
 };
 
 
@@ -125,7 +126,7 @@ static int handle(struct device_t *dv)
          * devices in the system. */
         
         if(dv->player)
-            player_collect(dv->player, pcm, FRAME, DEVICE_RATE);
+            player_collect(dv->player, pcm, FRAME, oss->rate);
         else
             memset(pcm, 0, FRAME * DEVICE_CHANNELS * sizeof(short));
         
@@ -157,7 +158,9 @@ int pollfds(struct device_t *dv, struct pollfd *pe, int n)
 
 static unsigned int sample_rate(struct device_t *dv)
 {
-    return DEVICE_RATE;
+    struct oss_t *oss = (struct oss_t*)dv->local;
+
+    return oss->rate;
 }
 
 
@@ -171,8 +174,8 @@ static struct device_type_t oss_type = {
 };
 
 
-int oss_init(struct device_t *dv, const char *filename,
-             unsigned short buffers, unsigned short fragment)
+int oss_init(struct device_t *dv, const char *filename, unsigned int rate,
+	     unsigned short buffers, unsigned short fragment)
 {
     int p, fd;
     struct oss_t *oss;
@@ -207,7 +210,7 @@ int oss_init(struct device_t *dv, const char *filename,
         goto fail;
     }
 
-    p = DEVICE_RATE;
+    p = rate;
     if(ioctl(fd, SNDCTL_DSP_SPEED, &p) == -1) {
         perror("SNDCTL_DSP_SPEED");
         goto fail;
@@ -235,6 +238,7 @@ int oss_init(struct device_t *dv, const char *filename,
 
     oss->fd = fd;
     oss->pe = NULL;
+    oss->rate = rate;
 
     dv->type = &oss_type;
 
