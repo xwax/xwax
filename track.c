@@ -73,8 +73,9 @@ static int start_import(struct track_t *tr, const char *path)
         if(execl(tr->importer, "import", path, NULL) == -1) {
             perror("execl");
             exit(-1);
-            return 0;
         }
+
+        abort(); /* execl() never returns */
     }
 
     if(close(pstdout[1]) != 0) {
