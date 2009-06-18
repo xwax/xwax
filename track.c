@@ -55,10 +55,21 @@ static int start_import(struct track_t *tr, const char *path)
         
     } else if(tr->pid == 0) { /* child */
 
-        close(pstdout[0]);
-        dup2(pstdout[1], STDOUT_FILENO);
-        close(pstdout[1]);
-        
+        /* Reconnect stdout to this process, leave stderr to terminal */
+
+        if(close(pstdout[0]) != 0) {
+            perror("close");
+            abort();
+        }
+        if(dup2(pstdout[1], STDOUT_FILENO) == -1) {
+            perror("dup2");
+            exit(-1);
+        }
+        if(close(pstdout[1]) != 0) {
+            perror("close");
+            abort();
+        }
+
         if(execl(tr->importer, "import", path, NULL) == -1) {
             perror("execl");
             exit(-1);
@@ -66,7 +77,11 @@ static int start_import(struct track_t *tr, const char *path)
         }
     }
 
-    close(pstdout[1]);
+    if(close(pstdout[1]) != 0) {
+        perror("close");
+        abort();
+    }
+
     tr->fd = pstdout[0];
     if(fcntl(tr->fd, F_SETFL, O_NONBLOCK) == -1) {
         perror("fcntl");
