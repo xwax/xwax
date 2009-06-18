@@ -102,9 +102,11 @@ static int start_import(struct track_t *tr, const char *path)
 /* Conclude the importer process. To be called whether the importer
  * was aborted or completed successfully */
 
-static int stop_import(struct track_t *tr)
+static void stop_import(struct track_t *tr)
 {
     int status;
+
+    assert(tr->pid != 0);
 
     if(close(tr->fd) != 0) {
         perror("close");
@@ -113,12 +115,10 @@ static int stop_import(struct track_t *tr)
 
     if(waitpid(tr->pid, &status, 0) == -1) {
         perror("waitpid");
-        return -1;
+        abort();
     }
     fprintf(stderr, "Track importer exited with status %d.\n", status);
     tr->pid = 0;
-
-    return 0;
 }
 
 
@@ -244,10 +244,8 @@ void track_clear(struct track_t *tr)
 
     /* Force a cleanup of whichever state we are in */
 
-    if(tr->pid != 0) {
-        if(stop_import(tr) == -1)
-            return -1;
-    }
+    if(tr->pid != 0)
+        stop_import(tr);
 
     for(n = 0; n < tr->blocks; n++)
         free(tr->block[n]);
@@ -298,10 +296,8 @@ int track_handle(struct track_t *tr)
 
     if(tr->pid != 0) {
         r = read_from_pipe(tr);
-        if(r != 0) {
-            if(stop_import(tr) == -1)
-                return -1;
-        }
+        if(r != 0)
+            stop_import(tr);
     }
 
     UNLOCK(tr);
@@ -320,12 +316,8 @@ int track_import(struct track_t *tr, const char *path)
 
     /* Abort any running import process */
 
-    if(tr->pid != 0) {
-        if(stop_import(tr) == -1) {
-            UNLOCK(tr);
-            return -1;
-        }
-    }
+    if(tr->pid != 0)
+        stop_import(tr);
 
     /* Start the new import process */
 
