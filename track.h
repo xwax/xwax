@@ -41,7 +41,7 @@ struct track_block_t {
 };
 
 struct track_t {
-    int fd, eof, rate;
+    int fd, rate;
     pid_t pid; /* 0 if not importing */
     struct pollfd *pe;
     pthread_mutex_t mx;

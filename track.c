@@ -92,7 +92,6 @@ static int start_import(struct track_t *tr, const char *path)
     tr->length = 0;
     tr->ppm = 0;
     tr->overview = 0;
-    tr->eof = 0;
     tr->rate = TRACK_RATE;
 
     return 0;
@@ -106,9 +105,9 @@ static int stop_import(struct track_t *tr)
 {
     int status;
 
-    if(close(tr->fd) == -1) {
+    if(close(tr->fd) != 0) {
         perror("close");
-        return -1;
+        abort();
     }
 
     if(waitpid(tr->pid, &status, 0) == -1) {
@@ -116,6 +115,7 @@ static int stop_import(struct track_t *tr)
         return -1;
     }
     fprintf(stderr, "Track importer exited with status %d.\n", status);
+    tr->pid = 0;
 
     return 0;
 }
@@ -243,10 +243,6 @@ int track_clear(struct track_t *tr)
     /* Force a cleanup of whichever state we are in */
 
     if(tr->pid != 0) {
-        if(kill(tr->pid, SIGKILL) == -1) {
-            perror("kill");
-            return -1;
-        }
         if(stop_import(tr) == -1)
             return -1;
     }
@@ -272,7 +268,7 @@ int track_pollfd(struct track_t *tr, struct pollfd *pe)
 
     LOCK(tr);
 
-    if(tr->pid != 0 && !tr->eof) {
+    if(tr->pid != 0) {
         pe->fd = tr->fd;
         pe->revents = 0;
         pe->events = POLLIN | POLLHUP | POLLERR;
@@ -302,10 +298,12 @@ int track_handle(struct track_t *tr)
 
     LOCK(tr);
 
-    if(tr->pid != 0 && !tr->eof) {
+    if(tr->pid != 0) {
         r = read_from_pipe(tr);
-        if(r != 0)
-            tr->eof = 1;
+        if(r != 0) {
+            if(stop_import(tr) == -1)
+                return -1;
+        }
     }
 
     UNLOCK(tr);
@@ -325,11 +323,6 @@ int track_import(struct track_t *tr, const char *path)
     /* Abort any running import process */
 
     if(tr->pid != 0) {
-        if(kill(tr->pid, SIGTERM) == -1) {
-            perror("kill");
-            UNLOCK(tr);
-            return -1;
-        }
         if(stop_import(tr) == -1) {
             UNLOCK(tr);
             return -1;
@@ -348,21 +341,5 @@ int track_import(struct track_t *tr, const char *path)
 
     rig_awaken(tr->rig);
 
-    return 0;
-}
-
-
-/* Do any waiting for completion of importer process if needed */
-
-int track_wait(struct track_t *tr)
-{
-    LOCK(tr);
-
-    if(tr->pid != 0 && tr->eof) {
-        stop_import(tr);
-        tr->pid = 0;
-    }
-
-    UNLOCK(tr);
     return 0;
 }
