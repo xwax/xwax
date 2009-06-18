@@ -46,7 +46,11 @@ static int start_import(struct track_t *tr, const char *path)
         perror("pipe");
         return -1;
     }
-    
+    if(fcntl(pstdout[0], F_SETFL, O_NONBLOCK) == -1) {
+        perror("fcntl");
+        return -1;
+    }
+
     tr->pid = vfork();
     
     if(tr->pid == -1) {
@@ -84,11 +88,6 @@ static int start_import(struct track_t *tr, const char *path)
     }
 
     tr->fd = pstdout[0];
-    if(fcntl(tr->fd, F_SETFL, O_NONBLOCK) == -1) {
-        perror("fcntl");
-        return -1;
-    }
-
     tr->bytes = 0;
     tr->length = 0;
     tr->ppm = 0;
