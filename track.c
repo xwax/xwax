@@ -49,7 +49,7 @@ static int start_import(struct track_t *tr, const char *path)
     
     tr->pid = vfork();
     
-    if(tr->pid < 0) {
+    if(tr->pid == -1) {
         perror("vfork");
         return -1;
         
