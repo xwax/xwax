@@ -64,7 +64,7 @@ struct track_t {
 };
 
 void track_init(struct track_t *tr, const char *importer);
-int track_clear(struct track_t *tr);
+void track_clear(struct track_t *tr);
 int track_import(struct track_t *tr, const char *path);
 int track_pollfd(struct track_t *tr, struct pollfd *pe);
 int track_handle(struct track_t *tr);

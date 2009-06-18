@@ -17,6 +17,7 @@
  *
  */
 
+#include <assert.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <signal.h>
@@ -230,13 +231,14 @@ void track_init(struct track_t *tr, const char *importer)
     tr->length = 0;
     tr->rate = TRACK_RATE;
 
-    pthread_mutex_init(&tr->mx, 0); /* always returns zero */
+    if (pthread_mutex_init(&tr->mx, 0) != 0)
+        abort();
 }
 
 
 /* Destroy this track from memory, and any child process */
 
-int track_clear(struct track_t *tr)
+void track_clear(struct track_t *tr)
 {
     int n;
 
@@ -250,12 +252,8 @@ int track_clear(struct track_t *tr)
     for(n = 0; n < tr->blocks; n++)
         free(tr->block[n]);
 
-    if(pthread_mutex_destroy(&tr->mx) == EBUSY) {
-        fprintf(stderr, "Track busy on destroy.\n");
-        return -1;
-    }
-
-    return 0;
+    if(pthread_mutex_destroy(&tr->mx) != 0)
+        abort();
 }
 
 
