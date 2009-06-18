@@ -231,8 +231,6 @@ void track_init(struct track_t *tr, const char *importer)
     tr->rate = TRACK_RATE;
 
     pthread_mutex_init(&tr->mx, 0); /* always returns zero */
-
-    tr->status = TRACK_STATUS_VALID;
 }
 
 
@@ -244,12 +242,10 @@ int track_clear(struct track_t *tr)
 
     /* Force a cleanup of whichever state we are in */
 
-    if(tr->status > TRACK_STATUS_VALID) {
-        if(tr->status == TRACK_STATUS_IMPORTING) {
-            if(kill(tr->pid, SIGKILL) == -1) {
-                perror("kill");
-                return -1;
-            }
+    if(tr->pid != 0) {
+        if(kill(tr->pid, SIGKILL) == -1) {
+            perror("kill");
+            return -1;
         }
         if(stop_import(tr) == -1)
             return -1;
@@ -276,7 +272,7 @@ int track_pollfd(struct track_t *tr, struct pollfd *pe)
 
     LOCK(tr);
 
-    if(tr->status == TRACK_STATUS_IMPORTING && !tr->eof) {
+    if(tr->pid != 0 && !tr->eof) {
         pe->fd = tr->fd;
         pe->revents = 0;
         pe->events = POLLIN | POLLHUP | POLLERR;
@@ -306,7 +302,7 @@ int track_handle(struct track_t *tr)
 
     LOCK(tr);
 
-    if(tr->status == TRACK_STATUS_IMPORTING && !tr->eof) {
+    if(tr->pid != 0 && !tr->eof) {
         r = read_from_pipe(tr);
         if(r != 0)
             tr->eof = 1;
@@ -328,13 +324,11 @@ int track_import(struct track_t *tr, const char *path)
 
     /* Abort any running import process */
 
-    if(tr->status != TRACK_STATUS_VALID) {
-        if(tr->status == TRACK_STATUS_IMPORTING) {
-            if(kill(tr->pid, SIGTERM) == -1) {
-                perror("kill");
-                UNLOCK(tr);
-                return -1;
-            }
+    if(tr->pid != 0) {
+        if(kill(tr->pid, SIGTERM) == -1) {
+            perror("kill");
+            UNLOCK(tr);
+            return -1;
         }
         if(stop_import(tr) == -1) {
             UNLOCK(tr);
@@ -349,7 +343,6 @@ int track_import(struct track_t *tr, const char *path)
         UNLOCK(tr);
         return -1;
     }
-    tr->status = TRACK_STATUS_IMPORTING;
 
     UNLOCK(tr);
 
@@ -365,9 +358,9 @@ int track_wait(struct track_t *tr)
 {
     LOCK(tr);
 
-    if(tr->status == TRACK_STATUS_IMPORTING && tr->eof) {
+    if(tr->pid != 0 && tr->eof) {
         stop_import(tr);
-        tr->status = TRACK_STATUS_VALID;
+        tr->pid = 0;
     }
 
     UNLOCK(tr);

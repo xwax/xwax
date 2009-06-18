@@ -614,7 +614,7 @@ static void draw_deck_clocks(SDL_Surface *surface, const struct rect_t *rect,
     else
         col = text_col;
 
-    if(pl->track->status == TRACK_STATUS_IMPORTING) {
+    if(track_is_importing(pl->track)) {
         col.r >>= 2;
         col.g >>= 2;
         col.b >>= 2;
@@ -676,7 +676,7 @@ static void draw_overview(SDL_Surface *surface, const struct rect_t *rect,
             fade = 3;
         }
 
-        if(tr->status == TRACK_STATUS_IMPORTING) {
+        if(track_is_importing(tr)) {
             col.b >>= 1;
             col.g >>= 1;
             col.r >>= 1;
