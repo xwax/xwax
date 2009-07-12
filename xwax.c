@@ -187,7 +187,11 @@ int main(int argc, char *argv[])
     
     while(argc > 0) {
 
-        if(!strcmp(argv[0], "-f")) {
+        if(!strcmp(argv[0], "-h")) {
+            usage(stdout);
+            return 0;
+
+        } else if(!strcmp(argv[0], "-f")) {
 
             /* Set fragment size for subsequent devices */
             
@@ -395,10 +399,6 @@ int main(int argc, char *argv[])
 
             argv += 2;
             argc -= 2;
-
-        } else if(!strcmp(argv[0], "-h")) {
-            usage(stdout);
-            return 0;
 
         } else {
             fprintf(stderr, "'%s' argument is unknown; try -h.\n", argv[0]);
