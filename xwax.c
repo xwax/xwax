@@ -226,7 +226,6 @@ int main(int argc, char *argv[])
             argv += 2;
             argc -= 2;
             
-#ifdef WITH_ALSA
         } else if(!strcmp(argv[0], "-r")) {
 
             /* Set sample rate for subsequence devices */
@@ -245,6 +244,7 @@ int main(int argc, char *argv[])
             argv += 2;
             argc -= 2;  
 
+#ifdef WITH_ALSA
         } else if(!strcmp(argv[0], "-m")) {
             
             /* Set size of ALSA buffer for subsequence devices */
