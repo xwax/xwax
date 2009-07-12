@@ -31,7 +31,7 @@ JACK_LIBS = -ljack
 
 OBJS = interface.o library.o listing.o lut.o player.o pitch.o rig.o \
 	timecoder.o track.o xwax.o
-DEVICE_OBJS = device.o oss.o
+DEVICE_OBJS = device.o
 DEVICE_CPPFLAGS =
 DEVICE_LIBS =
 
@@ -47,6 +47,11 @@ ifdef JACK
 DEVICE_OBJS += jack.o
 DEVICE_CPPFLAGS += -DWITH_JACK
 DEVICE_LIBS += $(JACK_LIBS)
+endif
+
+ifdef OSS
+DEVICE_OBJS += oss.o
+DEVICE_CPPFLAGS += -DWITH_OSS
 endif
 
 # Rules

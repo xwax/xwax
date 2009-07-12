@@ -23,11 +23,12 @@ OUTPUT=.config
 
 ALSA=0
 JACK=0
+OSS=0
 
 while [ $# -ge 1 ]; do
 	case $1 in
 	--help)
-		echo "Usage: configure [--enable-alsa] [--enable-jack]"
+		echo "Usage: configure [--enable-alsa] [--enable-jack] [--enable-oss]"
 		exit 0
 		;;
 	--enable-alsa)
@@ -35,6 +36,9 @@ while [ $# -ge 1 ]; do
 		;;
 	--enable-jack)
 		JACK=1
+		;;
+	--enable-oss)
+		OSS=1
 		;;
 	esac
 
@@ -57,6 +61,13 @@ if [ $JACK = 1 ]; then
 	echo "JACK = yes" >> $OUTPUT
 else
 	echo "JACK disabled"
+fi
+
+if [ $OSS = 1 ]; then
+	echo "OSS enabled"
+	echo "OSS = yes" >> $OUTPUT
+else
+	echo "OSS disabled"
 fi
 
 # Explain the next step
