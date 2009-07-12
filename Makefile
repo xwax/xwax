@@ -59,7 +59,7 @@ xwax:		LDFLAGS += -pthread
 
 interface.o:	CFLAGS += $(SDL_CFLAGS)
 
-xwax.o:		CFLAGS += $(DEVICE_CPPFLAGS)
+xwax.o:		CFLAGS += $(SDL_CFLAGS) $(DEVICE_CPPFLAGS)
 
 clean:
 		rm -f xwax *.o *.d *~

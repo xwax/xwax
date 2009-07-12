@@ -22,6 +22,8 @@
 #include <string.h>
 #include <unistd.h>
 
+#include <SDL.h> /* may override main() */
+
 #include "alsa.h"
 #include "device.h"
 #include "interface.h"
