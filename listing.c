@@ -17,6 +17,7 @@
  *
  */
 
+#define _GNU_SOURCE /* strcasestr() */
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -26,31 +27,6 @@
 #include "listing.h"
 
 #define BLOCK 256
-
-
-static int strmatch(const char *little, const char *big)
-{
-    size_t n, m, match, little_len;
-
-    little_len = strlen(little);
-
-    for(n = 0; n + little_len <= strlen(big); n++) {
-
-        match = 1;
-
-        for(m = 0; m < little_len; m++) {
-            if(tolower(little[m]) != tolower(big[n + m])) {
-                match = 0;
-                break;
-            }
-        }
-
-        if(match)
-            return 1;
-    }
-
-    return 0;
-}
 
 
 int listing_init(struct listing_t *ls)
@@ -165,7 +141,7 @@ int listing_match(struct listing_t *src, struct listing_t *dest, char *match)
     for(n = 0; n < src->entries; n++) {
         re = src->record[n];
 
-        if(strmatch(match, re->pathname)) {
+        if(strcasestr(re->pathname, match) != NULL) {
             if(listing_add(dest, re) == -1)
                 return -1;
         }
