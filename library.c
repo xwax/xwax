@@ -196,7 +196,11 @@ int library_import(struct library_t *li, char *path)
         perror("waitpid");
         return -1;
     }
-    fprintf(stderr, "Library scan exited with status %d.\n", status);
+
+    if(!WIFEXITED(status) || WEXITSTATUS(status) != EXIT_SUCCESS) {
+        fputs("Library scan exited reporting failure.\n", stderr);
+        return -1;
+    }
 
     return 0;
 }
