@@ -117,8 +117,13 @@ static void stop_import(struct track_t *tr)
         perror("waitpid");
         abort();
     }
-    fprintf(stderr, "Track importer exited with status %d.\n", status);
     tr->pid = 0;
+
+    if(WIFEXITED(status) && WEXITSTATUS(status) == EXIT_SUCCESS) {
+        fputs("Track import completed.\n", stderr);
+    } else {
+        fputs("Track import did not complete successfully.\n", stderr);
+    }
 }
 
 
