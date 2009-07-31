@@ -104,8 +104,9 @@ void usage(FILE *fd)
       "  -l <directory> Directory to scan for audio tracks\n"
       "  -t <name>      Timecode name\n"
       "  -i <program>   Specify external importer (default '%s')\n"
+      "  -s <program>   Specify external library scanner (default '%s')\n"
       "  -h             Display this message\n\n",
-      DEFAULT_IMPORTER);
+      DEFAULT_IMPORTER, DEFAULT_SCANNER);
 
     fprintf(fd, "OSS device options:\n"
       "  -d <device>    Build a deck connected to OSS audio device\n"
@@ -128,6 +129,7 @@ void usage(FILE *fd)
 #endif
 
     fprintf(fd, "Device options, -t and -i apply to subsequent devices.\n"
+      "Option -s applies to subsequent directories.\n"
       "Decks and audio directories can be specified multiple times.\n\n"
       "Available timecodes (for use with -t):\n"
       "  serato_2a (default), serato_2b, serato_cd,\n"
@@ -152,7 +154,7 @@ void usage(FILE *fd)
 int main(int argc, char *argv[])
 {
     int r, n, decks, oss_fragment, oss_buffers, rate, alsa_buffer;
-    char *endptr, *timecode, *importer;
+    char *endptr, *timecode, *importer, *scanner;
 
     struct deck_t deck[MAX_DECKS];
     struct rig_t rig;
@@ -173,6 +175,7 @@ int main(int argc, char *argv[])
     rate = DEFAULT_RATE;
     alsa_buffer = DEFAULT_ALSA_BUFFER;
     importer = DEFAULT_IMPORTER;
+    scanner = DEFAULT_SCANNER;
     timecode = DEFAULT_TIMECODE;
 
     /* Skip over command name */
@@ -365,12 +368,27 @@ int main(int argc, char *argv[])
 
             argv += 2;
             argc -= 2;
+
+        } else if(!strcmp(argv[0], "-s")) {
+
+            /* Scan script for subsequent libraries */
+
+            if(argc < 2) {
+                fprintf(stderr, "-s requires an executable path "
+                        "as an argument.\n");
+                return -1;
+            }
+
+            scanner = argv[1];
+
+            argv += 2;
+            argc -= 2;
                         
         } else if(!strcmp(argv[0], "-l")) {
 
             /* Load in a music library */
 
-            if(library_import(&library, DEFAULT_SCANNER, argv[1]) == -1)
+            if(library_import(&library, scanner, argv[1]) == -1)
 		return -1;
 
             argv += 2;
