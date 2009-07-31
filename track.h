@@ -54,7 +54,7 @@ struct track_t {
     /* pointers to external data */
    
     const char *importer, /* path to import script */
-        *artist, *title, *name;
+        *artist, *title;
     
     size_t bytes; /* loaded in */
     int length, /* track length in samples */

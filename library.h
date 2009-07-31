@@ -21,7 +21,7 @@
 #define LIBRARY_H
 
 struct record_t {
-    char *pathname, *artist, *title, *name;
+    char *pathname, *artist, *title;
 };
 
 /* Library owns the pointers to the actual strings */

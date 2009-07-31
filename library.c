@@ -54,7 +54,6 @@ void library_clear(struct library_t *li)
         free(li->record[n].pathname);
         free(li->record[n].artist);
         free(li->record[n].title);
-        free(li->record[n].name);
     }
 
     free(li->record);
@@ -167,11 +166,6 @@ int library_import(struct library_t *li, char *path)
 
         if(get_field(fp, &d.pathname) != 0)
             break;
-
-        if(get_field(fp, &d.name) != 0) {
-            fprintf(stderr, "EOF when reading name for '%s'.\n", d.pathname);
-            return -1;
-        }
 
         if(get_field(fp, &d.artist) != 0) {
             fprintf(stderr, "EOF when reading artist for '%s'.\n", d.artist);

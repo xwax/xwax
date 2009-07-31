@@ -19,6 +19,7 @@
 
 #define _GNU_SOURCE /* strcasestr() */
 #include <ctype.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -131,6 +132,19 @@ void listing_sort(struct listing_t *ls)
 }
 
 
+/* Return true if the given record matches the given string. This
+ * function defines what constitutes a 'match' */
+
+static bool record_match(struct record_t *re, const char *match)
+{
+    if(strcasestr(re->artist, match) != NULL)
+        return true;
+    if(strcasestr(re->title, match) != NULL)
+        return true;
+    return false;
+}
+
+
 int listing_match(struct listing_t *src, struct listing_t *dest, char *match)
 {
     int n;
@@ -141,7 +155,7 @@ int listing_match(struct listing_t *src, struct listing_t *dest, char *match)
     for(n = 0; n < src->entries; n++) {
         re = src->record[n];
 
-        if(strcasestr(re->pathname, match) != NULL) {
+        if(record_match(re, match)) {
             if(listing_add(dest, re) == -1)
                 return -1;
         }
@@ -156,5 +170,5 @@ void listing_debug(struct listing_t *ls)
     int n;
 
     for(n = 0; n < ls->entries; n++)
-        fprintf(stderr, "%d: %s\n", n, ls->record[n]->name);
+        fprintf(stderr, "%d: %s\n", n, ls->record[n]->pathname);
 }
