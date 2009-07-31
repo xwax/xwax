@@ -1008,11 +1008,11 @@ static int draw_listing(SDL_Surface *surface, const struct rect_t *rect,
         if(re->artist[0] == '\0') {
             draw_font(surface, x, r, w, FONT_SPACE, re->name, font,
                       text_col, col);
-            
+
         } else {
             draw_font(surface, x, r, RESULTS_ARTIST_WIDTH, FONT_SPACE,
                       re->artist, font, text_col, col);
-            
+
             box.x = x + RESULTS_ARTIST_WIDTH;
             box.y = r;
             box.w = SPACER;
