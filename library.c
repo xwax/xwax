@@ -106,7 +106,7 @@ static int get_field(FILE *fp, char **f)
 /* Scan a record library at the given path. Returns -1 on fatal error
  * which may leak resources */
  
-int library_import(struct library_t *li, char *path)
+int library_import(struct library_t *li, const char *path)
 {
     int pstdout[2], status;
     pid_t pid;
