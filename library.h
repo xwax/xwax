@@ -34,6 +34,6 @@ struct library_t {
 int library_init(struct library_t *li);
 void library_clear(struct library_t *li);
 int library_add(struct library_t *li, struct record_t *lr);
-int library_import(struct library_t *li, const char *path);
+int library_import(struct library_t *li, const char *scan, const char *path);
 
 #endif

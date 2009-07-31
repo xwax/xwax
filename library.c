@@ -103,10 +103,10 @@ static int get_field(FILE *fp, char **f)
 }
 
 
-/* Scan a record library at the given path. Returns -1 on fatal error
- * which may leak resources */
- 
-int library_import(struct library_t *li, const char *path)
+/* Scan a record library at the given path, using the given scan
+ * script. Returns -1 on fatal error which may leak resources */
+
+int library_import(struct library_t *li, const char *scan, const char *path)
 {
     int pstdout[2], status;
     pid_t pid;
@@ -142,7 +142,7 @@ int library_import(struct library_t *li, const char *path)
             abort();
         }
 
-        if(execl("xwax_scan", "scan", path, NULL) == -1) {
+        if(execl(scan, "scan", path, NULL) == -1) {
             perror("execl");
             exit(-1);
         }

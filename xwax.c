@@ -45,6 +45,7 @@
 #define DEFAULT_RATE 44100
 
 #define DEFAULT_IMPORTER "xwax_import"
+#define DEFAULT_SCANNER "xwax_scan"
 #define DEFAULT_TIMECODE "serato_2a"
 
 
@@ -369,7 +370,7 @@ int main(int argc, char *argv[])
 
             /* Load in a music library */
 
-            if(library_import(&library, argv[1]) == -1)
+            if(library_import(&library, DEFAULT_SCANNER, argv[1]) == -1)
 		return -1;
 
             argv += 2;
