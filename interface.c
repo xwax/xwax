@@ -227,6 +227,19 @@ static void split_right(const struct rect_t *source, struct rect_t *left,
 }
 
 
+/* Take a pointer to another string, but take a null pointer if the
+ * string is empty. Useful for taking string references to the music
+ * library */
+
+static const char* strpoint(const char *in)
+{
+    if (in[0] == '\0')
+        return NULL;
+    else
+        return in;
+}
+
+
 static void time_to_clock(char *buf, char *deci, int t)
 {
     int minutes, seconds, frac, neg;
@@ -459,14 +472,14 @@ static void draw_track_summary(SDL_Surface *surface, const struct rect_t *rect,
 
     split_top(rect, &top, &bottom, FONT_SPACE, 0);
 
-    if(track->artist)
+    if(track->artist != NULL)
         s = track->artist;
     else
         s = track->name;
 
     draw_font_rect(surface, &top, s, font, text_col, background_col);
 
-    if(track->title)
+    if(track->title != NULL)
         s = track->title;
     else
         s = track->name;
@@ -1077,17 +1090,9 @@ static int do_loading(struct track_t *track, struct record_t *record)
 {
     track_import(track, record->pathname);
 
-    if(strlen(record->artist))
-        track->artist = record->artist;
-    else
-        track->artist = NULL;
-
-    if(strlen(record->title))
-        track->title = record->title;
-    else
-        track->title = NULL;
-    
-    track->name = record->name;
+    track->artist = strpoint(record->artist);
+    track->title = strpoint(record->title);
+    track->name = strpoint(record->name);
 
     fprintf(stderr, "Loading '%s'.\n", record->name);
 
