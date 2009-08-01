@@ -17,82 +17,18 @@
  *
  */
 
+#define _GNU_SOURCE /* getdelim() */
 #include <dirent.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <unistd.h>
-#include <sys/stat.h>
 #include <sys/types.h>
+#include <sys/wait.h>
 
 #include "library.h"
 
 #define BLOCK 256 /* number of library entries */
-
-#define MIN(a, b) (a<b?a:b)
-
-
-/* Copy src (ms characters) to dest (length md, including '\0'), and
- * ensure the result is safe and null terminated */
-
-static int strmcpy(char *dest, int md, char *src, int ms)
-{
-    strncpy(dest, src, MIN(ms, md));
-    if(ms < md)
-        dest[ms] = '\0';
-    else
-        dest[md - 1] = '\0';
-
-    return 0;
-}
-
-
-static int extract_info(struct record_t *lr, char *filename)
-{
-    char *c, *mi, *dt, *end;
-
-    c = filename;
-    end = filename;
-
-    while(*c != '\0') {
-        end = c;
-        c++;
-    }
-
-    end++;
-
-    c = filename;
-    mi = end;
-    
-    while(c < end - 3) {
-        if(c[0] == ' ' && (c[1] == '-' || c[1] == '_') && c[2] == ' ') {
-            mi = c;
-            break;
-        }
-        c++;
-    }
-
-    c = filename;
-    dt = end;
-
-    while(c < end) {
-        if(*c == '.')
-            dt = c;
-        c++;
-    }
-    
-    strmcpy(lr->name, MAX_NAME, filename, end - filename);
-    
-    if(mi == end) {
-        lr->artist[0] = '\0';
-        lr->title[0] = '\0';        
-    } else {
-        strmcpy(lr->artist, MAX_ARTIST, filename, mi - filename);
-        strmcpy(lr->title, MAX_TITLE, mi + 3, dt - mi - 3);
-    }        
-
-    return 0;
-}
 
 
 int library_init(struct library_t *li)
@@ -112,6 +48,14 @@ int library_init(struct library_t *li)
 
 void library_clear(struct library_t *li)
 {
+    int n;
+
+    for(n = 0; n < li->entries; n++) {
+        free(li->record[n].pathname);
+        free(li->record[n].artist);
+        free(li->record[n].title);
+    }
+
     free(li->record);
 }
 
@@ -125,73 +69,134 @@ int library_add(struct library_t *li, struct record_t *lr)
                 li->size);
 
         ln = realloc(li->record, sizeof(struct record_t) * li->size * 2);
-
-        if(!ln) {
+        if(ln == NULL) {
             perror("realloc");
             return -1;
         }
-        
+
         li->record = ln;
         li->size *= 2;
-
-
     }
 
-    memcpy(&li->record[li->entries++], lr, sizeof(struct record_t));
-    
+    li->record[li->entries++] = *lr;
+
     return 0;
 }
 
 
-int library_import(struct library_t *li, char *path)
-{
-    DIR *dir;
-    struct dirent *de;
-    struct record_t record;
-    struct stat st;
-    int path_len;
-    
-    path_len = strlen(path);
+/* Read and allocate a null-terminated field from the given file handle.
+ * If the empty string is read, *s is set to NULL. Return 0 on success,
+ * -1 on error or EOF */
 
-    fprintf(stderr, "Scanning directory '%s'...\n", path);
-    
-    dir = opendir(path);
-    if(!dir) {
-        fprintf(stderr, "Failed to scan; aborting.\n");
+static int get_field(FILE *fp, char delim, char **f)
+{
+    char *s = NULL;
+    size_t n, z;
+
+    z = getdelim(&s, &n, delim, fp);
+    if(z == -1) {
+        free(s);
         return -1;
     }
-    
-    while((de = readdir(dir)) != NULL) {
 
-        if(de->d_name[0] == '.') /* hidden or '.' or '..' */
-            continue;
+    s[z - 1] = '\0'; /* don't include delimiter */
+    *f = s;
+    return 0;
+}
 
-        if(path_len + strlen(de->d_name) + 2 > MAX_PATHNAME) {
-            fprintf(stderr, "Pathname limit exceeded; skipping '%s'.\n",
-                    de->d_name);
-            continue;
-        }
-        
-        sprintf(record.pathname, "%s/%s", path, de->d_name);
 
-        if(stat(record.pathname, &st) == -1) {
-            perror("stat");
-            continue;
-        }
+/* Scan a record library at the given path, using the given scan
+ * script. Returns -1 on fatal error which may leak resources */
 
-        /* If the entry is a directory, recursively import the contents
-         * of the directory. Otherwise, assume a file. */
+int library_import(struct library_t *li, const char *scan, const char *path)
+{
+    int pstdout[2], status;
+    pid_t pid;
+    FILE *fp;
 
-        if(S_ISDIR(st.st_mode)) {
-            library_import(li, record.pathname);
-       
-        } else {
-            extract_info(&record, de->d_name);
-            library_add(li, &record);
-        }
+    fprintf(stderr, "Scanning '%s'...\n", path);
+
+    if(pipe(pstdout) == -1) {
+        perror("pipe");
+        return -1;
     }
-    
-    closedir(dir);
+
+    pid = vfork();
+
+    if(pid == -1) {
+        perror("vfork");
+        return -1;
+
+    } else if(pid == 0) { /* child */
+
+        if(close(pstdout[0]) == -1) {
+            perror("close");
+            abort();
+        }
+
+        if(dup2(pstdout[1], STDOUT_FILENO) == -1) {
+            perror("dup2");
+            abort();
+        }
+
+        if(close(pstdout[1]) == -1) {
+            perror("close");
+            abort();
+        }
+
+        if(execl(scan, "scan", path, NULL) == -1) {
+            perror("execl");
+            exit(-1);
+        }
+
+        abort(); /* execl() does not return */
+    }
+
+    if(close(pstdout[1]) == -1) {
+        perror("close");
+        abort();
+    }
+
+    fp = fdopen(pstdout[0], "r");
+    if(fp == NULL) {
+        perror("fdopen");
+        return -1;
+    }
+
+    for(;;) {
+        struct record_t d;
+
+        if(get_field(fp, '\t', &d.pathname) != 0)
+            break;
+
+        if(get_field(fp, '\t', &d.artist) != 0) {
+            fprintf(stderr, "EOF when reading artist for '%s'.\n", d.artist);
+            return -1;
+        }
+
+        if(get_field(fp, '\n', &d.title) != 0) {
+            fprintf(stderr, "EOF when reading title for '%s'.\n", d.title);
+            return -1;
+        }
+
+        if(library_add(li, &d) == -1)
+            return -1;
+    }
+
+    if(fclose(fp) == -1) {
+        perror("close");
+        abort(); /* assumption fclose() can't on read-only descriptor */
+    }
+
+    if(waitpid(pid, &status, 0) == -1) {
+        perror("waitpid");
+        return -1;
+    }
+
+    if(!WIFEXITED(status) || WEXITSTATUS(status) != EXIT_SUCCESS) {
+        fputs("Library scan exited reporting failure.\n", stderr);
+        return -1;
+    }
 
     return 0;
 }

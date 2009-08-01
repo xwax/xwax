@@ -454,24 +454,14 @@ static int draw_font_rect(SDL_Surface *surface, const struct rect_t *rect,
 static void draw_track_summary(SDL_Surface *surface, const struct rect_t *rect,
                                struct track_t *track)
 {
-    const char *s;
     struct rect_t top, bottom;
 
     split_top(rect, &top, &bottom, FONT_SPACE, 0);
 
-    if(track->artist)
-        s = track->artist;
-    else
-        s = track->name;
-
-    draw_font_rect(surface, &top, s, font, text_col, background_col);
-
-    if(track->title)
-        s = track->title;
-    else
-        s = track->name;
-
-    draw_font_rect(surface, &bottom, s, em_font, text_col, background_col);
+    draw_font_rect(surface, &top, track->artist,
+                   font, text_col, background_col);
+    draw_font_rect(surface, &bottom, track->title,
+                   em_font, text_col, background_col);
 }
 
 
@@ -992,25 +982,19 @@ static int draw_listing(SDL_Surface *surface, const struct rect_t *rect,
         else
             col = background_col;
 
-        if(re->artist[0] == '\0') {
-            draw_font(surface, x, r, w, FONT_SPACE, re->name, font,
-                      text_col, col);
+	draw_font(surface, x, r, RESULTS_ARTIST_WIDTH, FONT_SPACE,
+		  re->artist, font, text_col, col);
+
+	box.x = x + RESULTS_ARTIST_WIDTH;
+	box.y = r;
+	box.w = SPACER;
+	box.h = FONT_SPACE;
             
-        } else {
-            draw_font(surface, x, r, RESULTS_ARTIST_WIDTH, FONT_SPACE,
-                      re->artist, font, text_col, col);
+	SDL_FillRect(surface, &box, palette(surface, &col));
             
-            box.x = x + RESULTS_ARTIST_WIDTH;
-            box.y = r;
-            box.w = SPACER;
-            box.h = FONT_SPACE;
-            
-            SDL_FillRect(surface, &box, palette(surface, &col));
-            
-            draw_font(surface, x + RESULTS_ARTIST_WIDTH + SPACER, r,
-                      w - RESULTS_ARTIST_WIDTH - SPACER, FONT_SPACE,
-                      re->title, em_font, text_col, col);
-        }
+	draw_font(surface, x + RESULTS_ARTIST_WIDTH + SPACER, r,
+		  w - RESULTS_ARTIST_WIDTH - SPACER, FONT_SPACE,
+		  re->title, em_font, text_col, col);
     }
 
     /* Blank any remaining space */
@@ -1077,19 +1061,10 @@ static int do_loading(struct track_t *track, struct record_t *record)
 {
     track_import(track, record->pathname);
 
-    if(strlen(record->artist))
-        track->artist = record->artist;
-    else
-        track->artist = NULL;
+    track->artist = record->artist;
+    track->title = record->title;
 
-    if(strlen(record->title))
-        track->title = record->title;
-    else
-        track->title = NULL;
-    
-    track->name = record->name;
-
-    fprintf(stderr, "Loading '%s'.\n", record->name);
+    fprintf(stderr, "Loading '%s'.\n", record->pathname);
 
     return 0;
 }

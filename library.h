@@ -20,19 +20,11 @@
 #ifndef LIBRARY_H
 #define LIBRARY_H
 
-#define MAX_ARTIST 128
-#define MAX_TITLE 128
-#define MAX_NAME 512
-#define MAX_PATHNAME 1024
-
 struct record_t {
-    char artist[MAX_ARTIST],
-        title[MAX_TITLE],
-        name[MAX_NAME],
-        pathname[MAX_PATHNAME];
+    char *pathname, *artist, *title;
 };
 
-/* Library acts as a storage of the actual strings */
+/* Library owns the pointers to the actual strings */
 
 struct library_t {
     struct record_t *record;
@@ -42,6 +34,6 @@ struct library_t {
 int library_init(struct library_t *li);
 void library_clear(struct library_t *li);
 int library_add(struct library_t *li, struct record_t *lr);
-int library_import(struct library_t *li, char *path);
+int library_import(struct library_t *li, const char *scan, const char *path);
 
 #endif

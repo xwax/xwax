@@ -242,7 +242,6 @@ void track_init(struct track_t *tr, const char *importer)
 
     tr->artist = NULL;
     tr->title = NULL;
-    tr->name = NULL;
 
     tr->blocks = 0;
     tr->bytes = 0;
