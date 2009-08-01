@@ -123,6 +123,18 @@ struct timecode_def_t timecode_def[] = {
         .lookup = NULL
     },
     {
+        .name = "mixvibes_7inch",
+        .desc = "MixVibes V2",
+        .resolution = 1300,
+        .flags = SWITCH_PHASE,
+        .bits = 20,
+        .seed = 0x22c90,
+        .taps = 0x00008,
+        .length = 312000,
+        .safe = 310000,
+        .lookup = NULL
+    },
+    {
         .name = NULL
     }
 };
