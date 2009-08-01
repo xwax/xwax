@@ -88,16 +88,18 @@ int library_add(struct library_t *li, struct record_t *lr)
  * If the empty string is read, *s is set to NULL. Return 0 on success,
  * -1 on error or EOF */
 
-static int get_field(FILE *fp, char **f)
+static int get_field(FILE *fp, char delim, char **f)
 {
     char *s = NULL;
-    size_t n;
+    size_t n, z;
 
-    if(getdelim(&s, &n, '\0', fp) == -1) {
+    z = getdelim(&s, &n, delim, fp);
+    if(z == -1) {
         free(s);
         return -1;
     }
 
+    s[z - 1] = '\0'; /* don't include delimiter */
     *f = s;
     return 0;
 }
@@ -164,15 +166,15 @@ int library_import(struct library_t *li, const char *scan, const char *path)
     for(;;) {
         struct record_t d;
 
-        if(get_field(fp, &d.pathname) != 0)
+        if(get_field(fp, '\t', &d.pathname) != 0)
             break;
 
-        if(get_field(fp, &d.artist) != 0) {
+        if(get_field(fp, '\t', &d.artist) != 0) {
             fprintf(stderr, "EOF when reading artist for '%s'.\n", d.artist);
             return -1;
         }
 
-        if(get_field(fp, &d.title) != 0) {
+        if(get_field(fp, '\n', &d.title) != 0) {
             fprintf(stderr, "EOF when reading title for '%s'.\n", d.title);
             return -1;
         }

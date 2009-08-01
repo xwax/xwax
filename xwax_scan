@@ -5,7 +5,7 @@
 #
 # The output format is repeated sequences of:
 #
-#   <pathname>\0<artist>\0<title>\0
+#   <pathname>\t<artist>\t<title>\n
 #
 # If the name field is given in the output then it is used in place
 # of the artist and title.
@@ -15,14 +15,14 @@ DIR=$1
 find $DIR -type f | sed -n '
 {
 # /[<num>[.]] <artist> - <title>.ext
-s:/\([0-9]\+.\? \+\)\?\([^/]*\) \+- \+\([^/]*\)\.[a-zA-Z0-9]*$:\0\x0\2\x0\3:p
+s:/\([0-9]\+.\? \+\)\?\([^/]*\) \+- \+\([^/]*\)\.[a-zA-Z0-9]*$:\0\t\2\t\3:p
 t
 
 # /<artist> - <album>[/Disc <n>.*]/[<num>[.]] <title>.ext
-s:/\([^/]*\) \+- \+\([^/]*\)\(/Disc [0-9][^/]*\)\?/\([0-9]\+.\? \+\)\?\([^/]*\)\.[a-zA-Z0-9]*$:\0\x0\1\x0\5:p
+s:/\([^/]*\) \+- \+\([^/]*\)\(/Disc [0-9][^/]*\)\?/\([0-9]\+.\? \+\)\?\([^/]*\)\.[a-zA-Z0-9]*$:\0\t\1\t\5:p
 t
 
 # /[<num>[.]] <name>.ext
-s:/\([0-9]\+.\? \+\)\?\([^/]*\)\.[a-zA-Z0-9]*$:\0\x0\x0\2:p
+s:/\([0-9]\+.\? \+\)\?\([^/]*\)\.[a-zA-Z0-9]*$:\0\t\t\2:p
 }
-' | tr '\n' '\0'
+'
