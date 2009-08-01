@@ -28,7 +28,11 @@ OSS=0
 while [ $# -ge 1 ]; do
 	case $1 in
 	--help)
-		echo "Usage: configure [--enable-alsa] [--enable-jack] [--enable-oss]"
+		echo -n "Usage: configure"
+		echo -n " [--enable-alsa]"
+		echo -n " [--enable-jack]"
+		echo -n " [--enable-oss]"
+		echo
 		exit 0
 		;;
 	--enable-alsa)
