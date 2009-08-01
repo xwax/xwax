@@ -7,8 +7,8 @@
 #
 #   <pathname>\t<artist>\t<title>\n
 #
-# If the name field is given in the output then it is used in place
-# of the artist and title.
+# If the tab (\t) or newline (\n) characters appear in a filename,
+# unexpected things will happen.
 
 DIR="$1"
 
