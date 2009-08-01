@@ -127,6 +127,19 @@ static void stop_import(struct track_t *tr)
 }
 
 
+/* Prematurely abort the import process */
+
+static void abort_import(struct track_t *tr)
+{
+    if(kill(tr->pid, SIGTERM) == -1) {
+        perror("kill");
+        abort();
+    }
+
+    stop_import(tr);
+}
+
+
 /* Read the next block of data from the file. Return -1 when an error
  * occurs and requires our attention, 1 if there is no more data to be
  * read, otherwise zero. */
@@ -250,7 +263,7 @@ void track_clear(struct track_t *tr)
     /* Force a cleanup of whichever state we are in */
 
     if(tr->pid != 0)
-        stop_import(tr);
+        abort_import(tr);
 
     for(n = 0; n < tr->blocks; n++)
         free(tr->block[n]);
@@ -322,7 +335,7 @@ int track_import(struct track_t *tr, const char *path)
     /* Abort any running import process */
 
     if(tr->pid != 0)
-        stop_import(tr);
+        abort_import(tr);
 
     /* Start the new import process */
 
