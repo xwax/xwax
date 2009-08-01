@@ -614,7 +614,7 @@ static void draw_deck_clocks(SDL_Surface *surface, const struct rect_t *rect,
     else
         col = text_col;
 
-    if(pl->track->status == TRACK_STATUS_IMPORTING) {
+    if(track_is_importing(pl->track)) {
         col.r >>= 2;
         col.g >>= 2;
         col.b >>= 2;
@@ -676,7 +676,7 @@ static void draw_overview(SDL_Surface *surface, const struct rect_t *rect,
             fade = 3;
         }
 
-        if(tr->status == TRACK_STATUS_IMPORTING) {
+        if(track_is_importing(tr)) {
             col.b >>= 1;
             col.g >>= 1;
             col.r >>= 1;
@@ -1448,12 +1448,6 @@ int interface_run(struct interface_t *in)
             UPDATE(surface, &rplayers);
             decks_update = UPDATE_NONE;
         }
-
-        /* Enter wait state for any tracks. Do this from the same
-         * thread as any import processes were launched from. */
-
-        for(p = 0; p < in->players; p++) 
-            track_wait(in->player[p]->track);
 
     } /* main loop */
 

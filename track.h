@@ -29,10 +29,6 @@
 #define TRACK_CHANNELS 2
 #define TRACK_RATE 44100
 
-#define TRACK_STATUS_UNKNOWN -1
-#define TRACK_STATUS_VALID 0
-#define TRACK_STATUS_IMPORTING 1
-
 #define TRACK_MAX_BLOCKS 64
 #define TRACK_BLOCK_SAMPLES (2048 * 1024)
 #define TRACK_PPM_RES 64
@@ -45,8 +41,8 @@ struct track_block_t {
 };
 
 struct track_t {
-    int status, fd, eof, rate;
-    pid_t pid;
+    int fd, rate;
+    pid_t pid; /* 0 if not importing */
     struct pollfd *pe;
     pthread_mutex_t mx;
     struct rig_t *rig;
@@ -68,7 +64,7 @@ struct track_t {
 };
 
 void track_init(struct track_t *tr, const char *importer);
-int track_clear(struct track_t *tr);
+void track_clear(struct track_t *tr);
 int track_import(struct track_t *tr, const char *path);
 int track_pollfd(struct track_t *tr, struct pollfd *pe);
 int track_handle(struct track_t *tr);
@@ -76,6 +72,8 @@ int track_abort(struct track_t *tr);
 int track_wait(struct track_t *tr);
 
 /* Macro functions, to force the code inline */
+
+#define track_is_importing(tr) ((tr)->pid != 0)
 
 #define track_get_ppm(tr, s) \
     ((tr)->block[(s) / TRACK_BLOCK_SAMPLES] \
