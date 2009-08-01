@@ -7,32 +7,31 @@
 # You can adjust this script yourself to customise the support for
 # different file formats and codecs.
 
-FILE=$1
-TYPE=`echo "$FILE" | sed -e 's/^.*\.//'`
+FILE="$1"
 
-case "$TYPE" in
+case "$FILE" in
 
-'ogg')
+*.ogg)
     echo "Calling Ogg decoder..." >&2
     exec oggdec -Q --bits 16 --endianness 0 --sign 1 --raw --output - "$FILE"
     ;;
 
-'aac')
+*.aac)
     echo "Calling AAC decoder..." >&2
     exec faad -b 1 -f 2 -w "$FILE"
     ;;
 
-'cdaudio')
+*.cdaudio)
     echo "Calling CD extract..." >&2
     exec cdparanoia -r `cat "$FILE"` -
     ;;
 
-'mp3')
+*.mp3)
     echo "Calling MP3 decoder..." >&2
     exec mpg123 -q -s "$FILE"
     ;;
 
-'flac')
+*.flac)
     echo "Calling FLAC decoder..." >&2
     exec flac -d -c -s --force-raw-format --sign=signed --endian=little "$FILE"
     ;;
