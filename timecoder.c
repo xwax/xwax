@@ -60,7 +60,7 @@ struct timecode_def_t timecode_def[] = {
         .taps = 0x361e4,
         .length = 712000,
         .safe = 707000,
-        .lookup = NULL
+        .lookup = false
     },
     {
         .name = "serato_2b",
@@ -72,7 +72,7 @@ struct timecode_def_t timecode_def[] = {
         .taps = 0x4f0d8, /* reverse of side A */
         .length = 922000,
         .safe = 917000,
-        .lookup = NULL
+        .lookup = false
     },
     {
         .name = "serato_cd",
@@ -84,7 +84,7 @@ struct timecode_def_t timecode_def[] = {
         .taps = 0x34d54,
         .length = 950000,
         .safe = 940000,
-        .lookup = NULL
+        .lookup = false
     },
     {
         .name = "traktor_a",
@@ -96,7 +96,7 @@ struct timecode_def_t timecode_def[] = {
         .taps = 0x041040,
         .length = 1500000,
         .safe = 1480000,
-        .lookup = NULL
+        .lookup = false        
     },
     {
         .name = "traktor_b",
@@ -108,7 +108,7 @@ struct timecode_def_t timecode_def[] = {
         .taps = 0x041040, /* same as side A */
         .length = 2110000,
         .safe = 2090000,
-        .lookup = NULL
+        .lookup = false
     },
     {
         .name = "mixvibes_v2",
@@ -120,7 +120,7 @@ struct timecode_def_t timecode_def[] = {
         .taps = 0x00008,
         .length = 950000,
         .safe = 923000,
-        .lookup = NULL
+        .lookup = false
     },
     {
         .name = "mixvibes_7inch",
@@ -132,7 +132,7 @@ struct timecode_def_t timecode_def[] = {
         .taps = 0x00008,
         .length = 312000,
         .safe = 310000,
-        .lookup = NULL
+        .lookup = false
     },
     {
         .name = NULL
@@ -203,31 +203,27 @@ static int build_lookup(struct timecode_def_t *def)
     unsigned int n;
     bits_t current, last;
 
-    if(def->lookup != NULL)
+    if(def->lookup)
         return 0;
 
-    fprintf(stderr, "Allocating %d slots (%zuKb) for %d bit timecode (%s)\n",
-            2 << def->bits, (2 << def->bits) * sizeof(unsigned int) / 1024,
-            def->bits, def->desc);
+    fprintf(stderr, "Building LUT for %d bit %dHz timecode (%s)\n",
+            def->bits, def->resolution, def->desc);
 
-    def->lookup = malloc((2 << def->bits) * sizeof(unsigned int));
-    if(!def->lookup) {
-        perror("malloc");
-        return -1;
-    }
-    
-    for(n = 0; n < ((unsigned int)2 << def->bits); n++)
-        def->lookup[n] = -1;
-    
+    if(lut_init(&def->lut, def->length) == -1)
+	return -1;
+
     current = def->seed;
     
     for(n = 0; n < def->length; n++) {
-        assert(def->lookup[current] == -1); /* timecode must not wrap */
-        def->lookup[current] = n;
+        /* timecode must not wrap */
+        assert(lut_lookup(&def->lut, current) == (unsigned)-1);
+        lut_push(&def->lut, current);
         last = current;
         current = fwd(current, def);
         assert(rev(current, def) == last);
     }
+
+    def->lookup = true;
     
     return 0;    
 }
@@ -240,8 +236,8 @@ void timecoder_free_lookup(void) {
 
     def = &timecode_def[0];
     while(def->name) {
-        if(def->lookup != NULL)
-            free(def->lookup);
+        if(def->lookup)
+            lut_clear(&def->lut);
         def++;
     }
 }
@@ -518,7 +514,7 @@ signed int timecoder_get_position(struct timecoder_t *tc, float *when)
     signed int r;
 
     if(tc->valid_counter > VALID_BITS) {
-        r = tc->def->lookup[tc->bitstream];
+        r = lut_lookup(&tc->def->lut, tc->bitstream);
 
         if(r >= 0) {
             if(when) 

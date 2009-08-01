@@ -20,7 +20,10 @@
 #ifndef TIMECODER_H
 #define TIMECODER_H
 
+#include <stdbool.h>
+
 #include "device.h"
+#include "lut.h"
 #include "pitch.h"
 
 #define TIMECODER_CHANNELS DEVICE_CHANNELS
@@ -38,7 +41,8 @@ struct timecode_def_t {
         taps; /* central LFSR taps, excluding end taps */
     unsigned int length, /* in cycles */
         safe; /* last 'safe' timecode number (for auto disconnect) */
-    signed int *lookup; /* pointer to built lookup table */
+    bool lookup; /* true if lut has been generated */
+    struct lut_t lut;
 };
 
 
