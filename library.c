@@ -170,12 +170,12 @@ int library_import(struct library_t *li, const char *scan, const char *path)
             break;
 
         if(get_field(fp, '\t', &d.artist) != 0) {
-            fprintf(stderr, "EOF when reading artist for '%s'.\n", d.artist);
+            fprintf(stderr, "EOF when reading artist for '%s'.\n", d.pathname);
             return -1;
         }
 
         if(get_field(fp, '\n', &d.title) != 0) {
-            fprintf(stderr, "EOF when reading title for '%s'.\n", d.title);
+            fprintf(stderr, "EOF when reading title for '%s'.\n", d.pathname);
             return -1;
         }
 
