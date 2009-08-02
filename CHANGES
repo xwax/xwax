@@ -3,7 +3,6 @@ v0.6 (Work in progress)
 
 * Modular scanning of music library
 * Improved parsing of pathnames
-* UTF-8 encoding of record names
 * Decreased memory use of timecode decoder
 * Minor fixes
 

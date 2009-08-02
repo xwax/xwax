@@ -404,8 +404,8 @@ static int draw_font(SDL_Surface *sf, int x, int y, int w, int h,
         src.h = 0;
 
     } else {
-        rendered = TTF_RenderUTF8_Shaded(font, buf, fg, bg);
-
+        rendered = TTF_RenderText_Shaded(font, buf, fg, bg);
+        
         src.x = 0;
         src.y = 0;
         src.w = MIN(w, rendered->w);
