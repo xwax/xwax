@@ -836,7 +836,7 @@ static void draw_deck_status(SDL_Surface *surface,
     else
         sprintf(buf, "timecode:        ");
     
-    sprintf(buf + 17, "pitch:%+0.2f (sync %0.2f %+.5f = %+0.2f)  %s",
+    sprintf(buf + 17, "pitch:%+0.2f (sync %0.2f %+.5fs = %+0.2f)  %s",
             pl->pitch,
             pl->sync_pitch,
             pl->last_difference,
