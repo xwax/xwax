@@ -252,7 +252,7 @@ static void time_to_clock(char *buf, char *deci, int t)
 /* Calculate a lookup which maps a position on screen to an angle,
  * relative to the centre of the spinner */
 
-static int calculate_spinner_lookup(int *angle, int *distance, int size)
+static void calculate_spinner_lookup(int *angle, int *distance, int size)
 {
     int r, c, nr, nc;
     float theta, rat;
@@ -293,8 +293,6 @@ static int calculate_spinner_lookup(int *angle, int *distance, int size)
                 distance[r * size + c] = sqrt(SQ(nc) + SQ(nr));
         }
     }    
-
-    return 0;
 }
 
 
