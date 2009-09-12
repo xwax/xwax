@@ -249,6 +249,9 @@ static void time_to_clock(char *buf, char *deci, int t)
 }
 
 
+/* Calculate a lookup which maps a position on screen to an angle,
+ * relative to the centre of the spinner */
+
 static int calculate_spinner_lookup(int *angle, int *distance, int size)
 {
     int r, c, nr, nc;
@@ -279,7 +282,10 @@ static int calculate_spinner_lookup(int *angle, int *distance, int size)
             
             if(nc <= 0)
                 theta += M_PI;
-            
+
+            /* The angles stored in the lookup table range from 0 to
+             * 1023 (where 1024 is 360 degrees) */
+
             angle[r * size + c]
                 = ((int)(theta * 1024 / (M_PI * 2)) + 1024) % 1024;
 
