@@ -17,7 +17,7 @@
  *
  */
 
-#define _GNU_SOURCE /* strcasestr() */
+#define _GNU_SOURCE /* strcasestr(), strdupa() */
 #include <ctype.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -28,6 +28,8 @@
 #include "listing.h"
 
 #define BLOCK 256
+#define MAX_WORDS 32
+#define SEPARATOR ' '
 
 
 int listing_init(struct listing_t *ls)
@@ -145,17 +147,53 @@ static bool record_match(struct record_t *re, const char *match)
 }
 
 
+/* Return true if the given record matches all of the given strings
+ * in a NULL-terminated array */
+
+static bool record_match_all(struct record_t *re, char **matches)
+{
+    while (*matches != NULL) {
+        if (!record_match(re, *matches))
+            return false;
+        matches++;
+    }
+    return true;
+}
+
+
 int listing_match(struct listing_t *src, struct listing_t *dest, char *match)
 {
     int n;
+    char *buf, *words[MAX_WORDS];
     struct record_t *re;
 
     fprintf(stderr, "Matching '%s'\n", match);
 
+    buf = strdupa(match);
+    n = 0;
+    for (;;) {
+        char *s;
+
+        if(n == MAX_WORDS - 1) {
+            fputs("Ignoring excessive words in match string.\n", stderr);
+            break;
+        }
+
+        words[n] = buf;
+        n++;
+
+        s = strchr(buf, SEPARATOR);
+        if(s == NULL)
+            break;
+        *s = '\0';
+        buf = s + 1; /* skip separator */
+    }
+    words[n] = NULL; /* terminate list */
+
     for(n = 0; n < src->entries; n++) {
         re = src->record[n];
 
-        if(record_match(re, match)) {
+        if(record_match_all(re, words)) {
             if(listing_add(dest, re) == -1)
                 return -1;
         }
