@@ -187,7 +187,8 @@ int listing_copy(const struct listing_t *src, struct listing_t *dest)
 }
 
 
-int listing_match(struct listing_t *src, struct listing_t *dest, char *match)
+int listing_match(struct listing_t *src, struct listing_t *dest,
+		  const char *match)
 {
     int n;
     char *buf, *words[MAX_WORDS];
