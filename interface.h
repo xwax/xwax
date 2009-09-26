@@ -25,8 +25,6 @@
 #define MAX_PLAYERS 4
 #define MAX_TIMECODERS 4
 
-struct interface_local_t;
-
 struct interface_t {
     short int players, timecoders;
     
