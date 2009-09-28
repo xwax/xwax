@@ -1062,7 +1062,7 @@ static int draw_library(SDL_Surface *surface, const struct rect_t *rect,
 /* Initiate the process of loading a record from the library into a
  * track in memory */
 
-static int do_loading(struct track_t *track, struct record_t *record)
+static void do_loading(struct track_t *track, struct record_t *record)
 {
     track_import(track, record->pathname);
 
@@ -1070,8 +1070,6 @@ static int do_loading(struct track_t *track, struct record_t *record)
     track->title = record->title;
 
     fprintf(stderr, "Loading '%s'.\n", record->pathname);
-
-    return 0;
 }
 
 
