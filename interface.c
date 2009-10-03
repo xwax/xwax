@@ -1111,7 +1111,7 @@ static bool handle_key(struct interface_t *in, struct selector_t *sel,
         selector_lst_next(sel, sel->lst_lines);
         return true;
 
-    } else if(key == SDLK_EQUALS) {
+    } else if((key == SDLK_EQUALS) || (key == SDLK_PLUS)) {
         (*meter_scale)--;
 
         if(*meter_scale < 0)
