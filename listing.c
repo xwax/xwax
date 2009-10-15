@@ -100,23 +100,50 @@ static int record_cmp(const struct record_t *a, const struct record_t *b)
 }
 
 
+static void quicksort_swap(struct listing_t *ls, int i, int j)
+{
+    struct record_t *tmp;
+
+    tmp = ls->record[i];
+    ls->record[i] = ls->record[j];
+    ls->record[j] = tmp;
+}
+
+
+static int quicksort_partition(struct listing_t *ls, int left, int right)
+{
+    struct record_t *pivot;
+
+    pivot = ls->record[left];
+
+    while(left < right) {
+        while((left < right) && (record_cmp(ls->record[right], pivot) >= 0))
+            right--;
+        quicksort_swap(ls, right, left);
+        while((left < right) && (record_cmp(pivot, ls->record[left]) >= 0))
+            left++;
+        quicksort_swap(ls, right, left);
+    }
+
+    return left;
+}
+
+
+static void quicksort(struct listing_t *ls, int left, int right)
+{
+    int pivot;
+
+    if(left < right) {
+        pivot = quicksort_partition(ls, left, right);
+        quicksort(ls, left, pivot);
+        quicksort(ls, pivot + 1, right);
+    }
+}
+
+
 void listing_sort(struct listing_t *ls)
 {
-    int i, changed;
-    struct record_t *re;
-
-    do {
-        changed = 0;
-
-        for(i = 0; i < ls->entries - 1; i++) {
-            if(record_cmp(ls->record[i], ls->record[i + 1]) > 0) {
-                re = ls->record[i];
-                ls->record[i] = ls->record[i + 1];
-                ls->record[i + 1] = re;
-                changed++;
-            }
-        }
-    } while(changed);
+    quicksort(ls, 0, ls->entries - 1);
 }
 
 
