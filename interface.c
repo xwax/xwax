@@ -46,11 +46,11 @@
 
 /* Font definitions */
 
-#define FONT "Vera.ttf"
+#define FONT "DejaVuSans.ttf"
 #define FONT_SIZE 10
 #define FONT_SPACE 15
 
-#define EM_FONT "VeraIt.ttf"
+#define EM_FONT "DejaVuSans-Oblique.ttf"
 
 #define CLOCK_FONT FONT
 #define CLOCK_FONT_SIZE 32
@@ -58,7 +58,7 @@
 #define DECI_FONT FONT
 #define DECI_FONT_SIZE 20
 
-#define DETAIL_FONT "VeraMono.ttf"
+#define DETAIL_FONT "DejaVuSansMono.ttf"
 #define DETAIL_FONT_SIZE 9
 
 
