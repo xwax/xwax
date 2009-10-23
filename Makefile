@@ -81,8 +81,8 @@ install:
 		$(INSTALL) -d $(BINDIR)
 		$(INSTALL) xwax $(BINDIR)/xwax
 		$(INSTALL) -d $(EXECDIR)
-		$(INSTALL) xwax_scan $(EXECDIR)/xwax_scan
-		$(INSTALL) xwax_import $(EXECDIR)/xwax_import
+		$(INSTALL) scan $(EXECDIR)/xwax-scan
+		$(INSTALL) import $(EXECDIR)/xwax-import
 		$(INSTALL) -d $(MANDIR)/man1
 		$(INSTALL) xwax.1 $(MANDIR)/man1/xwax.1
 
