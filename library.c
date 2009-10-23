@@ -170,10 +170,9 @@ struct crate_t* library_get_crate(struct library_t *lib, char *name)
 }
 
 
-void library_add_record(struct crate_t* crate, struct record_t *lr)
+static int crate_add(struct crate_t *crate, struct record_t *lr)
 {
-    if((lr != NULL) && (crate != NULL))
-        listing_add(&crate->listing, lr);
+    return listing_add(&crate->listing, lr);
 }
 
 
@@ -297,8 +296,10 @@ int library_import(struct library_t *li, const char *scan, const char *path)
 
         /* Add to crates */
 
-        library_add_record(all_crate, d);
-        library_add_record(crate, d);
+        if(crate_add(all_crate, d) != 0)
+            return -1;
+        if(crate_add(crate, d) != 0)
+            return -1;
     }
 
     if(fclose(fp) == -1) {
