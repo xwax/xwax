@@ -46,7 +46,6 @@ struct record_t* selector_lst_current(struct selector_t *sel);
 
 void selector_cr_prev(struct selector_t *sel, int count);
 void selector_cr_next(struct selector_t *sel, int count);
-struct crate_t* selector_cr_current(struct selector_t *sel);
 
 void selector_search_expand(struct selector_t *sel);
 void selector_search_refine(struct selector_t *sel, char key);

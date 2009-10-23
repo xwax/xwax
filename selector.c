@@ -140,13 +140,6 @@ void selector_cr_next(struct selector_t *sel, int count)
 }
 
 
-struct crate_t* selector_cr_current(struct selector_t *sel)
-{
-    assert(sel->cr_selected >= 0);
-    return sel->library->crate[sel->cr_selected];
-}
-
-
 void selector_search_expand(struct selector_t *sel)
 {
     if(sel->search_len == 0)
