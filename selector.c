@@ -99,24 +99,28 @@ void selector_lst_next(struct selector_t *sel, int count)
 
 struct record_t* selector_lst_current(struct selector_t *sel)
 {
-    struct record_t *record = NULL;
-
-    if((sel->lst_selected != -1) && (sel->view_listing->entries > 0))
-        record = sel->view_listing->record[sel->lst_selected];
-
-    return record;
+    if(sel->lst_selected == -1) {
+        return NULL;
+    } else {
+        return sel->view_listing->record[sel->lst_selected];
+    }
 }
 
 
 static void change_listing(struct selector_t *sel)
 {
-    sel->lst_lines = 0;
-    sel->lst_offset = 0;
-    sel->lst_selected = 0;
-
     listing_blank(sel->view_listing);
     sel->base_listing = &sel->library->crate[sel->cr_selected]->listing;
     listing_match(sel->base_listing, sel->view_listing, sel->search);
+
+    sel->lst_lines = 0;
+    sel->lst_offset = 0;
+
+    if(sel->view_listing->entries == 0) {
+        sel->lst_selected = -1;
+    } else {
+        sel->lst_selected = 0;
+    }
 }
 
 
