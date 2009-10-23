@@ -35,6 +35,7 @@ JACK_LIBS = -ljack
 
 BINDIR = $(PREFIX)/bin
 EXECDIR = $(PREFIX)/libexec
+MANDIR = $(PREFIX)/share/man
 
 # Core objects and libraries
 
@@ -82,6 +83,8 @@ install:
 		$(INSTALL) -d $(EXECDIR)
 		$(INSTALL) xwax_scan $(EXECDIR)/xwax_scan
 		$(INSTALL) xwax_import $(EXECDIR)/xwax_import
+		$(INSTALL) -d $(MANDIR)/man1
+		$(INSTALL) xwax.1 $(MANDIR)/man1/xwax.1
 
 clean:
 		rm -f xwax *.o *.d *~

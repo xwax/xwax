@@ -102,11 +102,11 @@ static void connect_deck_to_rig(struct rig_t *rig, int n, struct deck_t *deck)
 
 void usage(FILE *fd)
 {
-    fprintf(fd, "Usage: xwax [<parameters>]\n\n"
+    fprintf(fd, "Usage: xwax [<options>]\n\n"
       "  -l <directory> Directory to scan for audio tracks\n"
       "  -t <name>      Timecode name\n"
-      "  -i <program>   Specify external importer (default '%s')\n"
-      "  -s <program>   Specify external library scanner (default '%s')\n"
+      "  -i <program>   Importer (default '%s')\n"
+      "  -s <program>   Library scanner (default '%s')\n"
       "  -h             Display this message\n\n",
       DEFAULT_IMPORTER, DEFAULT_SCANNER);
 
@@ -137,21 +137,7 @@ void usage(FILE *fd)
       "Decks and audio directories can be specified multiple times.\n\n"
       "Available timecodes (for use with -t):\n"
       "  serato_2a (default), serato_2b, serato_cd,\n"
-      "  traktor_a, traktor_b, mixvibes_v2, mixvibes_7inch\n\n"
-      "eg. Standard 2-deck setup\n"
-      "  xwax -l ~/music -d /dev/dsp -d /dev/dsp1\n\n"
-      "eg. Use a larger buffer on a third deck\n"
-      "  xwax -l ~/music -d /dev/dsp -d /dev/dsp1 -f 10 -d /dev/dsp2\n\n");
-
-#ifdef WITH_ALSA
-    fprintf(fd, "eg. Use OSS and ALSA devices simultaneously\n"
-            "  xwax -l ~/music -d /dev/dsp -a hw:1\n\n");
-#endif
-
-#ifdef WITH_JACK
-    fprintf(fd, "eg. Use OSS and JACK devices simultaneously\n"
-            "  xwax -l ~/music -d /dev/dsp -j deck0\n\n");
-#endif
+      "  traktor_a, traktor_b, mixvibes_v2, mixvibes_7inch\n\n");
 }
 
 

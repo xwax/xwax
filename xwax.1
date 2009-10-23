@@ -1,0 +1,159 @@
+.TH XWAX "1"
+
+.SH NAME
+xwax \- Digital vinyl on Linux
+
+.SH SYNOPSIS
+.B xwax
+[\fIoptions\fR]
+
+.SH DESCRIPTION
+
+.P
+xwax is vinyl emulation software for Linux. It allows DJs and
+turntablists to playback digital audio files (MP3, Ogg Vorbis, FLAC,
+AAC and more), controlled using a normal pair of turntables via
+timecoded vinyls.
+
+.SH OPTIONS
+
+.P
+The ordering of options is important; many options apply to to
+subsequent music libraries or decks, which can be given multiple times.
+See the
+.B EXAMPLES
+below.
+
+.TP
+.B \-l \fIpath\fR
+Scan the music library at the given path.
+
+.TP
+.B \-t \fIname\fR
+Use the named timecode for subsequent decks. See -h for a list of
+valid timecodes. You will need the corresponding timecode signal on
+vinyl to control playback.
+
+.TP
+.B \-i \fIpath\fR
+Use the given importer executable for subsequent decks.
+
+.TP
+.B \-s \fIpath\fR
+Use the given scanner executable to scan subsequent music libraries.
+
+.TP
+.B \-h
+Display the help message and default values.
+
+.SH ALSA DEVICE OPTIONS
+
+.P
+The following options are available only when xwax is compiled with
+ALSA support.
+
+.TP
+.B \-a \fIdevice\fR
+Create a deck which uses the given ALSA device (eg. plughw:0).
+
+.TP
+.B \-r \fIhz\fR
+Set the sample rate for subsequent decks.
+
+.TP
+.B \-m \fImilliseconds\fR
+Set the ALSA buffer time for subsequent decks.
+
+.SH JACK DEVICE OPTIONS
+
+.P
+The following options are available only when xwax is compiled with
+JACK support.
+
+.TP
+.B \-j \fIname\fR
+Create a deck which connects to JACK and registers under the given
+name.
+
+.P
+xwax does not set the sample rate for JACK devices; it uses the sample
+rate given in the global JACK configuration.
+
+.SH OSS DEVICE OPTIONS
+
+.P
+The following options are available only when xwax is compiled with
+OSS support.
+
+.TP
+.B \-d \fIpathname\fR
+Create a deck which uses the given OSS device (eg. /dev/dsp).
+
+.TP
+.B \-r \fIhz\fR
+Set the sample rate for subsequent decks.
+
+.TP
+.B \-b \fIn\fR
+Set the number of OSS buffers for subsequent decks.
+
+.TP
+.B \-f \fIn\fR
+Set the OSS buffer size (2^n bytes).
+
+.SH EXAMPLES
+
+.P
+2-deck setup using one directory of music and OSS devices:
+.sp
+.RS
+xwax -l ~/music -d /dev/dsp -d /dev/dsp1
+.RE
+
+.P
+As above, but using ALSA devices:
+.sp
+.RS
+xwax -l ~/music -d hw:0 -d hw:1
+.RE
+
+.P
+2-deck setup using a different timecode on each deck:
+.sp
+.RS
+xwax -l ~/music -t serato_2a -d hw:0 -t mixvibes_v2 -d hw:1
+.RE
+
+.P
+3-deck setup with the third deck at a higher sample rate:
+.sp
+.RS
+xwax -l ~/music -r 48000 -a hw:0 -a hw:1 -r 96000 -a hw:2
+.RE
+
+.P
+Using all three device types simultaneously, one deck on each:
+.sp
+.RS
+xwax -l ~/music -a hw:0 -d /dev/dsp1 -j jack0
+.RE
+
+.P
+Scan multiple music libraries:
+.sp
+.RS
+xwax -l ~/music -l ~/sounds -l ~/mixes -a hw:0
+.RE
+
+.P
+Scan a second music library using a custom script:
+.sp
+.RS
+xwax -l ~/music -i ./custom-scan -l ~/sounds -a hw:0
+.RE
+
+.SH HOMEPAGE
+http://www.xwax.co.uk/
+
+.SH AUTHOR
+Mark Hills <mark@pogo.org.uk>
