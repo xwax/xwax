@@ -949,6 +949,37 @@ static void draw_search(SDL_Surface *surface, const struct rect_t *rect,
 }
 
 
+/* Draw a vertical scroll bar representing our view on a list of the
+ * given number of entries */
+
+static void draw_scroll_bar(SDL_Surface *surface, const struct rect_t *rect,
+                            unsigned int entries, unsigned int offset,
+                            unsigned int lines)
+{
+    SDL_Rect box;
+    SDL_Color bg;
+
+    bg = selected_col;
+    bg.r >>= 1;
+    bg.g >>= 1;
+    bg.b >>= 1;
+
+    box.x = rect->x;
+    box.y = rect->y;
+    box.w = rect->w;
+    box.h = rect->h;
+    SDL_FillRect(surface, &box, palette(surface, &bg));
+
+    if(entries > 0) {
+        box.x = rect->x;
+        box.y = rect->y + rect->h * offset / entries;
+        box.w = rect->w;
+        box.h = rect->h * lines / entries;
+        SDL_FillRect(surface, &box, palette(surface, &selected_col));
+    }
+}
+
+
 /* Display a crate listing, with scrollbar and current
  * selection. Return the number of lines which fit on the display. */
 
@@ -956,6 +987,7 @@ static int draw_cratelisting(SDL_Surface *surface, const struct rect_t *rect,
                              struct selector_t *sel)
 {
     int x, y, w, h, r, ox, n;
+    struct rect_t rs;
     SDL_Rect box;
     SDL_Color col_bg, col_text;
 
@@ -1002,28 +1034,11 @@ static int draw_cratelisting(SDL_Surface *surface, const struct rect_t *rect,
     /* Return to the origin and output the scrollbar -- now that we have
      * a value for n */
 
-    x = ox;
-
-    col_bg = selected_col;
-    col_bg.r >>= 1;
-    col_bg.g >>= 1;
-    col_bg.b >>= 1;
-
-    box.x = x;
-    box.y = y;
-    box.w = SCROLLBAR_SIZE;
-    box.h = h;
-
-    SDL_FillRect(surface, &box, palette(surface, &col_bg));
-
-    if(sel->library->crates > 0) {
-        box.x = x;
-        box.y = y + h * sel->cr_offset / sel->library->crates;
-        box.w = SCROLLBAR_SIZE;
-        box.h = h * n / sel->library->crates;
-
-        SDL_FillRect(surface, &box, palette(surface, &selected_col));
-    }
+    rs.x = ox;
+    rs.y = y;
+    rs.w = SCROLLBAR_SIZE;
+    rs.h = h;
+    draw_scroll_bar(surface, &rs, sel->library->crates, sel->cr_offset, n);
 
     return n;
 }
@@ -1036,6 +1051,7 @@ static int draw_listing(SDL_Surface *surface, const struct rect_t *rect,
                         struct selector_t *sel)
 {
     int x, y, w, h, n, r, ox;
+    struct rect_t rs;
     struct record_t *re;
     SDL_Rect box;
     SDL_Color col;
@@ -1090,28 +1106,12 @@ static int draw_listing(SDL_Surface *surface, const struct rect_t *rect,
     /* Return to the origin and output the scrollbar -- now that we have
      * a value for n */
 
-    x = ox;
-
-    col = selected_col;
-    col.r >>= 1;
-    col.g >>= 1;
-    col.b >>= 1;
-
-    box.x = x;
-    box.y = y;
-    box.w = SCROLLBAR_SIZE;
-    box.h = h;
-
-    SDL_FillRect(surface, &box, palette(surface, &col));
-
-    if(sel->view_listing->entries > 0) {
-        box.x = x;
-        box.y = y + h * sel->lst_offset / sel->view_listing->entries;
-        box.w = SCROLLBAR_SIZE;
-        box.h = h * n / sel->view_listing->entries;
-        
-        SDL_FillRect(surface, &box, palette(surface, &selected_col));
-    }
+    rs.x = ox;
+    rs.y = y;
+    rs.w = SCROLLBAR_SIZE;
+    rs.h = h;
+    draw_scroll_bar(surface, &rs, sel->view_listing->entries,
+                    sel->lst_offset, n);
 
     return n;
 }
