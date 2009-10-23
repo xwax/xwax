@@ -63,7 +63,7 @@ int listing_add(struct listing_t *ls, struct record_t *lr)
     struct record_t **ln;
 
     if(ls->entries == ls->size) {
-        ln = realloc(ls->record, sizeof(struct listing_t) * ls->size * 2);
+        ln = realloc(ls->record, sizeof(struct record_t*) * ls->size * 2);
 
         if(!ln) {
             perror("realloc");
