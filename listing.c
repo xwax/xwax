@@ -24,7 +24,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "library.h"
 #include "listing.h"
 
 #define BLOCK 256
@@ -76,19 +75,6 @@ int listing_add(struct listing_t *ls, struct record_t *lr)
     }
 
     ls->record[ls->entries++] = lr;
-
-    return 0;
-}
-
-
-int listing_add_library(struct listing_t *ls, struct library_t *lb)
-{
-    int n;
-
-    for(n = 0; n < lb->entries; n++) {
-        if(listing_add(ls, &lb->record[n]) == -1)
-            return -1;
-    }
 
     return 0;
 }
@@ -158,6 +144,19 @@ static bool record_match_all(struct record_t *re, char **matches)
         matches++;
     }
     return true;
+}
+
+
+int listing_copy(const struct listing_t *src, struct listing_t *dest)
+{
+    int n;
+
+    for(n = 0; n < src->entries; n++) {
+	if(listing_add(dest, src->record[n]) != 0)
+	    return -1;
+    }
+
+    return 0;
 }
 
 

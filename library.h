@@ -20,15 +20,10 @@
 #ifndef LIBRARY_H
 #define LIBRARY_H
 
-struct record_t {
-    char *pathname, *artist, *title;
-};
-
-/* Library owns the pointers to the actual strings */
+#include "listing.h"
 
 struct library_t {
-    struct record_t *record;
-    int size, entries;
+    struct listing_t storage;
 };
 
 int library_init(struct library_t *li);

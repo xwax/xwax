@@ -28,21 +28,21 @@
 
 #include "library.h"
 
-#define BLOCK 256 /* number of library entries */
-
 
 int library_init(struct library_t *li)
 {
-    li->record = malloc(sizeof(struct record_t) * BLOCK);
-    if(li->record == NULL) {
-        perror("malloc");
+    if(listing_init(&li->storage) != 0)
         return -1;
-    }
-
-    li->size = BLOCK;
-    li->entries = 0;
 
     return 0;
+}
+
+
+static void record_clear(struct record_t *re)
+{
+    free(re->pathname);
+    free(re->artist);
+    free(re->title);
 }
 
 
@@ -50,37 +50,17 @@ void library_clear(struct library_t *li)
 {
     int n;
 
-    for(n = 0; n < li->entries; n++) {
-        free(li->record[n].pathname);
-        free(li->record[n].artist);
-        free(li->record[n].title);
+    /* This object owns all the record pointers */
+
+    for(n = 0; n < li->storage.entries; n++) {
+        struct record_t *re;
+
+        re = li->storage.record[n];
+        record_clear(re);
+        free(re);
     }
 
-    free(li->record);
-}
-
-
-int library_add(struct library_t *li, struct record_t *lr)
-{
-    struct record_t *ln;
-
-    if(li->entries == li->size) {
-        fprintf(stderr, "Allocating library space (%d entries reached)...\n",
-                li->size);
-
-        ln = realloc(li->record, sizeof(struct record_t) * li->size * 2);
-        if(ln == NULL) {
-            perror("realloc");
-            return -1;
-        }
-
-        li->record = ln;
-        li->size *= 2;
-    }
-
-    li->record[li->entries++] = *lr;
-
-    return 0;
+    listing_clear(&li->storage);
 }
 
 
@@ -164,22 +144,28 @@ int library_import(struct library_t *li, const char *scan, const char *path)
     }
 
     for(;;) {
-        struct record_t d;
+        struct record_t *d;
 
-        if(get_field(fp, '\t', &d.pathname) != 0)
+        d = malloc(sizeof(struct record_t));
+        if (d == NULL) {
+            perror("malloc");
+            return -1;
+        }
+
+        if(get_field(fp, '\t', &d->pathname) != 0)
             break;
 
-        if(get_field(fp, '\t', &d.artist) != 0) {
-            fprintf(stderr, "EOF when reading artist for '%s'.\n", d.pathname);
+        if(get_field(fp, '\t', &d->artist) != 0) {
+            fprintf(stderr, "EOF when reading artist for '%s'.\n", d->pathname);
             return -1;
         }
 
-        if(get_field(fp, '\n', &d.title) != 0) {
-            fprintf(stderr, "EOF when reading title for '%s'.\n", d.pathname);
+        if(get_field(fp, '\n', &d->title) != 0) {
+            fprintf(stderr, "EOF when reading title for '%s'.\n", d->pathname);
             return -1;
         }
 
-        if(library_add(li, &d) == -1)
+        if(listing_add(&li->storage, d) != 0)
             return -1;
     }
 

@@ -428,8 +428,9 @@ int main(int argc, char *argv[])
         player_connect_timecoder(&deck[n].player, &deck[n].timecoder);
     
     fprintf(stderr, "Indexing music library...\n");
-    listing_init(&listing);
-    if(listing_add_library(&listing, &library) == -1)
+    if(listing_init(&listing) != 0)
+        return -1;
+    if(listing_copy(&library.storage, &listing) != 0)
         return -1;
     listing_sort(&listing);
     iface.listing = &listing;
