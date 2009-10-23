@@ -983,19 +983,19 @@ static int draw_listing(SDL_Surface *surface, const struct rect_t *rect,
         else
             col = background_col;
 
-	draw_font(surface, x, r, RESULTS_ARTIST_WIDTH, FONT_SPACE,
-		  re->artist, font, text_col, col);
+        draw_font(surface, x, r, RESULTS_ARTIST_WIDTH, FONT_SPACE,
+                  re->artist, font, text_col, col);
 
-	box.x = x + RESULTS_ARTIST_WIDTH;
-	box.y = r;
-	box.w = SPACER;
-	box.h = FONT_SPACE;
+        box.x = x + RESULTS_ARTIST_WIDTH;
+        box.y = r;
+        box.w = SPACER;
+        box.h = FONT_SPACE;
+
+        SDL_FillRect(surface, &box, palette(surface, &col));
             
-	SDL_FillRect(surface, &box, palette(surface, &col));
-            
-	draw_font(surface, x + RESULTS_ARTIST_WIDTH + SPACER, r,
-		  w - RESULTS_ARTIST_WIDTH - SPACER, FONT_SPACE,
-		  re->title, em_font, text_col, col);
+        draw_font(surface, x + RESULTS_ARTIST_WIDTH + SPACER, r,
+                  w - RESULTS_ARTIST_WIDTH - SPACER, FONT_SPACE,
+                  re->title, em_font, text_col, col);
     }
 
     /* Blank any remaining space */
@@ -1236,7 +1236,7 @@ int interface_run(struct interface_t *in)
 
     for(p = 0; p < in->timecoders; p++) {
         if (timecoder_monitor_init(in->timecoder[p], SCOPE_SIZE) == -1)
-	    return -1;
+            return -1;
     }
 
     selector_init(&selector, in->listing);

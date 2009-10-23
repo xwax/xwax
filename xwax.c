@@ -401,7 +401,7 @@ int main(int argc, char *argv[])
             /* Load in a music library */
 
             if(library_import(&library, scanner, argv[1]) == -1)
-		return -1;
+                return -1;
 
             argv += 2;
             argc -= 2;
