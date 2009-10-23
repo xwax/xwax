@@ -21,6 +21,7 @@ OUTPUT=.config
 
 # Set some defaults and parse the command line
 
+PREFIX=
 ALSA=0
 JACK=0
 OSS=0
@@ -29,6 +30,7 @@ while [ $# -ge 1 ]; do
 	case $1 in
 	--help)
 		echo -n "Usage: configure"
+		echo -n " [--prefix <dir>]"
 		echo -n " [--enable-alsa]"
 		echo -n " [--enable-jack]"
 		echo -n " [--enable-oss]"
@@ -44,6 +46,13 @@ while [ $# -ge 1 ]; do
 	--enable-oss)
 		OSS=1
 		;;
+	--prefix)
+		if [ -z "$2" ]; then
+			echo "--prefix requires a pathname argument" >&2
+			exit 1
+		fi
+		PREFIX=$2
+		shift
 	esac
 
 	shift
@@ -52,6 +61,11 @@ done
 # Construct the output file
 
 > $OUTPUT
+
+if [ -n "$PREFIX" ]; then
+	echo "Installation prefix $PREFIX"
+	echo "PREFIX = $PREFIX" >> $OUTPUT
+fi
 
 if [ $ALSA = 1 ]; then
 	echo "ALSA enabled"
