@@ -18,6 +18,7 @@
  *
  */
 
+#include <assert.h>
 #include <stdlib.h>
 
 #include "selector.h"
@@ -143,12 +144,8 @@ void selector_cr_next(struct selector_t *sel, int count)
 
 struct crate_t* selector_cr_current(struct selector_t *sel)
 {
-    struct crate_t *crate = NULL;
-
-    if(sel->cr_selected != -1)
-        crate = sel->library->crate[sel->cr_selected];
-
-    return crate;
+    assert(sel->cr_selected >= 0);
+    return sel->library->crate[sel->cr_selected];
 }
 
 
