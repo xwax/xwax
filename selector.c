@@ -166,6 +166,9 @@ void selector_search_refine(struct selector_t *sel, char key)
 {
     struct listing_t *lst_tmp;
 
+    if(sel->search_len >= sizeof(sel->search) - 1) /* would overflow */
+        return;
+
     sel->search[sel->search_len] = key;
     sel->search[++sel->search_len] = '\0';
 
