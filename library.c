@@ -18,7 +18,6 @@
  */
 
 #define _GNU_SOURCE /* getdelim() */
-#include <dirent.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
