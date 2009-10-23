@@ -44,7 +44,6 @@ void selector_init(struct selector_t *sel, struct library_t *lib)
     sel->view_listing = &sel->listing_a;
     sel->swap_listing = &sel->listing_b;
 
-    listing_blank(sel->view_listing);
     listing_match(sel->base_listing, sel->view_listing, sel->search);
 }
 
@@ -110,7 +109,6 @@ struct record_t* selector_lst_current(struct selector_t *sel)
 
 static void change_listing(struct selector_t *sel)
 {
-    listing_blank(sel->view_listing);
     sel->base_listing = &sel->library->crate[sel->cr_selected]->listing;
     listing_match(sel->base_listing, sel->view_listing, sel->search);
 
@@ -156,7 +154,6 @@ void selector_search_expand(struct selector_t *sel)
 
     sel->search[--sel->search_len] = '\0';
 
-    listing_blank(sel->view_listing);
     listing_match(sel->base_listing, sel->view_listing, sel->search);
 
     if((sel->lst_selected < 0) && (sel->view_listing->entries > 0))
@@ -174,7 +171,6 @@ void selector_search_refine(struct selector_t *sel, char key)
     sel->search[sel->search_len] = key;
     sel->search[++sel->search_len] = '\0';
 
-    listing_blank(sel->swap_listing);
     listing_match(sel->view_listing, sel->swap_listing, sel->search);
 
     lst_tmp = sel->view_listing;

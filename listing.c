@@ -182,6 +182,8 @@ int listing_copy(const struct listing_t *src, struct listing_t *dest)
 {
     int n;
 
+    listing_blank(dest);
+
     for(n = 0; n < src->entries; n++) {
 	if(listing_add(dest, src->record[n]) != 0)
 	    return -1;
@@ -220,6 +222,8 @@ int listing_match(struct listing_t *src, struct listing_t *dest,
         buf = s + 1; /* skip separator */
     }
     words[n] = NULL; /* terminate list */
+
+    listing_blank(dest);
 
     for(n = 0; n < src->entries; n++) {
         re = src->record[n];
