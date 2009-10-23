@@ -17,7 +17,8 @@
  *
  */
 
-#define _GNU_SOURCE /* getdelim() */
+#define _GNU_SOURCE /* getdelim(), basename() */
+#include <assert.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -203,24 +204,12 @@ static int get_field(FILE *fp, char delim, char **f)
 int library_import(struct library_t *li, const char *scan, const char *path)
 {
     int pstdout[2], status;
-    char *pathname, *cratename = 0, *token;
+    char *cratename;
     pid_t pid;
     FILE *fp;
     struct crate_t *crate = NULL, *all_crate;
 
     fprintf(stderr, "Scanning '%s'...\n", path);
-
-    /* parse the path for cratename */
-
-    pathname = strdup(path);
-    token = strtok(pathname, "/");
-    while(token != NULL) {
-        token = strtok(NULL, "/");
-        if(token != NULL)
-            cratename = token;
-    }
-    if(cratename == NULL)
-        cratename = pathname;
 
     all_crate = library_get_crate(li, CRATE_ALL);
     if(all_crate == NULL) {
@@ -228,13 +217,9 @@ int library_import(struct library_t *li, const char *scan, const char *path)
         return -1;
     }
 
-    if(cratename != NULL) {
-        crate = library_new_crate(li, cratename, false);
-        fprintf(stderr, "Scanning '%s' with '%s' into crate '%s'...\n",
-                path, scan, cratename);
-
-    } else
-        fprintf(stderr, "Could not parse cratename for '%s'...\n", path);
+    cratename = basename(path); /* GNU version, see basename(3) */
+    assert(cratename != NULL);
+    crate = library_new_crate(li, cratename, false);
 
     if(pipe(pstdout) == -1) {
         perror("pipe");
@@ -336,6 +321,5 @@ int library_import(struct library_t *li, const char *scan, const char *path)
     if(crate != NULL)
         listing_sort(&crate->listing);
 
-    free(pathname);
     return 0;
 }
