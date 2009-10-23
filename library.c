@@ -207,7 +207,7 @@ int library_import(struct library_t *li, const char *scan, const char *path)
     char *cratename;
     pid_t pid;
     FILE *fp;
-    struct crate_t *crate = NULL, *all_crate;
+    struct crate_t *crate, *all_crate;
 
     fprintf(stderr, "Scanning '%s'...\n", path);
 
@@ -220,6 +220,8 @@ int library_import(struct library_t *li, const char *scan, const char *path)
     cratename = basename(path); /* GNU version, see basename(3) */
     assert(cratename != NULL);
     crate = library_new_crate(li, cratename, false);
+    if(crate == NULL)
+        return -1;
 
     if(pipe(pstdout) == -1) {
         perror("pipe");
@@ -296,8 +298,7 @@ int library_import(struct library_t *li, const char *scan, const char *path)
         /* Add to crates */
 
         library_add_record(all_crate, d);
-        if(crate != NULL)
-            library_add_record(crate, d);
+        library_add_record(crate, d);
     }
 
     if(fclose(fp) == -1) {
@@ -318,8 +319,7 @@ int library_import(struct library_t *li, const char *scan, const char *path)
     /* sort the listings */
 
     listing_sort(&all_crate->listing);
-    if(crate != NULL)
-        listing_sort(&crate->listing);
+    listing_sort(&crate->listing);
 
     return 0;
 }
