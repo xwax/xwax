@@ -151,8 +151,10 @@ struct crate_t* selector_cr_current(struct selector_t *sel)
 
 void selector_search_expand(struct selector_t *sel)
 {
-    if(sel->search_len > 0)
-        sel->search[--sel->search_len] = '\0';
+    if(sel->search_len == 0)
+        return;
+
+    sel->search[--sel->search_len] = '\0';
 
     listing_blank(sel->view_listing);
     listing_match(sel->base_listing, sel->view_listing, sel->search);
