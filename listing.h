@@ -31,7 +31,7 @@ struct listing_t {
     int size, entries;
 };
 
-int listing_init(struct listing_t *ls);
+void listing_init(struct listing_t *ls);
 void listing_clear(struct listing_t *ls);
 void listing_blank(struct listing_t *ls);
 int listing_add(struct listing_t *li, struct record_t *lr);

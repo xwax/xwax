@@ -32,8 +32,7 @@
 
 int library_init(struct library_t *li)
 {
-    if(listing_init(&li->storage) != 0)
-        return -1;
+    listing_init(&li->storage);
 
     li->crate = malloc(sizeof(struct crate_t*));
     if(li->crate == NULL) {

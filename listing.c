@@ -31,24 +31,16 @@
 #define SEPARATOR ' '
 
 
-int listing_init(struct listing_t *ls)
+void listing_init(struct listing_t *ls)
 {
-    ls->record = malloc(sizeof(struct record_t*) * BLOCK);
-    if(ls->record == NULL) {
-        perror("malloc");
-        return -1;
-    }
-
-    ls->size = BLOCK;
-    ls->entries = 0;
-
-    return 0;
+    ls->record = NULL;
 }
 
 
 void listing_clear(struct listing_t *ls)
 {
-    free(ls->record);
+    if(ls->record != NULL)
+        free(ls->record);
 }
 
 
@@ -62,10 +54,22 @@ int listing_add(struct listing_t *ls, struct record_t *lr)
 {
     struct record_t **ln;
 
-    if(ls->entries == ls->size) {
-        ln = realloc(ls->record, sizeof(struct record_t*) * ls->size * 2);
+    if(ls->record == NULL) { /* initial entry */
 
-        if(!ln) {
+        ln = malloc(sizeof(struct record_t*) * BLOCK);
+        if(ln == NULL) {
+            perror("malloc");
+            return -1;
+        }
+
+        ls->record = ln;
+        ls->size = BLOCK;
+        ls->entries = 0;
+
+    } else if(ls->entries == ls->size) {
+
+        ln = realloc(ls->record, sizeof(struct record_t*) * ls->size * 2);
+        if(ln == NULL) {
             perror("realloc");
             return -1;
         }
