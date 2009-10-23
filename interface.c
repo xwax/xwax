@@ -949,6 +949,86 @@ static void draw_search(SDL_Surface *surface, const struct rect_t *rect,
 }
 
 
+/* Display a crate listing, with scrollbar and current
+ * selection. Return the number of lines which fit on the display. */
+
+static int draw_cratelisting(SDL_Surface *surface, const struct rect_t *rect,
+                             struct selector_t *sel)
+{
+    int x, y, w, h, r, ox, n;
+    SDL_Rect box;
+    SDL_Color col_bg, col_text;
+
+    x = rect->x;
+    y = rect->y;
+    w = rect->w;
+    h = rect->h;
+    ox = x;
+
+    x += SCROLLBAR_SIZE + SPACER;
+    w -= SCROLLBAR_SIZE + SPACER;
+
+    for(n = 0; n + sel->cr_offset < sel->library->crates; n++) {
+
+        if((n + 1) * FONT_SPACE > h)
+            break;
+
+        r = y + n * FONT_SPACE;
+
+        if(sel->library->crate[n + sel->cr_offset]->is_fixed)
+            col_text = detail_col;
+        else
+            col_text = text_col;
+
+        if(n + sel->cr_offset == sel->cr_selected)
+            col_bg = selected_col;
+        else
+            col_bg = background_col;
+
+        draw_font(surface, x, r, w, FONT_SPACE,
+                  sel->library->crate[n + sel->cr_offset]->name, font,
+                  col_text, col_bg);
+    }
+
+    /* Blank any remaining space */
+
+    box.x = x;
+    box.y = y + n * FONT_SPACE;
+    box.w = w;
+    box.h = h - (n * FONT_SPACE);
+
+    SDL_FillRect(surface, &box, palette(surface, &background_col));
+
+    /* Return to the origin and output the scrollbar -- now that we have
+     * a value for n */
+
+    x = ox;
+
+    col_bg = selected_col;
+    col_bg.r >>= 1;
+    col_bg.g >>= 1;
+    col_bg.b >>= 1;
+
+    box.x = x;
+    box.y = y;
+    box.w = SCROLLBAR_SIZE;
+    box.h = h;
+
+    SDL_FillRect(surface, &box, palette(surface, &col_bg));
+
+    if(sel->library->crates > 0) {
+        box.x = x;
+        box.y = y + h * sel->cr_offset / sel->library->crates;
+        box.w = SCROLLBAR_SIZE;
+        box.h = h * n / sel->library->crates;
+
+        SDL_FillRect(surface, &box, palette(surface, &selected_col));
+    }
+
+    return n;
+}
+
+
 /* Display a record library listing, with scrollbar and current
  * selection. Return the number of lines which fit on the display. */
 
@@ -1043,15 +1123,29 @@ static int draw_listing(SDL_Surface *surface, const struct rect_t *rect,
 static void draw_library(SDL_Surface *surface, const struct rect_t *rect,
                          struct selector_t *sel)
 {
-    struct rect_t rsearch, rresults;
+    struct rect_t rsearch, rbrowser, rcrates, rresults;
 
-    split_top(rect, &rsearch, &rresults, SEARCH_HEIGHT, SPACER);
+    split_top(rect, &rsearch, &rbrowser, SEARCH_HEIGHT, SPACER);
     draw_search(surface, &rsearch, sel);
-    sel->lst_lines = draw_listing(surface, &rresults, sel);
+
+    split_left(&rbrowser, &rcrates, &rresults, (rbrowser.w / 4), SPACER);
+    if(rcrates.w > LIBRARY_MIN_WIDTH) {
+        sel->cr_lines = draw_cratelisting(surface, &rcrates, sel);
+        sel->lst_lines = draw_listing(surface, &rresults, sel);
+    } else {
+        sel->lst_lines = draw_listing(surface, &rbrowser, sel);
+    }
+
+    /* check if a selection has been overdrawn after resize */
 
     if(sel->lst_selected > (sel->lst_offset + sel->lst_lines - 1)) {
         sel->lst_selected = sel->lst_offset + sel->lst_lines - 1;
         sel->lst_lines = draw_listing(surface, &rresults, sel);
+    }
+
+    if(sel->cr_selected > (sel->cr_offset + sel->cr_lines - 1)) {
+         sel->cr_selected = sel->cr_offset + sel->cr_lines - 1;
+         sel->cr_lines = draw_listing(surface, &rresults, sel);
     }
 }
 
@@ -1095,6 +1189,14 @@ static bool handle_key(struct interface_t *in, struct selector_t *sel,
         selector_search_expand(sel);
         return true;
 
+    } else if(key == SDLK_HOME) {
+        selector_lst_prev(sel, sel->view_listing->entries);
+        return true;
+
+    } else if(key == SDLK_END) {
+        selector_lst_next(sel, sel->view_listing->entries);
+        return true;
+
     } else if(key == SDLK_UP) {
         selector_lst_prev(sel, 1);
         return true;
@@ -1109,6 +1211,14 @@ static bool handle_key(struct interface_t *in, struct selector_t *sel,
 
     } else if(key == SDLK_PAGEDOWN) {
         selector_lst_next(sel, sel->lst_lines);
+        return true;
+
+    } else if(key == SDLK_LEFT) {
+        selector_cr_prev(sel, 1);
+        return true;
+
+    } else if(key == SDLK_RIGHT) {
+        selector_cr_next(sel, 1);
         return true;
 
     } else if((key == SDLK_EQUALS) || (key == SDLK_PLUS)) {
@@ -1212,7 +1322,7 @@ void interface_init(struct interface_t *in)
     for(n = 0; n < MAX_PLAYERS; n++)
         in->player[n] = NULL;
 
-    in->listing = NULL;
+    in->library = NULL;
 }
 
 
@@ -1239,7 +1349,7 @@ int interface_run(struct interface_t *in)
             return -1;
     }
 
-    selector_init(&selector, in->listing);
+    selector_init(&selector, in->library);
     calculate_spinner_lookup(spinner_angle, NULL, SPINNER_SIZE);
 
     fprintf(stderr, "Initialising SDL...\n");

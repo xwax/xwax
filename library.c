@@ -21,6 +21,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/wait.h>
@@ -32,6 +33,16 @@ int library_init(struct library_t *li)
 {
     if(listing_init(&li->storage) != 0)
         return -1;
+
+    li->crate = malloc(sizeof(struct crate_t*));
+    if(li->crate == NULL) {
+        perror("malloc");
+        return -1;
+    }
+
+    li->crates = 0;
+
+    library_new_crate(li, CRATE_ALL, true);
 
     return 0;
 }
@@ -49,6 +60,15 @@ void library_clear(struct library_t *li)
 {
     int n;
 
+    for(n = 0; n < li->crates; n++) {
+        struct crate_t *crate;
+
+        crate = li->crate[n];
+        listing_clear(&crate->listing);
+        free(crate->name);
+        free(crate);
+    }
+
     /* This object owns all the record pointers */
 
     for(n = 0; n < li->storage.entries; n++) {
@@ -60,6 +80,99 @@ void library_clear(struct library_t *li)
     }
 
     listing_clear(&li->storage);
+}
+
+
+static void library_swap_crates(struct library_t *lib, int i, int j)
+{
+    struct crate_t *tmp;
+    tmp = lib->crate[i];
+    lib->crate[i] = lib->crate[j];
+    lib->crate[j] = tmp;
+}
+
+
+static void library_sort_crates(struct library_t *lib)
+{
+    int i, changed;
+
+    do {
+        changed = 0;
+
+        for(i = 0; i < lib->crates - 1; i++) {
+
+            if(lib->crate[i]->is_fixed)
+                continue;
+
+            if(lib->crate[i+1]->is_fixed) {
+                library_swap_crates(lib, i, i+1);
+                changed++;
+                continue;
+            }
+
+            if(strcmp(lib->crate[i]->name, lib->crate[i + 1]->name) > 0) {
+                library_swap_crates(lib, i, i+1);
+                changed++;
+            }
+
+        }
+    } while(changed);
+}
+
+
+struct crate_t* library_new_crate(struct library_t *lib, char *name,
+                                  bool is_fixed)
+{
+    struct crate_t *new_crate;
+
+    /* does this crate already exist? then return existing crate */
+    new_crate = library_get_crate(lib, name);
+    if(new_crate != NULL) {
+        fprintf(stderr, "Crate '%s' already exists...\n", name);
+        return new_crate;
+    }
+
+    /* allocate and fill space for new crate */
+    new_crate = malloc(sizeof(struct crate_t));
+    new_crate->name = strdup(name);
+    new_crate->is_fixed = is_fixed;
+
+    listing_init(&new_crate->listing);
+
+    /* add this new crate to the library */
+    struct crate_t **cn;
+    cn = realloc(lib->crate, sizeof(struct crate_t*) * (lib->crates + 1));
+    if(!cn) {
+        perror("realloc");
+        return NULL;
+    }
+
+    lib->crate = cn;
+    lib->crate[lib->crates++] = new_crate;
+
+    library_sort_crates(lib);
+
+    return new_crate;
+}
+
+
+struct crate_t* library_get_crate(struct library_t *lib, char *name)
+{
+    int n;
+
+    for(n = 0; n < lib->crates; n++) {
+        if(strcmp(lib->crate[n]->name, name) == 0)
+            return lib->crate[n];
+    }
+
+    return NULL;
+}
+
+
+void library_add_record(struct crate_t* crate, struct record_t *lr)
+{
+    if((lr != NULL) && (crate != NULL))
+        listing_add(&crate->listing, lr);
 }
 
 
@@ -90,10 +203,38 @@ static int get_field(FILE *fp, char delim, char **f)
 int library_import(struct library_t *li, const char *scan, const char *path)
 {
     int pstdout[2], status;
+    char *pathname, *cratename = 0, *token;
     pid_t pid;
     FILE *fp;
+    struct crate_t *crate = NULL, *all_crate;
 
     fprintf(stderr, "Scanning '%s'...\n", path);
+
+    /* parse the path for cratename */
+
+    pathname = strdup(path);
+    token = strtok(pathname, "/");
+    while(token != NULL) {
+        token = strtok(NULL, "/");
+        if(token != NULL)
+            cratename = token;
+    }
+    if(cratename == NULL)
+        cratename = pathname;
+
+    all_crate = library_get_crate(li, CRATE_ALL);
+    if(all_crate == NULL) {
+        fprintf(stderr, "Could not get ALL_CRATE..");
+        return -1;
+    }
+
+    if(cratename != NULL) {
+        crate = library_new_crate(li, cratename, false);
+        fprintf(stderr, "Scanning '%s' with '%s' into crate '%s'...\n",
+                path, scan, cratename);
+
+    } else
+        fprintf(stderr, "Could not parse cratename for '%s'...\n", path);
 
     if(pipe(pstdout) == -1) {
         perror("pipe");
@@ -166,6 +307,12 @@ int library_import(struct library_t *li, const char *scan, const char *path)
 
         if(listing_add(&li->storage, d) != 0)
             return -1;
+
+        /* Add to crates */
+
+        library_add_record(all_crate, d);
+        if(crate != NULL)
+            library_add_record(crate, d);
     }
 
     if(fclose(fp) == -1) {
@@ -183,5 +330,12 @@ int library_import(struct library_t *li, const char *scan, const char *path)
         return -1;
     }
 
+    /* sort the listings */
+
+    listing_sort(&all_crate->listing);
+    if(crate != NULL)
+        listing_sort(&crate->listing);
+
+    free(pathname);
     return 0;
 }

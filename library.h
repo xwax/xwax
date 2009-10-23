@@ -20,15 +20,30 @@
 #ifndef LIBRARY_H
 #define LIBRARY_H
 
+#include <stdbool.h>
+
 #include "listing.h"
+
+#define CRATE_ALL "All records"
+
+struct crate_t {
+    bool is_fixed;
+    char *name;
+    struct listing_t listing;
+};
 
 struct library_t {
     struct listing_t storage;
+    struct crate_t **crate;
+    int crates;
 };
 
 int library_init(struct library_t *li);
 void library_clear(struct library_t *li);
-int library_add(struct library_t *li, struct record_t *lr);
-int library_import(struct library_t *li, const char *scan, const char *path);
+struct crate_t* library_new_crate(struct library_t *lib, char *name,
+                                  bool is_fixed);
+struct crate_t* library_get_crate(struct library_t *lib, char *name);
+void library_add_record(struct crate_t* crate, struct record_t *lr);
+int library_import(struct library_t *lib, const char *scan, const char *path);
 
 #endif
