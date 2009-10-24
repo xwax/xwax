@@ -68,11 +68,7 @@ static int pcm_open(struct alsa_pcm_t *alsa, const char *device_name,
         return -1;
     }
 
-    r = snd_pcm_hw_params_malloc(&hw_params);
-    if(r < 0) {
-        alsa_error("hw_params_malloc", r);
-        return -1;
-    }
+    snd_pcm_hw_params_alloca(&hw_params);
 
     r = snd_pcm_hw_params_any(alsa->pcm, hw_params);
     if(r < 0) {
@@ -133,8 +129,6 @@ static int pcm_open(struct alsa_pcm_t *alsa, const char *device_name,
         alsa_error("get_period_size", r);
         return -1;
     }
-
-    snd_pcm_hw_params_free(hw_params);
 
     bytes = alsa->period * DEVICE_CHANNELS * sizeof(signed short);
     alsa->buf = malloc(bytes);
