@@ -31,6 +31,6 @@ void pitch_dt_observation(struct pitch_t *p, float dt);
 
 static inline float pitch_current(struct pitch_t *p) {
     return p->v;
-};
+}
 
 #endif
