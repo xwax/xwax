@@ -270,6 +270,10 @@ int library_import(struct library_t *li, const char *scan, const char *path)
 
     for(;;) {
         struct record_t *d;
+        char *pathname;
+
+        if(get_field(fp, '\t', &pathname) != 0)
+            break;
 
         d = malloc(sizeof(struct record_t));
         if (d == NULL) {
@@ -277,8 +281,7 @@ int library_import(struct library_t *li, const char *scan, const char *path)
             return -1;
         }
 
-        if(get_field(fp, '\t', &d->pathname) != 0)
-            break;
+        d->pathname = pathname;
 
         if(get_field(fp, '\t', &d->artist) != 0) {
             fprintf(stderr, "EOF when reading artist for '%s'.\n", d->pathname);
