@@ -146,7 +146,7 @@ int library_import(struct library_t *li, const char *scan, const char *path)
 
         if(execl(scan, "scan", path, NULL) == -1) {
             perror("execl");
-            exit(-1);
+            exit(EXIT_FAILURE);
         }
 
         abort(); /* execl() does not return */
