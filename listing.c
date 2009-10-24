@@ -34,6 +34,7 @@
 void listing_init(struct listing_t *ls)
 {
     ls->record = NULL;
+    ls->entries = 0;
 }
 
 
@@ -64,7 +65,6 @@ int listing_add(struct listing_t *ls, struct record_t *lr)
 
         ls->record = ln;
         ls->size = BLOCK;
-        ls->entries = 0;
 
     } else if(ls->entries == ls->size) {
 
