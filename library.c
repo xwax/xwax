@@ -136,7 +136,7 @@ int library_import(struct library_t *li, const char *scan, const char *path)
 
         if(dup2(pstdout[1], STDOUT_FILENO) == -1) {
             perror("dup2");
-            abort();
+            _exit(EXIT_FAILURE); /* vfork() was used */
         }
 
         if(close(pstdout[1]) == -1) {
@@ -146,7 +146,7 @@ int library_import(struct library_t *li, const char *scan, const char *path)
 
         if(execl(scan, "scan", path, NULL) == -1) {
             perror("execl");
-            exit(EXIT_FAILURE);
+            _exit(EXIT_FAILURE); /* vfork() was used */
         }
 
         abort(); /* execl() does not return */

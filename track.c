@@ -68,7 +68,7 @@ static int start_import(struct track_t *tr, const char *path)
         }
         if(dup2(pstdout[1], STDOUT_FILENO) == -1) {
             perror("dup2");
-            exit(EXIT_FAILURE);
+            _exit(EXIT_FAILURE); /* vfork() was used */
         }
         if(close(pstdout[1]) != 0) {
             perror("close");
@@ -77,7 +77,7 @@ static int start_import(struct track_t *tr, const char *path)
 
         if(execl(tr->importer, "import", path, NULL) == -1) {
             perror("execl");
-            exit(EXIT_FAILURE);
+            _exit(EXIT_FAILURE); /* vfork() was used */
         }
 
         abort(); /* execl() never returns */
