@@ -17,8 +17,9 @@
  *
  */
 
-#define _GNU_SOURCE /* getdelim(), basename() */
+#define _GNU_SOURCE /* getdelim(), strdupa() */
 #include <assert.h>
+#include <libgen.h> /*  basename() */
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -202,7 +203,7 @@ static int get_field(FILE *fp, char delim, char **f)
 int library_import(struct library_t *li, const char *scan, const char *path)
 {
     int pstdout[2], status;
-    char *cratename;
+    char *cratename, *pathname;
     pid_t pid;
     FILE *fp;
     struct crate_t *crate, *all_crate;
@@ -215,7 +216,8 @@ int library_import(struct library_t *li, const char *scan, const char *path)
         return -1;
     }
 
-    cratename = basename(path); /* GNU version, see basename(3) */
+    pathname = strdupa(path);
+    cratename = basename(pathname); /* POSIX version, see basename(3) */
     assert(cratename != NULL);
     crate = library_new_crate(li, cratename, false);
     if(crate == NULL)
