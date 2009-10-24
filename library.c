@@ -69,6 +69,7 @@ void library_clear(struct library_t *li)
         free(crate->name);
         free(crate);
     }
+    free(li->crate);
 
     /* This object owns all the record pointers */
 
