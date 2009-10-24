@@ -17,6 +17,7 @@
  *
  */
 
+#define _BSD_SOURCE /* vfork() */
 #define _GNU_SOURCE /* getdelim() */
 #include <dirent.h>
 #include <stdbool.h>
