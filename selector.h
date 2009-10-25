@@ -24,6 +24,13 @@
 #include "library.h"
 #include "listing.h"
 
+/* Managed context of a scrolling window, of a number of fixed-height
+ * lines, backed by a list of a known number of entries */
+
+struct scroll_t {
+    int lines, offset, entries, selected;
+};
+
 struct selector_t {
     struct library_t *library;
     struct listing_t *base_listing, /* (unchanged) listing from interface_t */
@@ -31,9 +38,9 @@ struct selector_t {
         *swap_listing, /* used to swap between a and b listings */
         listing_a, listing_b;
 
-    int lst_lines, lst_selected, lst_offset,
-        cr_lines, cr_selected, cr_offset,
-        search_len;
+    struct scroll_t records, crates;
+
+    int search_len;
     char search[256];
 };
 
@@ -42,6 +49,9 @@ void selector_clear(struct selector_t *sel);
 
 void selector_lst_prev(struct selector_t *sel, int count);
 void selector_lst_next(struct selector_t *sel, int count);
+void selector_lst_top(struct selector_t *sel);
+void selector_lst_bottom(struct selector_t *sel);
+
 struct record_t* selector_lst_current(struct selector_t *sel);
 
 void selector_cr_prev(struct selector_t *sel, int count);

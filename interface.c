@@ -1000,25 +1000,25 @@ static int draw_cratelisting(SDL_Surface *surface, const struct rect_t *rect,
     x += SCROLLBAR_SIZE + SPACER;
     w -= SCROLLBAR_SIZE + SPACER;
 
-    for(n = 0; n + sel->cr_offset < sel->library->crates; n++) {
+    for(n = 0; n + sel->crates.offset < sel->library->crates; n++) {
 
         if((n + 1) * FONT_SPACE > h)
             break;
 
         r = y + n * FONT_SPACE;
 
-        if(sel->library->crate[n + sel->cr_offset]->is_fixed)
+        if(sel->library->crate[n + sel->crates.offset]->is_fixed)
             col_text = detail_col;
         else
             col_text = text_col;
 
-        if(n + sel->cr_offset == sel->cr_selected)
+        if(n + sel->crates.offset == sel->crates.selected)
             col_bg = selected_col;
         else
             col_bg = background_col;
 
         draw_font(surface, x, r, w, FONT_SPACE,
-                  sel->library->crate[n + sel->cr_offset]->name, font,
+                  sel->library->crate[n + sel->crates.offset]->name, font,
                   col_text, col_bg);
     }
 
@@ -1038,7 +1038,7 @@ static int draw_cratelisting(SDL_Surface *surface, const struct rect_t *rect,
     rs.y = y;
     rs.w = SCROLLBAR_SIZE;
     rs.h = h;
-    draw_scroll_bar(surface, &rs, sel->library->crates, sel->cr_offset, n);
+    draw_scroll_bar(surface, &rs, sel->library->crates, sel->crates.offset, n);
 
     return n;
 }
@@ -1066,15 +1066,15 @@ static int draw_listing(SDL_Surface *surface, const struct rect_t *rect,
     x += SCROLLBAR_SIZE + SPACER;
     w -= SCROLLBAR_SIZE + SPACER;
 
-    for(n = 0; n + sel->lst_offset < sel->view_listing->entries; n++) {
-        re = sel->view_listing->record[n + sel->lst_offset];
+    for(n = 0; n + sel->records.offset < sel->view_listing->entries; n++) {
+        re = sel->view_listing->record[n + sel->records.offset];
     
         if((n + 1) * FONT_SPACE > h) 
             break;
 
         r = y + n * FONT_SPACE;
     
-        if(n + sel->lst_offset == sel->lst_selected)
+        if(n + sel->records.offset == sel->records.selected)
             col = selected_col;
         else
             col = background_col;
@@ -1111,7 +1111,7 @@ static int draw_listing(SDL_Surface *surface, const struct rect_t *rect,
     rs.w = SCROLLBAR_SIZE;
     rs.h = h;
     draw_scroll_bar(surface, &rs, sel->view_listing->entries,
-                    sel->lst_offset, n);
+                    sel->records.offset, n);
 
     return n;
 }
@@ -1130,22 +1130,22 @@ static void draw_library(SDL_Surface *surface, const struct rect_t *rect,
 
     split_left(&rbrowser, &rcrates, &rresults, (rbrowser.w / 4), SPACER);
     if(rcrates.w > LIBRARY_MIN_WIDTH) {
-        sel->cr_lines = draw_cratelisting(surface, &rcrates, sel);
-        sel->lst_lines = draw_listing(surface, &rresults, sel);
+        sel->crates.lines = draw_cratelisting(surface, &rcrates, sel);
+        sel->records.lines = draw_listing(surface, &rresults, sel);
     } else {
-        sel->lst_lines = draw_listing(surface, &rbrowser, sel);
+        sel->records.lines = draw_listing(surface, &rbrowser, sel);
     }
 
     /* check if a selection has been overdrawn after resize */
 
-    if(sel->lst_selected > (sel->lst_offset + sel->lst_lines - 1)) {
-        sel->lst_selected = sel->lst_offset + sel->lst_lines - 1;
-        sel->lst_lines = draw_listing(surface, &rresults, sel);
+    if(sel->records.selected > (sel->records.offset + sel->records.lines - 1)) {
+        sel->records.selected = sel->records.offset + sel->records.lines - 1;
+        sel->records.lines = draw_listing(surface, &rresults, sel);
     }
 
-    if(sel->cr_selected > (sel->cr_offset + sel->cr_lines - 1)) {
-         sel->cr_selected = sel->cr_offset + sel->cr_lines - 1;
-         sel->cr_lines = draw_listing(surface, &rresults, sel);
+    if(sel->crates.selected > (sel->crates.offset + sel->crates.lines - 1)) {
+         sel->crates.selected = sel->crates.offset + sel->crates.lines - 1;
+         sel->crates.lines = draw_listing(surface, &rresults, sel);
     }
 }
 
@@ -1190,11 +1190,11 @@ static bool handle_key(struct interface_t *in, struct selector_t *sel,
         return true;
 
     } else if(key == SDLK_HOME) {
-        selector_lst_prev(sel, sel->view_listing->entries);
+        selector_lst_top(sel);
         return true;
 
     } else if(key == SDLK_END) {
-        selector_lst_next(sel, sel->view_listing->entries);
+        selector_lst_bottom(sel);
         return true;
 
     } else if(key == SDLK_UP) {
@@ -1206,11 +1206,11 @@ static bool handle_key(struct interface_t *in, struct selector_t *sel,
         return true;
 
     } else if(key == SDLK_PAGEUP) {
-        selector_lst_prev(sel, sel->lst_lines);
+        selector_lst_prev(sel, sel->records.lines);
         return true;
 
     } else if(key == SDLK_PAGEDOWN) {
-        selector_lst_next(sel, sel->lst_lines);
+        selector_lst_next(sel, sel->records.lines);
         return true;
 
     } else if(key == SDLK_LEFT) {

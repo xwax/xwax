@@ -24,17 +24,124 @@
 #include "selector.h"
 
 
+static void scroll_reset(struct scroll_t *s)
+{
+    s->lines = 0;
+    s->offset = 0;
+    s->entries = 0;
+    s->selected = -1;
+}
+
+
+/* Set the number of lines displayed on screen. The current selection
+ * is moved to within range. */
+
+static void scroll_set_lines(struct scroll_t *s, unsigned int lines)
+{
+    if(s->selected >= s->offset + lines)
+        s->selected = s->offset + lines - 1;
+    s->lines = lines;
+}
+
+
+/* Set the number of entries in the list which backs the scrolling
+ * display. Bring the current selection within the bounds given. */
+
+static void scroll_set_entries(struct scroll_t *s, unsigned int entries)
+{
+    s->entries = entries;
+    if (s->selected >= s->entries)
+        s->selected = s->entries - 1;
+    if (s->offset + s->lines > s->entries) {
+        s->offset = s->entries - s->lines;
+        if(s->offset < 0)
+            s->offset = 0;
+    }
+
+    /* If we went previously had zero entries, reset the selection */
+
+    if (s->selected < 0)
+        s->selected = 0;
+}
+
+
+/* Scroll the selection up by n lines. Move the window offset if
+ * needed */
+
+static void scroll_up(struct scroll_t *s, unsigned int n)
+{
+    s->selected -= n;
+    if(s->selected < 0)
+        s->selected = 0;
+
+    /* Move the viewing offset up, if necessary */
+
+    if(s->selected < s->offset) {
+        s->offset = s->selected - s->lines / 2 + 1;
+        if(s->offset < 0)
+            s->offset = 0;
+    }
+}
+
+
+static void scroll_down(struct scroll_t *s, unsigned int n)
+{
+    s->selected += n;
+    if(s->selected >= s->entries)
+        s->selected = s->entries - 1;
+
+    /* Move the viewing offset down, if necessary */
+
+    if(s->selected >= s->offset + s->lines) {
+        s->offset = s->selected - s->lines / 2;
+        if(s->offset + s->lines > s->entries)
+            s->offset = s->entries - s->lines;
+    }
+}
+
+
+/* Scroll to the first entry on the list */
+
+static void scroll_first(struct scroll_t *s)
+{
+    s->selected = 0;
+    s->offset = 0;
+}
+
+
+/* Scroll to the final entry on the list */
+
+static void scroll_last(struct scroll_t *s)
+{
+    s->selected = s->entries - 1;
+    s->offset = s->selected - s->lines + 1;
+    if(s->offset < 0)
+        s->offset = 0;
+}
+
+
+/* Return the index of the current selected list entry, or -1 if
+ * no current selection */
+
+static int scroll_current(struct scroll_t *s)
+{
+    if(s->entries == 0) {
+        return -1;
+    } else {
+        return s->selected;
+    }
+}
+
+
 void selector_init(struct selector_t *sel, struct library_t *lib)
 {
     sel->library = lib;
     sel->base_listing = &library_get_crate(sel->library, CRATE_ALL)->listing;
 
-    sel->lst_lines = 0;
-    sel->lst_selected = 0;
-    sel->lst_offset = 0;
-    sel->cr_lines = 0;
-    sel->cr_selected = 0;
-    sel->cr_offset = 0;
+    scroll_reset(&sel->records);
+    scroll_reset(&sel->crates);
+
+    scroll_set_entries(&sel->crates, lib->crates);
 
     sel->search[0] = '\0';
     sel->search_len = 0;
@@ -45,6 +152,7 @@ void selector_init(struct selector_t *sel, struct library_t *lib)
     sel->swap_listing = &sel->listing_b;
 
     listing_copy(sel->base_listing, sel->view_listing);
+    scroll_set_entries(&sel->records, sel->view_listing->entries);
 }
 
 
@@ -55,87 +163,61 @@ void selector_clear(struct selector_t *sel)
 }
 
 
-static void check_up_constraints(int lines, int *selected, int *offset)
-{
-    if(*selected < 0)
-        *selected = 0;
-
-    if(*selected < *offset)
-        *offset -= (*offset - *selected) + (lines / 2);
-
-    if(*offset < 0)
-        *offset = 0;
-}
-
-
-static void check_down_constraints(int size, int lines,
-                                   int *selected, int *offset)
-{
-    if(*selected > *offset + lines - 1)
-        *offset = *selected - lines / 2;
-
-    if(*selected >= size)
-        *selected = size - 1;
-
-    if(*offset > size - lines)
-        *offset = size - lines;
-}
-
-
 void selector_lst_prev(struct selector_t *sel, int count)
 {
-    sel->lst_selected -= count;
-    check_up_constraints(sel->lst_lines, &sel->lst_selected, &sel->lst_offset);
+    scroll_up(&sel->records, count);
 }
 
 
 void selector_lst_next(struct selector_t *sel, int count)
 {
-    sel->lst_selected += count;
-    check_down_constraints(sel->view_listing->entries, sel->lst_lines,
-                           &sel->lst_selected, &sel->lst_offset);
+    scroll_down(&sel->records, count);
+}
+
+
+void selector_lst_top(struct selector_t *sel)
+{
+    scroll_first(&sel->records);
+}
+
+
+void selector_lst_bottom(struct selector_t *sel)
+{
+    scroll_last(&sel->records);
 }
 
 
 struct record_t* selector_lst_current(struct selector_t *sel)
 {
-    if(sel->lst_selected == -1) {
+    int i;
+
+    i = scroll_current(&sel->records);
+    if(i == -1) {
         return NULL;
     } else {
-        return sel->view_listing->record[sel->lst_selected];
+        return sel->view_listing->record[i];
     }
 }
 
 
 static void change_listing(struct selector_t *sel)
 {
-    sel->base_listing = &sel->library->crate[sel->cr_selected]->listing;
+    sel->base_listing = &sel->library->crate[sel->crates.selected]->listing;
     listing_match(sel->base_listing, sel->view_listing, sel->search);
-
-    sel->lst_lines = 0;
-    sel->lst_offset = 0;
-
-    if(sel->view_listing->entries == 0) {
-        sel->lst_selected = -1;
-    } else {
-        sel->lst_selected = 0;
-    }
+    scroll_set_entries(&sel->records, sel->view_listing->entries);
 }
 
 
 void selector_cr_prev(struct selector_t *sel, int count)
 {
-    sel->cr_selected -= count;
-    check_up_constraints(sel->cr_lines, &sel->cr_selected, &sel->cr_offset);
+    scroll_up(&sel->crates, count);
     change_listing(sel);
 }
 
 
 void selector_cr_next(struct selector_t *sel, int count)
 {
-    sel->cr_selected += count;
-    check_down_constraints(sel->library->crates, sel->cr_lines,
-                           &sel->cr_selected, &sel->cr_offset);
+    scroll_down(&sel->crates, count);
     change_listing(sel);
 }
 
@@ -149,8 +231,7 @@ void selector_search_expand(struct selector_t *sel)
 
     listing_match(sel->base_listing, sel->view_listing, sel->search);
 
-    if((sel->lst_selected < 0) && (sel->view_listing->entries > 0))
-        sel->lst_selected = 0;
+    scroll_set_entries(&sel->records, sel->view_listing->entries);
 }
 
 
@@ -170,11 +251,5 @@ void selector_search_refine(struct selector_t *sel, char key)
     sel->view_listing = sel->swap_listing;
     sel->swap_listing = lst_tmp;
 
-    sel->lst_offset = 0;
-
-    if(sel->lst_selected >= sel->lst_lines)
-        sel->lst_selected = sel->lst_lines - 1;
-
-    if(sel->lst_selected >= sel->view_listing->entries)
-        sel->lst_selected = sel->view_listing->entries - 1;
+    scroll_set_entries(&sel->records, sel->view_listing->entries);
 }
