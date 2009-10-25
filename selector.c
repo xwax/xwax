@@ -163,6 +163,13 @@ void selector_clear(struct selector_t *sel)
 }
 
 
+void selector_set_lines(struct selector_t *sel, unsigned int lines)
+{
+    scroll_set_lines(&sel->crates, lines);
+    scroll_set_lines(&sel->records, lines);
+}
+
+
 void selector_lst_prev(struct selector_t *sel, int count)
 {
     scroll_up(&sel->records, count);

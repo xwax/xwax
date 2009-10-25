@@ -1118,34 +1118,26 @@ static int draw_listing(SDL_Surface *surface, const struct rect_t *rect,
 
 
 /* Display the music library, which consists of the query, and search
- * results. Return the number of lines in the library display. */
+ * results */
 
 static void draw_library(SDL_Surface *surface, const struct rect_t *rect,
                          struct selector_t *sel)
 {
+    unsigned int lines;
     struct rect_t rsearch, rbrowser, rcrates, rresults;
 
     split_top(rect, &rsearch, &rbrowser, SEARCH_HEIGHT, SPACER);
     draw_search(surface, &rsearch, sel);
 
+    lines = rbrowser.h / FONT_SPACE;
+    selector_set_lines(sel, lines);
+
     split_left(&rbrowser, &rcrates, &rresults, (rbrowser.w / 4), SPACER);
     if(rcrates.w > LIBRARY_MIN_WIDTH) {
-        sel->crates.lines = draw_cratelisting(surface, &rcrates, sel);
-        sel->records.lines = draw_listing(surface, &rresults, sel);
+        draw_listing(surface, &rresults, sel);
+        draw_cratelisting(surface, &rcrates, sel);
     } else {
-        sel->records.lines = draw_listing(surface, &rbrowser, sel);
-    }
-
-    /* check if a selection has been overdrawn after resize */
-
-    if(sel->records.selected > (sel->records.offset + sel->records.lines - 1)) {
-        sel->records.selected = sel->records.offset + sel->records.lines - 1;
-        sel->records.lines = draw_listing(surface, &rresults, sel);
-    }
-
-    if(sel->crates.selected > (sel->crates.offset + sel->crates.lines - 1)) {
-         sel->crates.selected = sel->crates.offset + sel->crates.lines - 1;
-         sel->crates.lines = draw_listing(surface, &rresults, sel);
+        draw_listing(surface, rect, sel);
     }
 }
 

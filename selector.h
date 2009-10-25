@@ -47,6 +47,8 @@ struct selector_t {
 void selector_init(struct selector_t *sel, struct library_t *lib);
 void selector_clear(struct selector_t *sel);
 
+void selector_set_lines(struct selector_t *sel, unsigned int lines);
+
 void selector_lst_prev(struct selector_t *sel, int count);
 void selector_lst_next(struct selector_t *sel, int count);
 void selector_lst_top(struct selector_t *sel);
