@@ -207,10 +207,13 @@ struct record_t* selector_lst_current(struct selector_t *sel)
 }
 
 
-static void change_listing(struct selector_t *sel)
+/* When the crate has changed, update the current listing to reflect
+ * the crate and the search criteria */
+
+static void crate_has_changed(struct selector_t *sel)
 {
     sel->base_listing = &sel->library->crate[sel->crates.selected]->listing;
-    listing_match(sel->base_listing, sel->view_listing, sel->search);
+    (void)listing_match(sel->base_listing, sel->view_listing, sel->search);
     scroll_set_entries(&sel->records, sel->view_listing->entries);
 }
 
@@ -218,14 +221,14 @@ static void change_listing(struct selector_t *sel)
 void selector_cr_prev(struct selector_t *sel, int count)
 {
     scroll_up(&sel->crates, count);
-    change_listing(sel);
+    crate_has_changed(sel);
 }
 
 
 void selector_cr_next(struct selector_t *sel, int count)
 {
     scroll_down(&sel->crates, count);
-    change_listing(sel);
+    crate_has_changed(sel);
 }
 
 
