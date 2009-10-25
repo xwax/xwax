@@ -237,7 +237,7 @@ void selector_search_expand(struct selector_t *sel)
 
 void selector_search_refine(struct selector_t *sel, char key)
 {
-    struct listing_t *lst_tmp;
+    struct listing_t *tmp;
 
     if(sel->search_len >= sizeof(sel->search) - 1) /* would overflow */
         return;
@@ -247,9 +247,9 @@ void selector_search_refine(struct selector_t *sel, char key)
 
     listing_match(sel->view_listing, sel->swap_listing, sel->search);
 
-    lst_tmp = sel->view_listing;
+    tmp = sel->view_listing;
     sel->view_listing = sel->swap_listing;
-    sel->swap_listing = lst_tmp;
+    sel->swap_listing = tmp;
 
     scroll_set_entries(&sel->records, sel->view_listing->entries);
 }
