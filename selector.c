@@ -38,9 +38,14 @@ static void scroll_reset(struct scroll_t *s)
 
 static void scroll_set_lines(struct scroll_t *s, unsigned int lines)
 {
-    if(s->selected >= s->offset + lines)
-        s->selected = s->offset + lines - 1;
     s->lines = lines;
+    if(s->selected >= s->offset + s->lines)
+        s->selected = s->offset + s->lines - 1;
+    if(s->offset + s->lines > s->entries) {
+        s->offset = s->entries - s->lines;
+        if(s->offset < 0)
+            s->offset = 0;  
+    }
 }
 
 
