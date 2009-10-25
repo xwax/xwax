@@ -33,7 +33,7 @@ struct scroll_t {
 
 struct selector_t {
     struct library_t *library;
-    struct listing_t *base_listing, /* (unchanged) listing from interface_t */
+    struct listing_t
         *view_listing, /* base_listing + search filter applied */
         *swap_listing, /* used to swap between a and b listings */
         listing_a, listing_b;

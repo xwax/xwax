@@ -133,10 +133,18 @@ static int scroll_current(struct scroll_t *s)
 }
 
 
+/* Return the listing which acts as the starting point before
+ * string matching, based on the current crate */
+
+static struct listing_t* initial(struct selector_t *sel)
+{
+    return &sel->library->crate[sel->crates.selected]->listing;
+}
+
+
 void selector_init(struct selector_t *sel, struct library_t *lib)
 {
     sel->library = lib;
-    sel->base_listing = &library_get_crate(sel->library, CRATE_ALL)->listing;
 
     scroll_reset(&sel->records);
     scroll_reset(&sel->crates);
@@ -151,7 +159,7 @@ void selector_init(struct selector_t *sel, struct library_t *lib)
     sel->view_listing = &sel->listing_a;
     sel->swap_listing = &sel->listing_b;
 
-    (void)listing_copy(sel->base_listing, sel->view_listing);
+    (void)listing_copy(initial(sel), sel->view_listing);
     scroll_set_entries(&sel->records, sel->view_listing->entries);
 }
 
@@ -212,8 +220,7 @@ struct record_t* selector_lst_current(struct selector_t *sel)
 
 static void crate_has_changed(struct selector_t *sel)
 {
-    sel->base_listing = &sel->library->crate[sel->crates.selected]->listing;
-    (void)listing_match(sel->base_listing, sel->view_listing, sel->search);
+    (void)listing_match(initial(sel), sel->view_listing, sel->search);
     scroll_set_entries(&sel->records, sel->view_listing->entries);
 }
 
@@ -242,7 +249,7 @@ void selector_search_expand(struct selector_t *sel)
 
     sel->search[--sel->search_len] = '\0';
 
-    (void)listing_match(sel->base_listing, sel->view_listing, sel->search);
+    (void)listing_match(initial(sel), sel->view_listing, sel->search);
     scroll_set_entries(&sel->records, sel->view_listing->entries);
 }
 
