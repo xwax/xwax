@@ -44,7 +44,7 @@ void selector_init(struct selector_t *sel, struct library_t *lib)
     sel->view_listing = &sel->listing_a;
     sel->swap_listing = &sel->listing_b;
 
-    listing_match(sel->base_listing, sel->view_listing, sel->search);
+    listing_copy(sel->base_listing, sel->view_listing);
 }
 
 
