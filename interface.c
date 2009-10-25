@@ -953,8 +953,7 @@ static void draw_search(SDL_Surface *surface, const struct rect_t *rect,
  * given number of entries */
 
 static void draw_scroll_bar(SDL_Surface *surface, const struct rect_t *rect,
-                            unsigned int entries, unsigned int offset,
-                            unsigned int lines)
+                            struct scroll_t *scroll)
 {
     SDL_Rect box;
     SDL_Color bg;
@@ -970,11 +969,11 @@ static void draw_scroll_bar(SDL_Surface *surface, const struct rect_t *rect,
     box.h = rect->h;
     SDL_FillRect(surface, &box, palette(surface, &bg));
 
-    if(entries > 0) {
+    if(scroll->entries > 0) {
         box.x = rect->x;
-        box.y = rect->y + rect->h * offset / entries;
+        box.y = rect->y + rect->h * scroll->offset / scroll->entries;
         box.w = rect->w;
-        box.h = rect->h * lines / entries;
+        box.h = rect->h * scroll->lines / scroll->entries;
         SDL_FillRect(surface, &box, palette(surface, &selected_col));
     }
 }
@@ -1038,7 +1037,7 @@ static int draw_crates(SDL_Surface *surface, const struct rect_t *rect,
     rs.y = y;
     rs.w = SCROLLBAR_SIZE;
     rs.h = h;
-    draw_scroll_bar(surface, &rs, sel->library->crates, sel->crates.offset, n);
+    draw_scroll_bar(surface, &rs, &sel->crates);
 
     return n;
 }
@@ -1110,8 +1109,7 @@ static int draw_records(SDL_Surface *surface, const struct rect_t *rect,
     rs.y = y;
     rs.w = SCROLLBAR_SIZE;
     rs.h = h;
-    draw_scroll_bar(surface, &rs, sel->view_listing->entries,
-                    sel->records.offset, n);
+    draw_scroll_bar(surface, &rs, &sel->records);
 
     return n;
 }
