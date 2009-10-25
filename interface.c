@@ -1047,7 +1047,7 @@ static int draw_cratelisting(SDL_Surface *surface, const struct rect_t *rect,
 /* Display a record library listing, with scrollbar and current
  * selection. Return the number of lines which fit on the display. */
 
-static int draw_listing(SDL_Surface *surface, const struct rect_t *rect,
+static int draw_records(SDL_Surface *surface, const struct rect_t *rect,
                         struct selector_t *sel)
 {
     int x, y, w, h, n, r, ox;
@@ -1124,7 +1124,7 @@ static void draw_library(SDL_Surface *surface, const struct rect_t *rect,
                          struct selector_t *sel)
 {
     unsigned int lines;
-    struct rect_t rsearch, rlists, rcrates, rresults;
+    struct rect_t rsearch, rlists, rcrates, rrecords;
 
     split_top(rect, &rsearch, &rlists, SEARCH_HEIGHT, SPACER);
     draw_search(surface, &rsearch, sel);
@@ -1132,12 +1132,12 @@ static void draw_library(SDL_Surface *surface, const struct rect_t *rect,
     lines = rlists.h / FONT_SPACE;
     selector_set_lines(sel, lines);
 
-    split_left(&rlists, &rcrates, &rresults, (rlists.w / 4), SPACER);
+    split_left(&rlists, &rcrates, &rrecords, (rlists.w / 4), SPACER);
     if(rcrates.w > LIBRARY_MIN_WIDTH) {
-        draw_listing(surface, &rresults, sel);
+        draw_records(surface, &rrecords, sel);
         draw_cratelisting(surface, &rcrates, sel);
     } else {
-        draw_listing(surface, rect, sel);
+        draw_records(surface, rect, sel);
     }
 }
 
