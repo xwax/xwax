@@ -973,7 +973,7 @@ static void draw_scroll_bar(SDL_Surface *surface, const struct rect_t *rect,
         box.x = rect->x;
         box.y = rect->y + rect->h * scroll->offset / scroll->entries;
         box.w = rect->w;
-        box.h = rect->h * scroll->lines / scroll->entries;
+        box.h = rect->h * MIN(scroll->lines, scroll->entries) / scroll->entries;
         SDL_FillRect(surface, &box, palette(surface, &selected_col));
     }
 }
