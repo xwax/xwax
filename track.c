@@ -206,7 +206,7 @@ static int read_from_pipe(struct track_t *tr)
         ls = s % TRACK_BLOCK_SAMPLES;
         
         v = (abs(block->pcm[ls * TRACK_CHANNELS])
-             + abs(block->pcm[ls * TRACK_CHANNELS]));
+             + abs(block->pcm[ls * TRACK_CHANNELS + 1]));
 
         /* PPM-style fast meter approximation */
 
