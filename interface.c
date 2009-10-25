@@ -982,8 +982,8 @@ static void draw_scroll_bar(SDL_Surface *surface, const struct rect_t *rect,
 /* Display a crate listing, with scrollbar and current
  * selection. Return the number of lines which fit on the display. */
 
-static int draw_crates(SDL_Surface *surface, const struct rect_t *rect,
-                       struct selector_t *sel)
+static void draw_crates(SDL_Surface *surface, const struct rect_t *rect,
+                        struct selector_t *sel)
 {
     int x, y, w, h, r, ox, n;
     struct rect_t rs;
@@ -1030,24 +1030,19 @@ static int draw_crates(SDL_Surface *surface, const struct rect_t *rect,
 
     SDL_FillRect(surface, &box, palette(surface, &background_col));
 
-    /* Return to the origin and output the scrollbar -- now that we have
-     * a value for n */
-
     rs.x = ox;
     rs.y = y;
     rs.w = SCROLLBAR_SIZE;
     rs.h = h;
     draw_scroll_bar(surface, &rs, &sel->crates);
-
-    return n;
 }
 
 
 /* Display a record library listing, with scrollbar and current
  * selection. Return the number of lines which fit on the display. */
 
-static int draw_records(SDL_Surface *surface, const struct rect_t *rect,
-                        struct selector_t *sel)
+static void draw_records(SDL_Surface *surface, const struct rect_t *rect,
+                         struct selector_t *sel)
 {
     int x, y, w, h, n, r, ox;
     struct rect_t rs;
@@ -1102,16 +1097,11 @@ static int draw_records(SDL_Surface *surface, const struct rect_t *rect,
     
     SDL_FillRect(surface, &box, palette(surface, &background_col));
     
-    /* Return to the origin and output the scrollbar -- now that we have
-     * a value for n */
-
     rs.x = ox;
     rs.y = y;
     rs.w = SCROLLBAR_SIZE;
     rs.h = h;
     draw_scroll_bar(surface, &rs, &sel->records);
-
-    return n;
 }
 
 
