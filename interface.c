@@ -1124,15 +1124,15 @@ static void draw_library(SDL_Surface *surface, const struct rect_t *rect,
                          struct selector_t *sel)
 {
     unsigned int lines;
-    struct rect_t rsearch, rbrowser, rcrates, rresults;
+    struct rect_t rsearch, rlists, rcrates, rresults;
 
-    split_top(rect, &rsearch, &rbrowser, SEARCH_HEIGHT, SPACER);
+    split_top(rect, &rsearch, &rlists, SEARCH_HEIGHT, SPACER);
     draw_search(surface, &rsearch, sel);
 
-    lines = rbrowser.h / FONT_SPACE;
+    lines = rlists.h / FONT_SPACE;
     selector_set_lines(sel, lines);
 
-    split_left(&rbrowser, &rcrates, &rresults, (rbrowser.w / 4), SPACER);
+    split_left(&rlists, &rcrates, &rresults, (rlists.w / 4), SPACER);
     if(rcrates.w > LIBRARY_MIN_WIDTH) {
         draw_listing(surface, &rresults, sel);
         draw_cratelisting(surface, &rcrates, sel);
