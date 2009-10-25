@@ -151,7 +151,7 @@ void selector_init(struct selector_t *sel, struct library_t *lib)
     sel->view_listing = &sel->listing_a;
     sel->swap_listing = &sel->listing_b;
 
-    listing_copy(sel->base_listing, sel->view_listing);
+    (void)listing_copy(sel->base_listing, sel->view_listing);
     scroll_set_entries(&sel->records, sel->view_listing->entries);
 }
 
@@ -222,6 +222,9 @@ void selector_cr_next(struct selector_t *sel, int count)
 }
 
 
+/* Expand the search. Do not disrupt the running process on memory
+ * allocation failure, leave the view listing incomplete */
+
 void selector_search_expand(struct selector_t *sel)
 {
     if(sel->search_len == 0)
@@ -229,11 +232,13 @@ void selector_search_expand(struct selector_t *sel)
 
     sel->search[--sel->search_len] = '\0';
 
-    listing_match(sel->base_listing, sel->view_listing, sel->search);
-
+    (void)listing_match(sel->base_listing, sel->view_listing, sel->search);
     scroll_set_entries(&sel->records, sel->view_listing->entries);
 }
 
+
+/* Refine the search. Do not distrupt the running process on memory
+ * allocation failure, leave the view listing incomplete */
 
 void selector_search_refine(struct selector_t *sel, char key)
 {
@@ -245,7 +250,7 @@ void selector_search_refine(struct selector_t *sel, char key)
     sel->search[sel->search_len] = key;
     sel->search[++sel->search_len] = '\0';
 
-    listing_match(sel->view_listing, sel->swap_listing, sel->search);
+    (void)listing_match(sel->view_listing, sel->swap_listing, sel->search);
 
     tmp = sel->view_listing;
     sel->view_listing = sel->swap_listing;

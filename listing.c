@@ -51,6 +51,9 @@ void listing_blank(struct listing_t *ls)
 }
 
 
+/* Add a record to the listing. Return 0 on success, or -1 on memory
+ * allocation failure */
+
 int listing_add(struct listing_t *ls, struct record_t *lr)
 {
     struct record_t **ln;
@@ -178,6 +181,9 @@ static bool record_match_all(struct record_t *re, char **matches)
 }
 
 
+/* Copy the source listing; return 0 on succes or -1 on memory
+ * allocation failure, which leaves dest valid but incomplete */
+
 int listing_copy(const struct listing_t *src, struct listing_t *dest)
 {
     int n;
@@ -192,6 +198,11 @@ int listing_copy(const struct listing_t *src, struct listing_t *dest)
     return 0;
 }
 
+
+/* Copy the subset of the source listing which matches the given
+ * string; this function defines what constitutes a match; return 0 on
+ * success, or -1 on memory allocation failure, which leaves dest
+ * valid but incomplete */
 
 int listing_match(struct listing_t *src, struct listing_t *dest,
 		  const char *match)
