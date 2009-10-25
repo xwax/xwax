@@ -983,8 +983,8 @@ static void draw_scroll_bar(SDL_Surface *surface, const struct rect_t *rect,
 /* Display a crate listing, with scrollbar and current
  * selection. Return the number of lines which fit on the display. */
 
-static int draw_cratelisting(SDL_Surface *surface, const struct rect_t *rect,
-                             struct selector_t *sel)
+static int draw_crates(SDL_Surface *surface, const struct rect_t *rect,
+                       struct selector_t *sel)
 {
     int x, y, w, h, r, ox, n;
     struct rect_t rs;
@@ -1135,7 +1135,7 @@ static void draw_library(SDL_Surface *surface, const struct rect_t *rect,
     split_left(&rlists, &rcrates, &rrecords, (rlists.w / 4), SPACER);
     if(rcrates.w > LIBRARY_MIN_WIDTH) {
         draw_records(surface, &rrecords, sel);
-        draw_cratelisting(surface, &rcrates, sel);
+        draw_crates(surface, &rcrates, sel);
     } else {
         draw_records(surface, rect, sel);
     }
