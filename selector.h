@@ -21,6 +21,8 @@
 #ifndef SELECTOR_H
 #define SELECTOR_H
 
+#include <stddef.h>
+
 #include "library.h"
 #include "listing.h"
 
@@ -40,7 +42,7 @@ struct selector_t {
 
     struct scroll_t records, crates;
 
-    int search_len;
+    size_t search_len;
     char search[256];
 };
 
