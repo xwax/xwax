@@ -68,7 +68,9 @@ endif
 
 # Rules
 
-.PHONY:		clean install
+.PHONY:		all clean install
+
+all:		xwax
 
 xwax:		$(OBJS) $(DEVICE_OBJS)
 xwax:		LDLIBS += $(SDL_LIBS) $(DEVICE_LIBS) -lm
@@ -94,10 +96,13 @@ install:
 
 # Manual tests
 
+test-timecoder:	test-timecoder.o lut.o timecoder.o
+
 test-track:	test-track.o import.o track.o
 
 clean:
 		rm -f xwax
+		rm -f test-timecoder
 		rm -f test-track
 		rm -f *.o *.d *~
 
