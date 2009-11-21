@@ -60,6 +60,20 @@
 #define SQ(x) ((x)*(x))
 
 
+static inline float cubic_interpolate(float y[4], float mu)
+{
+    float a0, a1, a2, a3, mu2;
+
+    mu2 = SQ(mu);
+    a0 = y[3] - y[2] - y[0] + y[1];
+    a1 = y[0] - y[1] - a0;
+    a2 = y[2] - y[0];
+    a3 = y[1];
+
+    return (a0 * mu * mu2) + (a1 * mu2) + (a2 * mu) + a3;
+}
+
+
 /* Build a block of PCM audio, resampled from the track. Always builds
  * 'frame' samples, and returns the number of seconds to advance the
  * track position by. This is just a basic resampler which has
@@ -76,36 +90,35 @@ static double build_pcm(signed short *pcm, int samples, int rate,
     step = (double)pitch * tr->rate / rate;
 
     for(s = 0; s < samples; s++) {
-        signed short a, b, *pa, *pb;
-        int c, sa, sb;
-        float f, vol;
+        int c, sa, q;
+        float f, vol, i[PLAYER_CHANNELS][4];
 
-        /* Calculate the pcm samples which sample falls
-         * inbetween. sample can be positive or negative */
+        /* 4-sample window for interpolation */
 
         sa = (int)sample;
         if(sample < 0.0)
             sa--;
-        sb = sa + 1;
         f = sample - sa;
+        sa--;
+
+        for(q = 0; q < 4; q++, sa++) {
+            if(sa < 0 || sa >= tr->length) {
+                for(c = 0; c < PLAYER_CHANNELS; c++)
+                    i[c][q] = 0.0;
+            } else {
+                signed short *ts;
+                int c;
+
+                ts = track_get_sample(tr, sa);
+                for(c = 0; c < PLAYER_CHANNELS; c++)
+                    i[c][q] = (float)ts[c];
+            }
+        }
 
         vol = start_vol + ((end_vol - start_vol) * s / samples);
 
-        if(sa >= 0 && sa < tr->length)
-            pa = track_get_sample(tr, sa);
-        else
-            pa = NULL;
-
-        if(sb >= 0 && sb < tr->length)
-            pb = track_get_sample(tr, sb);
-        else
-            pb = NULL;
-
-        for(c = 0; c < PLAYER_CHANNELS; c++) {
-            a = pa ? *(pa + c) : 0;
-            b = pb ? *(pb + c) : 0;
-            *pcm++ = vol * ((1.0 - f) * a + f * b);
-        }
+        for(c = 0; c < PLAYER_CHANNELS; c++)
+            *pcm++ = vol * cubic_interpolate(i[c], f);
 
         sample += step;
     }
