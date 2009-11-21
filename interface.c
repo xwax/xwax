@@ -1201,6 +1201,10 @@ static bool handle_key(struct interface_t *in, struct selector_t *sel,
         selector_next(sel);
         return true;
 
+    } else if(key == SDLK_TAB) {
+        selector_toggle(sel);
+        return true;
+
     } else if((key == SDLK_EQUALS) || (key == SDLK_PLUS)) {
         (*meter_scale)--;
 

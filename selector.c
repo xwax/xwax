@@ -125,6 +125,30 @@ static void scroll_last(struct scroll_t *s)
 }
 
 
+/* Scroll to an entry by index */
+
+static void scroll_to(struct scroll_t *s, unsigned int n)
+{
+    s->selected = n;
+
+    /* Move the viewing offset down, if necessary */
+
+    if(s->selected >= s->offset + s->lines) {
+        s->offset = s->selected - s->lines / 2;
+        if(s->offset + s->lines > s->entries)
+            s->offset = s->entries - s->lines;
+    }
+
+    /* Move the viewing offset up, if necessary */
+
+    if(s->selected < s->offset) {
+        s->offset = s->selected - s->lines / 2 + 1;
+        if(s->offset < 0)
+            s->offset = 0;
+    }
+}
+
+
 /* Return the index of the current selected list entry, or -1 if
  * no current selection */
 
@@ -156,6 +180,7 @@ void selector_init(struct selector_t *sel, struct library_t *lib)
 
     scroll_set_entries(&sel->crates, lib->crates);
 
+    sel->toggled = false;
     sel->search[0] = '\0';
     sel->search_len = 0;
 
@@ -245,6 +270,7 @@ static void crate_has_changed(struct selector_t *sel)
 void selector_prev(struct selector_t *sel)
 {
     scroll_up(&sel->crates, 1);
+    sel->toggled = false;
     crate_has_changed(sel);
 }
 
@@ -252,6 +278,23 @@ void selector_prev(struct selector_t *sel)
 void selector_next(struct selector_t *sel)
 {
     scroll_down(&sel->crates, 1);
+    sel->toggled = false;
+    crate_has_changed(sel);
+}
+
+
+/* Toggle between the current crate and the 'all' crate */
+
+void selector_toggle(struct selector_t *sel)
+{
+    if (!sel->toggled) {
+        sel->toggle_back = scroll_current(&sel->crates);
+        scroll_first(&sel->crates);
+        sel->toggled = true;
+    } else {
+        scroll_to(&sel->crates, sel->toggle_back);
+        sel->toggled = false;
+    }
     crate_has_changed(sel);
 }
 

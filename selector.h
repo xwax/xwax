@@ -21,6 +21,7 @@
 #ifndef SELECTOR_H
 #define SELECTOR_H
 
+#include <stdbool.h>
 #include <stddef.h>
 
 #include "library.h"
@@ -41,6 +42,8 @@ struct selector_t {
         listing_a, listing_b;
 
     struct scroll_t records, crates;
+    bool toggled;
+    int toggle_back;
 
     size_t search_len;
     char search[256];
@@ -62,6 +65,7 @@ struct record_t* selector_current(struct selector_t *sel);
 
 void selector_prev(struct selector_t *sel);
 void selector_next(struct selector_t *sel);
+void selector_toggle(struct selector_t *sel);
 
 void selector_search_expand(struct selector_t *sel);
 void selector_search_refine(struct selector_t *sel, char key);
