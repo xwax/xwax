@@ -1186,11 +1186,11 @@ static bool handle_key(struct interface_t *in, struct selector_t *sel,
         return true;
 
     } else if(key == SDLK_PAGEUP) {
-        selector_lst_prev(sel, sel->records.lines);
+        selector_page_up(sel);
         return true;
 
     } else if(key == SDLK_PAGEDOWN) {
-        selector_lst_next(sel, sel->records.lines);
+        selector_page_down(sel);
         return true;
 
     } else if(key == SDLK_LEFT) {

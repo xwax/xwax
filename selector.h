@@ -53,6 +53,8 @@ void selector_set_lines(struct selector_t *sel, unsigned int lines);
 
 void selector_lst_prev(struct selector_t *sel, int count);
 void selector_lst_next(struct selector_t *sel, int count);
+void selector_page_up(struct selector_t *sel);
+void selector_page_down(struct selector_t *sel);
 void selector_lst_top(struct selector_t *sel);
 void selector_lst_bottom(struct selector_t *sel);
 

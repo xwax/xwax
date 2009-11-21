@@ -195,6 +195,18 @@ void selector_lst_next(struct selector_t *sel, int count)
 }
 
 
+void selector_page_up(struct selector_t *sel)
+{
+    scroll_up(&sel->records, sel->records.lines);
+}
+
+
+void selector_page_down(struct selector_t *sel)
+{
+    scroll_down(&sel->records, sel->records.lines);
+}
+
+
 void selector_lst_top(struct selector_t *sel)
 {
     scroll_first(&sel->records);
