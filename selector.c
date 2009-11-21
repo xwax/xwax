@@ -183,15 +183,15 @@ void selector_set_lines(struct selector_t *sel, unsigned int lines)
 }
 
 
-void selector_lst_prev(struct selector_t *sel, int count)
+void selector_up(struct selector_t *sel)
 {
-    scroll_up(&sel->records, count);
+    scroll_up(&sel->records, 1);
 }
 
 
-void selector_lst_next(struct selector_t *sel, int count)
+void selector_down(struct selector_t *sel)
 {
-    scroll_down(&sel->records, count);
+    scroll_down(&sel->records, 1);
 }
 
 
@@ -207,13 +207,13 @@ void selector_page_down(struct selector_t *sel)
 }
 
 
-void selector_lst_top(struct selector_t *sel)
+void selector_top(struct selector_t *sel)
 {
     scroll_first(&sel->records);
 }
 
 
-void selector_lst_bottom(struct selector_t *sel)
+void selector_bottom(struct selector_t *sel)
 {
     scroll_last(&sel->records);
 }
@@ -242,16 +242,16 @@ static void crate_has_changed(struct selector_t *sel)
 }
 
 
-void selector_cr_prev(struct selector_t *sel, int count)
+void selector_prev(struct selector_t *sel)
 {
-    scroll_up(&sel->crates, count);
+    scroll_up(&sel->crates, 1);
     crate_has_changed(sel);
 }
 
 
-void selector_cr_next(struct selector_t *sel, int count)
+void selector_next(struct selector_t *sel)
 {
-    scroll_down(&sel->crates, count);
+    scroll_down(&sel->crates, 1);
     crate_has_changed(sel);
 }
 

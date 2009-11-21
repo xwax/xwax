@@ -1170,19 +1170,19 @@ static bool handle_key(struct interface_t *in, struct selector_t *sel,
         return true;
 
     } else if(key == SDLK_HOME) {
-        selector_lst_top(sel);
+        selector_top(sel);
         return true;
 
     } else if(key == SDLK_END) {
-        selector_lst_bottom(sel);
+        selector_bottom(sel);
         return true;
 
     } else if(key == SDLK_UP) {
-        selector_lst_prev(sel, 1);
+        selector_up(sel);
         return true;
 
     } else if(key == SDLK_DOWN) {
-        selector_lst_next(sel, 1);
+        selector_down(sel);
         return true;
 
     } else if(key == SDLK_PAGEUP) {
@@ -1194,11 +1194,11 @@ static bool handle_key(struct interface_t *in, struct selector_t *sel,
         return true;
 
     } else if(key == SDLK_LEFT) {
-        selector_cr_prev(sel, 1);
+        selector_prev(sel);
         return true;
 
     } else if(key == SDLK_RIGHT) {
-        selector_cr_next(sel, 1);
+        selector_next(sel);
         return true;
 
     } else if((key == SDLK_EQUALS) || (key == SDLK_PLUS)) {

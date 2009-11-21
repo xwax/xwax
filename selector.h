@@ -51,17 +51,17 @@ void selector_clear(struct selector_t *sel);
 
 void selector_set_lines(struct selector_t *sel, unsigned int lines);
 
-void selector_lst_prev(struct selector_t *sel, int count);
-void selector_lst_next(struct selector_t *sel, int count);
+void selector_up(struct selector_t *sel);
+void selector_down(struct selector_t *sel);
 void selector_page_up(struct selector_t *sel);
 void selector_page_down(struct selector_t *sel);
-void selector_lst_top(struct selector_t *sel);
-void selector_lst_bottom(struct selector_t *sel);
+void selector_top(struct selector_t *sel);
+void selector_bottom(struct selector_t *sel);
 
 struct record_t* selector_lst_current(struct selector_t *sel);
 
-void selector_cr_prev(struct selector_t *sel, int count);
-void selector_cr_next(struct selector_t *sel, int count);
+void selector_prev(struct selector_t *sel);
+void selector_next(struct selector_t *sel);
 
 void selector_search_expand(struct selector_t *sel);
 void selector_search_refine(struct selector_t *sel, char key);
