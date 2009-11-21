@@ -128,9 +128,9 @@
 
 static const char *font_dirs[] = {
     "/usr/X11R6/lib/X11/fonts/TTF",
-    "/usr/share/fonts/truetype/ttf-bitstream-vera",
-    "/usr/share/fonts/ttf-bitstream-vera", /* Gentoo Linux */
-    "/usr/share/fonts/bitstream-vera", /* Fedora 11 */
+    "/usr/share/fonts/truetype/ttf-dejavu/", 
+    "/usr/share/fonts/ttf-dejavu",
+    "/usr/share/fonts/dejavu",
     "/usr/share/fonts/TTF",
     NULL
 };
