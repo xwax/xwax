@@ -1236,7 +1236,7 @@ static bool handle_key(struct interface_t *in, struct selector_t *sel,
             } else switch(func) {
 
             case FUNC_LOAD:
-                re = selector_lst_current(sel);
+                re = selector_current(sel);
                 if(re != NULL)
                     do_loading(pl->track, re);
                 break;
@@ -1428,8 +1428,8 @@ int interface_run(struct interface_t *in)
 
         if(library_update >= UPDATE_REDRAW) {
 
-            if(selector_lst_current(&selector) != NULL)
-                status = selector_lst_current(&selector)->pathname;
+            if(selector_current(&selector) != NULL)
+                status = selector_current(&selector)->pathname;
             else
                 status = "No search results found";
             status_update = UPDATE_REDRAW;

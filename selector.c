@@ -219,7 +219,7 @@ void selector_bottom(struct selector_t *sel)
 }
 
 
-struct record_t* selector_lst_current(struct selector_t *sel)
+struct record_t* selector_current(struct selector_t *sel)
 {
     int i;
 
