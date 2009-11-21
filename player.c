@@ -85,13 +85,17 @@ static double build_pcm(signed short *pcm, int samples, int rate,
 {
     int s;
     double sample, step;
+    float vol, gradient;
 
     sample = position * tr->rate;
     step = (double)pitch * tr->rate / rate;
 
+    vol = start_vol;
+    gradient = (end_vol - start_vol) / samples;
+
     for(s = 0; s < samples; s++) {
         int c, sa, q;
-        float f, vol, i[PLAYER_CHANNELS][4];
+        float f, i[PLAYER_CHANNELS][4];
 
         /* 4-sample window for interpolation */
 
@@ -115,12 +119,11 @@ static double build_pcm(signed short *pcm, int samples, int rate,
             }
         }
 
-        vol = start_vol + ((end_vol - start_vol) * s / samples);
-
         for(c = 0; c < PLAYER_CHANNELS; c++)
             *pcm++ = vol * cubic_interpolate(i[c], f);
 
         sample += step;
+        vol += gradient;
     }
 
     return (double)pitch * samples / rate;
