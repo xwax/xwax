@@ -119,8 +119,10 @@ static double build_pcm(signed short *pcm, int samples, int rate,
             }
         }
 
-        for(c = 0; c < PLAYER_CHANNELS; c++)
-            *pcm++ = vol * cubic_interpolate(i[c], f);
+        for(c = 0; c < PLAYER_CHANNELS; c++) {
+            *pcm++ = vol * cubic_interpolate(i[c], f)
+                + (float)(rand() % 32768) / 32768 - 0.5; /* dither */
+        }
 
         sample += step;
         vol += gradient;
