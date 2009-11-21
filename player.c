@@ -69,15 +69,16 @@ static double build_pcm(signed short *pcm, int samples, int rate,
                         struct track_t *tr, double position, float pitch,
                         float start_vol, float end_vol)
 {
-    signed short a, b, *pa, *pb;
-    int s, c, sa, sb;
+    int s;
     double sample, step;
-    float f, vol;
 
     sample = position * tr->rate;
     step = (double)pitch * tr->rate / rate;
 
     for(s = 0; s < samples; s++) {
+        signed short a, b, *pa, *pb;
+        int c, sa, sb;
+        float f, vol;
 
         /* Calculate the pcm samples which sample falls
          * inbetween. sample can be positive or negative */
