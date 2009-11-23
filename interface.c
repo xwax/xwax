@@ -46,11 +46,11 @@
 
 /* Font definitions */
 
-#define FONT "Vera.ttf"
+#define FONT "DejaVuSans.ttf"
 #define FONT_SIZE 10
 #define FONT_SPACE 15
 
-#define EM_FONT "VeraIt.ttf"
+#define EM_FONT "DejaVuSans-Oblique.ttf"
 
 #define CLOCK_FONT FONT
 #define CLOCK_FONT_SIZE 32
@@ -58,7 +58,7 @@
 #define DECI_FONT FONT
 #define DECI_FONT_SIZE 20
 
-#define DETAIL_FONT "VeraMono.ttf"
+#define DETAIL_FONT "DejaVuSansMono.ttf"
 #define DETAIL_FONT_SIZE 9
 
 
@@ -125,9 +125,9 @@
 
 static const char *font_dirs[] = {
     "/usr/X11R6/lib/X11/fonts/TTF",
-    "/usr/share/fonts/truetype/ttf-bitstream-vera",
-    "/usr/share/fonts/ttf-bitstream-vera", /* Gentoo Linux */
-    "/usr/share/fonts/bitstream-vera", /* Fedora 11 */
+    "/usr/share/fonts/truetype/ttf-dejavu/", 
+    "/usr/share/fonts/ttf-dejavu",
+    "/usr/share/fonts/dejavu",
     "/usr/share/fonts/TTF",
     NULL
 };
