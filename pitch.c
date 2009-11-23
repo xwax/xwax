@@ -25,7 +25,6 @@
 
 #define ALPHA (1.0/512)
 #define BETA (ALPHA/1024)
-#define GAMMA (0.0)
 
 #define SQ(x) ((x)*(x))
 
@@ -36,28 +35,25 @@ void pitch_init(struct pitch_t *p, float dt)
     p->dt = dt;
     p->x = 0.0;
     p->v = 0.0;
-    p->a = 0.0;
 }
 
 /* Input an observation to the filter; in the last dt seconds the
  * position has moved by dx.
  *
  * Because the vinyl uses timestamps, the values for dx are discrete
- * rather than smooth, hence the use of the gamma extension */
+ * rather than smooth. */
 
 void pitch_dt_observation(struct pitch_t *p, float dx)
 {
-    float predicted_x, predicted_v, predicted_a, residual_x;
+    float predicted_x, predicted_v, residual_x;
 
-    predicted_x = p->x + p->v * p->dt + 0.5 * p->a * SQ(p->dt);
-    predicted_v = p->v + p->a * p->dt;
-    predicted_a = p->a;
+    predicted_x = p->x + p->v * p->dt;
+    predicted_v = p->v;
 
     residual_x = dx - predicted_x;
 
     p->x = predicted_x + residual_x * ALPHA;
     p->v = predicted_v + residual_x * BETA / p->dt;
-    p->a = predicted_a + residual_x * GAMMA / (2.0 * SQ(p->dt));
 
     p->x -= dx; /* relative to previous */
 }

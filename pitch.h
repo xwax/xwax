@@ -23,7 +23,7 @@
 /* State of the pitch calculation filter */
 
 struct pitch_t {
-    float dt, x, v, a;
+    float dt, x, v;
 };
 
 void pitch_init(struct pitch_t *p, float dt);
