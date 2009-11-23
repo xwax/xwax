@@ -21,6 +21,7 @@
 #define INTERFACE_H
 
 #include "timecoder.h"
+#include "library.h"
 
 #define MAX_PLAYERS 4
 #define MAX_TIMECODERS 4
@@ -30,7 +31,7 @@ struct interface_t {
     
     struct player_t *player[MAX_PLAYERS];
     struct timecoder_t *timecoder[MAX_TIMECODERS];
-    struct listing_t *listing;
+    struct library_t *library;
 };
 
 void interface_init(struct interface_t *in);

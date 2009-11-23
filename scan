@@ -10,9 +10,15 @@
 # If the tab (\t) or newline (\n) characters appear in a filename,
 # unexpected things will happen.
 
-DIR="$1"
+PATHNAME="$1"
 
-find "$DIR" -type f | sed -n '
+if [ -d "$PATHNAME" ]; then
+	LIST="find "$PATHNAME" -type f"
+else
+	LIST="cat $PATHNAME"
+fi
+
+$LIST | sed -n '
 {
 # /[<num>[.]] <artist> - <title>.ext
 s:/\([0-9]\+.\? \+\)\?\([^/]*\) \+- \+\([^/]*\)\.[a-zA-Z0-9]*$:\0\t\2\t\3:p

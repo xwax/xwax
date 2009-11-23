@@ -18,32 +18,43 @@
  */
 
 #define _BSD_SOURCE /* vfork() */
-#define _GNU_SOURCE /* getdelim() */
-#include <dirent.h>
+#define _GNU_SOURCE /* getdelim(), strdupa() */
+#include <assert.h>
+#include <libgen.h> /*  basename() */
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 
 #include "library.h"
 
-#define BLOCK 256 /* number of library entries */
-
 
 int library_init(struct library_t *li)
 {
-    li->record = malloc(sizeof(struct record_t) * BLOCK);
-    if(li->record == NULL) {
+    listing_init(&li->storage);
+
+    li->crate = malloc(sizeof(struct crate_t*));
+    if(li->crate == NULL) {
         perror("malloc");
         return -1;
     }
 
-    li->size = BLOCK;
-    li->entries = 0;
+    li->crates = 0;
+
+    library_new_crate(li, CRATE_ALL, true);
 
     return 0;
+}
+
+
+static void record_clear(struct record_t *re)
+{
+    free(re->pathname);
+    free(re->artist);
+    free(re->title);
 }
 
 
@@ -51,37 +62,119 @@ void library_clear(struct library_t *li)
 {
     int n;
 
-    for(n = 0; n < li->entries; n++) {
-        free(li->record[n].pathname);
-        free(li->record[n].artist);
-        free(li->record[n].title);
+    for(n = 0; n < li->crates; n++) {
+        struct crate_t *crate;
+
+        crate = li->crate[n];
+        listing_clear(&crate->listing);
+        free(crate->name);
+        free(crate);
+    }
+    free(li->crate);
+
+    /* This object owns all the record pointers */
+
+    for(n = 0; n < li->storage.entries; n++) {
+        struct record_t *re;
+
+        re = li->storage.record[n];
+        record_clear(re);
+        free(re);
     }
 
-    free(li->record);
+    listing_clear(&li->storage);
 }
 
 
-int library_add(struct library_t *li, struct record_t *lr)
+static void library_swap_crates(struct library_t *lib, int i, int j)
 {
-    struct record_t *ln;
+    struct crate_t *tmp;
+    tmp = lib->crate[i];
+    lib->crate[i] = lib->crate[j];
+    lib->crate[j] = tmp;
+}
 
-    if(li->entries == li->size) {
-        fprintf(stderr, "Allocating library space (%d entries reached)...\n",
-                li->size);
 
-        ln = realloc(li->record, sizeof(struct record_t) * li->size * 2);
-        if(ln == NULL) {
-            perror("realloc");
-            return -1;
+static void library_sort_crates(struct library_t *lib)
+{
+    int i, changed;
+
+    do {
+        changed = 0;
+
+        for(i = 0; i < lib->crates - 1; i++) {
+
+            if(lib->crate[i]->is_fixed)
+                continue;
+
+            if(lib->crate[i+1]->is_fixed) {
+                library_swap_crates(lib, i, i+1);
+                changed++;
+                continue;
+            }
+
+            if(strcmp(lib->crate[i]->name, lib->crate[i + 1]->name) > 0) {
+                library_swap_crates(lib, i, i+1);
+                changed++;
+            }
+
         }
+    } while(changed);
+}
 
-        li->record = ln;
-        li->size *= 2;
+
+struct crate_t* library_new_crate(struct library_t *lib, char *name,
+                                  bool is_fixed)
+{
+    struct crate_t *new_crate;
+
+    /* does this crate already exist? then return existing crate */
+    new_crate = library_get_crate(lib, name);
+    if(new_crate != NULL) {
+        fprintf(stderr, "Crate '%s' already exists...\n", name);
+        return new_crate;
     }
 
-    li->record[li->entries++] = *lr;
+    /* allocate and fill space for new crate */
+    new_crate = malloc(sizeof(struct crate_t));
+    new_crate->name = strdup(name);
+    new_crate->is_fixed = is_fixed;
 
-    return 0;
+    listing_init(&new_crate->listing);
+
+    /* add this new crate to the library */
+    struct crate_t **cn;
+    cn = realloc(lib->crate, sizeof(struct crate_t*) * (lib->crates + 1));
+    if(!cn) {
+        perror("realloc");
+        return NULL;
+    }
+
+    lib->crate = cn;
+    lib->crate[lib->crates++] = new_crate;
+
+    library_sort_crates(lib);
+
+    return new_crate;
+}
+
+
+struct crate_t* library_get_crate(struct library_t *lib, char *name)
+{
+    int n;
+
+    for(n = 0; n < lib->crates; n++) {
+        if(strcmp(lib->crate[n]->name, name) == 0)
+            return lib->crate[n];
+    }
+
+    return NULL;
+}
+
+
+static int crate_add(struct crate_t *crate, struct record_t *lr)
+{
+    return listing_add(&crate->listing, lr);
 }
 
 
@@ -112,10 +205,25 @@ static int get_field(FILE *fp, char delim, char **f)
 int library_import(struct library_t *li, const char *scan, const char *path)
 {
     int pstdout[2], status;
+    char *cratename, *pathname;
     pid_t pid;
     FILE *fp;
+    struct crate_t *crate, *all_crate;
 
     fprintf(stderr, "Scanning '%s'...\n", path);
+
+    all_crate = library_get_crate(li, CRATE_ALL);
+    if(all_crate == NULL) {
+        fprintf(stderr, "Could not get ALL_CRATE..");
+        return -1;
+    }
+
+    pathname = strdupa(path);
+    cratename = basename(pathname); /* POSIX version, see basename(3) */
+    assert(cratename != NULL);
+    crate = library_new_crate(li, cratename, false);
+    if(crate == NULL)
+        return -1;
 
     if(pipe(pstdout) == -1) {
         perror("pipe");
@@ -165,22 +273,38 @@ int library_import(struct library_t *li, const char *scan, const char *path)
     }
 
     for(;;) {
-        struct record_t d;
+        struct record_t *d;
+        char *pathname;
 
-        if(get_field(fp, '\t', &d.pathname) != 0)
+        if(get_field(fp, '\t', &pathname) != 0)
             break;
 
-        if(get_field(fp, '\t', &d.artist) != 0) {
-            fprintf(stderr, "EOF when reading artist for '%s'.\n", d.pathname);
+        d = malloc(sizeof(struct record_t));
+        if (d == NULL) {
+            perror("malloc");
             return -1;
         }
 
-        if(get_field(fp, '\n', &d.title) != 0) {
-            fprintf(stderr, "EOF when reading title for '%s'.\n", d.pathname);
+        d->pathname = pathname;
+
+        if(get_field(fp, '\t', &d->artist) != 0) {
+            fprintf(stderr, "EOF when reading artist for '%s'.\n", d->pathname);
             return -1;
         }
 
-        if(library_add(li, &d) == -1)
+        if(get_field(fp, '\n', &d->title) != 0) {
+            fprintf(stderr, "EOF when reading title for '%s'.\n", d->pathname);
+            return -1;
+        }
+
+        if(listing_add(&li->storage, d) != 0)
+            return -1;
+
+        /* Add to crates */
+
+        if(crate_add(all_crate, d) != 0)
+            return -1;
+        if(crate_add(crate, d) != 0)
             return -1;
     }
 
@@ -198,6 +322,11 @@ int library_import(struct library_t *li, const char *scan, const char *path)
         fputs("Library scan exited reporting failure.\n", stderr);
         return -1;
     }
+
+    /* sort the listings */
+
+    listing_sort(&all_crate->listing);
+    listing_sort(&crate->listing);
 
     return 0;
 }

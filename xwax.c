@@ -29,7 +29,6 @@
 #include "interface.h"
 #include "jack.h"
 #include "library.h"
-#include "listing.h"
 #include "oss.h"
 #include "player.h"
 #include "rig.h"
@@ -150,7 +149,6 @@ int main(int argc, char *argv[])
     struct rig_t rig;
     struct interface_t iface;
     struct library_t library;
-    struct listing_t listing;
     struct device_t *device;
     
     fprintf(stderr, BANNER "\n\n" NOTICE "\n\n");
@@ -387,7 +385,7 @@ int main(int argc, char *argv[])
             /* Load in a music library */
 
             if(library_import(&library, scanner, argv[1]) == -1)
-		return -1;
+                return -1;
 
             argv += 2;
             argc -= 2;
@@ -412,19 +410,13 @@ int main(int argc, char *argv[])
 
     for(n = 0; n < decks; n++)
         player_connect_timecoder(&deck[n].player, &deck[n].timecoder);
-    
-    fprintf(stderr, "Indexing music library...\n");
-    listing_init(&listing);
-    if(listing_add_library(&listing, &library) == -1)
-        return -1;
-    listing_sort(&listing);
-    iface.listing = &listing;
-    
+
     fprintf(stderr, "Starting threads...\n");
     if(rig_start(&rig) == -1)
         return -1;
 
     fprintf(stderr, "Entering interface...\n");
+    iface.library = &library;
     interface_run(&iface);
     
     fprintf(stderr, "Exiting cleanly...\n");
@@ -436,7 +428,6 @@ int main(int argc, char *argv[])
         deck_clear(&deck[n]);
     
     timecoder_free_lookup();
-    listing_clear(&listing);
     library_clear(&library);
     
     fprintf(stderr, "Done.\n");
