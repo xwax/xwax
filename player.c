@@ -60,6 +60,20 @@
 #define SQ(x) ((x)*(x))
 
 
+static inline float cubic_interpolate(float y[4], float mu)
+{
+    float a0, a1, a2, a3, mu2;
+
+    mu2 = SQ(mu);
+    a0 = y[3] - y[2] - y[0] + y[1];
+    a1 = y[0] - y[1] - a0;
+    a2 = y[2] - y[0];
+    a3 = y[1];
+
+    return (a0 * mu * mu2) + (a1 * mu2) + (a2 * mu) + a3;
+}
+
+
 /* Build a block of PCM audio, resampled from the track. Always builds
  * 'frame' samples, and returns the number of seconds to advance the
  * track position by. This is just a basic resampler which has
@@ -69,44 +83,49 @@ static double build_pcm(signed short *pcm, int samples, int rate,
                         struct track_t *tr, double position, float pitch,
                         float start_vol, float end_vol)
 {
-    signed short a, b, *pa, *pb;
-    int s, c, sa, sb;
+    int s;
     double sample, step;
-    float f, vol;
+    float vol, gradient;
 
     sample = position * tr->rate;
     step = (double)pitch * tr->rate / rate;
 
-    for(s = 0; s < samples; s++) {
+    vol = start_vol;
+    gradient = (end_vol - start_vol) / samples;
 
-        /* Calculate the pcm samples which sample falls
-         * inbetween. sample can be positive or negative */
+    for(s = 0; s < samples; s++) {
+        int c, sa, q;
+        float f, i[PLAYER_CHANNELS][4];
+
+        /* 4-sample window for interpolation */
 
         sa = (int)sample;
         if(sample < 0.0)
             sa--;
-        sb = sa + 1;
         f = sample - sa;
+        sa--;
 
-        vol = start_vol + ((end_vol - start_vol) * s / samples);
+        for(q = 0; q < 4; q++, sa++) {
+            if(sa < 0 || sa >= tr->length) {
+                for(c = 0; c < PLAYER_CHANNELS; c++)
+                    i[c][q] = 0.0;
+            } else {
+                signed short *ts;
+                int c;
 
-        if(sa >= 0 && sa < tr->length)
-            pa = track_get_sample(tr, sa);
-        else
-            pa = NULL;
-
-        if(sb >= 0 && sb < tr->length)
-            pb = track_get_sample(tr, sb);
-        else
-            pb = NULL;
+                ts = track_get_sample(tr, sa);
+                for(c = 0; c < PLAYER_CHANNELS; c++)
+                    i[c][q] = (float)ts[c];
+            }
+        }
 
         for(c = 0; c < PLAYER_CHANNELS; c++) {
-            a = pa ? *(pa + c) : 0;
-            b = pb ? *(pb + c) : 0;
-            *pcm++ = vol * ((1.0 - f) * a + f * b);
+            *pcm++ = vol * cubic_interpolate(i[c], f)
+                + (float)(rand() % 32768) / 32768 - 0.5; /* dither */
         }
 
         sample += step;
+        vol += gradient;
     }
 
     return (double)pitch * samples / rate;
