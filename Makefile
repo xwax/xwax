@@ -15,6 +15,10 @@
 # MA 02110-1301, USA.
 #
 
+INSTALL = install
+
+PREFIX = $(HOME)
+
 CFLAGS += -Wall -O3 -MMD
 LDFLAGS += -O3
 
@@ -26,6 +30,12 @@ JACK_LIBS = -ljack
 # Import the optional configuration
 
 -include .config
+
+# Installation paths
+
+BINDIR = $(PREFIX)/bin
+EXECDIR = $(PREFIX)/libexec
+MANDIR = $(PREFIX)/share/man
 
 # Core objects and libraries
 
@@ -56,7 +66,7 @@ endif
 
 # Rules
 
-.PHONY:		clean
+.PHONY:		clean install
 
 xwax:		$(OBJS) $(DEVICE_OBJS)
 xwax:		LDLIBS += $(SDL_LIBS) $(DEVICE_LIBS)
@@ -65,6 +75,16 @@ xwax:		LDFLAGS += -pthread
 interface.o:	CFLAGS += $(SDL_CFLAGS)
 
 xwax.o:		CFLAGS += $(SDL_CFLAGS) $(DEVICE_CPPFLAGS)
+xwax.o:		CPPFLAGS += -DEXECDIR=\"$(EXECDIR)\"
+
+install:
+		$(INSTALL) -d $(BINDIR)
+		$(INSTALL) xwax $(BINDIR)/xwax
+		$(INSTALL) -d $(EXECDIR)
+		$(INSTALL) scan $(EXECDIR)/xwax-scan
+		$(INSTALL) import $(EXECDIR)/xwax-import
+		$(INSTALL) -d $(MANDIR)/man1
+		$(INSTALL) xwax.1 $(MANDIR)/man1/xwax.1
 
 clean:
 		rm -f xwax *.o *.d *~
