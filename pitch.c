@@ -23,9 +23,9 @@
 
 /* Values for the filter concluded experimentally */
 
-#define ALPHA (1.0/64)
-#define BETA (ALPHA/2048)
-#define GAMMA (BETA/512)
+#define ALPHA (1.0/512)
+#define BETA (ALPHA/1024)
+#define GAMMA (0.0)
 
 #define SQ(x) ((x)*(x))
 
