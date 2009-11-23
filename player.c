@@ -43,14 +43,6 @@
 #define SKIP_THRESHOLD (1.0 / 8) /* before dropping audio */
 
 
-/* Smooth the pitch returned from the timecoder. Smooth it too much
- * and we end up having to use sync to bend in line with the
- * timecode. Smooth too little and there will be audible
- * distortion. */
-
-#define PITCH_RC 0.004
-
-
 /* The base volume level. A value of 1.0 leaves no headroom to play
  * louder when the record is going faster than 1.0. */
 
