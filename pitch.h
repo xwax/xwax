@@ -20,14 +20,48 @@
 #ifndef PITCH_H
 #define PITCH_H
 
+/* Values for the filter concluded experimentally */
+
+#define ALPHA (1.0/512)
+#define BETA (ALPHA/1024)
+
 /* State of the pitch calculation filter */
 
 struct pitch_t {
     float dt, x, v;
 };
 
-void pitch_init(struct pitch_t *p, float dt);
-void pitch_dt_observation(struct pitch_t *p, float dt);
+/* Prepare the filter for observations every dt seconds */
+
+static inline void pitch_init(struct pitch_t *p, float dt)
+{
+    p->dt = dt;
+    p->x = 0.0;
+    p->v = 0.0;
+}
+
+/* Input an observation to the filter; in the last dt seconds the
+ * position has moved by dx.
+ *
+ * Because the vinyl uses timestamps, the values for dx are discrete
+ * rather than smooth. */
+
+static inline void pitch_dt_observation(struct pitch_t *p, float dx)
+{
+    float predicted_x, predicted_v, residual_x;
+
+    predicted_x = p->x + p->v * p->dt;
+    predicted_v = p->v;
+
+    residual_x = dx - predicted_x;
+
+    p->x = predicted_x + residual_x * ALPHA;
+    p->v = predicted_v + residual_x * BETA / p->dt;
+
+    p->x -= dx; /* relative to previous */
+}
+
+/* Get the pitch after filtering */
 
 static inline float pitch_current(struct pitch_t *p) {
     return p->v;
