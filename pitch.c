@@ -26,8 +26,6 @@
 #define ALPHA (1.0/512)
 #define BETA (ALPHA/1024)
 
-#define SQ(x) ((x)*(x))
-
 /* Prepare the filter for observations every dt seconds */
 
 void pitch_init(struct pitch_t *p, float dt)
