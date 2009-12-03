@@ -17,8 +17,6 @@
  *
  */
 
-#include <assert.h>
-
 #include "device.h"
 
 
