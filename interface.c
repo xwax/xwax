@@ -1135,12 +1135,12 @@ static void draw_library(SDL_Surface *surface, const struct rect_t *rect,
 
 static void do_loading(struct track_t *track, struct record_t *record)
 {
+    fprintf(stderr, "Loading '%s'.\n", record->pathname);
+
     track_import(track, record->pathname);
 
     track->artist = record->artist;
     track->title = record->title;
-
-    fprintf(stderr, "Loading '%s'.\n", record->pathname);
 }
 
 
