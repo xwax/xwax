@@ -78,6 +78,7 @@ static int start_import(struct track_t *tr, const char *path)
 
         if(execl(tr->importer, "import", path, NULL) == -1) {
             perror("execl");
+            fprintf(stderr, "Failed to launch importer %s\n", tr->importer);
             _exit(EXIT_FAILURE); /* vfork() was used */
         }
 

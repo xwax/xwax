@@ -255,6 +255,7 @@ int library_import(struct library_t *li, const char *scan, const char *path)
 
         if(execl(scan, "scan", path, NULL) == -1) {
             perror("execl");
+            fprintf(stderr, "Failed to launch library scanner %s\n", scan);
             _exit(EXIT_FAILURE); /* vfork() was used */
         }
 
