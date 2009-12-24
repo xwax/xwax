@@ -101,6 +101,55 @@ Set the number of OSS buffers for subsequent decks.
 .B \-f \fIn\fR
 Set the OSS buffer size (2^n bytes).
 
+.SH CONTROLS
+
+.P
+The playback of each deck (direction, speed and position) is
+controlled via the incoming timecode signal from the turntables.
+The keyboard provides additional controls.
+
+.P
+Record selection controls:
+
+.TP
+cursor up, cursor down
+Move highlighted record up/down by one.
+
+.TP
+page up, page down
+Scroll the record listing up/down by one page.
+
+.TP
+left cursor, right cursor
+Switch to the previous/next crate of records.
+
+.TP
+tab
+Toggle between the current crate and the 'All records' crate.
+
+.P
+To filter the current list of records type a portion of a record
+name. Separate multiple searches with a space, and use backspace to
+delete.
+
+.P
+Deck-specific controls:
+
+.TS
+l l l l.
+Deck 0	Deck 1	Deck 2
+F1	F5	F9	Load currently selected track to this deck
+F2	F6	F10	Reset start of track to the current position
+F3	F7	F11	Disconnect turntable control
+F4	F8	F12	Reconnect turntable control
+.TE
+
+Audio display controls:
+
+.TP
++, -
+Zoom in/out the close-up audio meters for all decks.
+
 .SH EXAMPLES
 
 .P
