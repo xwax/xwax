@@ -85,11 +85,11 @@ install:
 		$(INSTALL) scan $(EXECDIR)/xwax-scan
 		$(INSTALL) import $(EXECDIR)/xwax-import
 		$(INSTALL) -d $(MANDIR)/man1
-		$(INSTALL) xwax.1 $(MANDIR)/man1/xwax.1
+		$(INSTALL) -m 0644 xwax.1 $(MANDIR)/man1/xwax.1
 		$(INSTALL) -d $(DOCDIR)/xwax
-		$(INSTALL) CHANGES $(DOCDIR)/xwax/CHANGES
-		$(INSTALL) COPYING $(DOCDIR)/xwax/COPYING
-		$(INSTALL) README $(DOCDIR)/xwax/README
+		$(INSTALL) -m 0644 CHANGES $(DOCDIR)/xwax/CHANGES
+		$(INSTALL) -m 0644 COPYING $(DOCDIR)/xwax/COPYING
+		$(INSTALL) -m 0644 README $(DOCDIR)/xwax/README
 
 
 clean:
