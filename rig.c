@@ -30,7 +30,6 @@
 #include "track.h"
 
 #define REALTIME_PRIORITY 80
-#define POLL_TIMEOUT 10000
 
 
 int rig_init(struct rig_t *rig)
@@ -78,7 +77,7 @@ int rig_service(struct rig_t *rig)
                 pe += track_pollfd(rig->track[n], pe);
         }
 
-        r = poll(pt, pe - pt, POLL_TIMEOUT);
+        r = poll(pt, pe - pt, -1);
         
         if(r == -1 && errno != EINTR) {
             perror("poll");
@@ -137,7 +136,7 @@ int rig_realtime(struct rig_t *rig)
     }
 
     while(!rig->finished) {        
-        r = poll(rig->pt, rig->npt, POLL_TIMEOUT);
+        r = poll(rig->pt, rig->npt, -1);
         
         if(r == -1 && errno != EINTR) {
             perror("poll");
