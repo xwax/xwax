@@ -36,6 +36,7 @@ JACK_LIBS = -ljack
 BINDIR = $(PREFIX)/bin
 EXECDIR = $(PREFIX)/libexec
 MANDIR = $(PREFIX)/share/man
+DOCDIR = $(PREFIX)/share/doc
 
 # Core objects and libraries
 
@@ -85,6 +86,11 @@ install:
 		$(INSTALL) import $(EXECDIR)/xwax-import
 		$(INSTALL) -d $(MANDIR)/man1
 		$(INSTALL) xwax.1 $(MANDIR)/man1/xwax.1
+		$(INSTALL) -d $(DOCDIR)/xwax
+		$(INSTALL) CHANGES $(DOCDIR)/xwax/CHANGES
+		$(INSTALL) COPYING $(DOCDIR)/xwax/COPYING
+		$(INSTALL) README $(DOCDIR)/xwax/README
+
 
 clean:
 		rm -f xwax *.o *.d *~
