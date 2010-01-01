@@ -38,7 +38,7 @@ case "$FILE" in
 
 *)
     echo "Calling fallback decoder..." >&2
-    exec ffmpeg -v 0 -i "$FILE" -f s16le -
+    exec ffmpeg -v 0 -i "$FILE" -f s16le -ar 44100 -
     #exec sox "$FILE" -t raw -s -
     ;;
 
