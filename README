@@ -2,7 +2,8 @@ xwax: Digital vinyl on Linux
 
 (C) Copyright 2009 Mark Hills <mark@pogo.org.uk>
 
-For documentation see http://www.xwax.co.uk/
+For installation instructions, see the INSTALL file. Instructions can
+be found in the xwax(1) man page and http://www.xwax.co.uk/
 
 xwax is vinyl emulation software for Linux. It allows DJs and
 turntablists to playback digital audio files (MP3, Ogg Vorbis, FLAC,
