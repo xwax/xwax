@@ -21,6 +21,7 @@
 #define TRACK_H
 
 #include <pthread.h>
+#include <stdbool.h>
 #include <sys/poll.h>
 #include <sys/types.h>
 
@@ -71,23 +72,39 @@ int track_handle(struct track_t *tr);
 int track_abort(struct track_t *tr);
 int track_wait(struct track_t *tr);
 
-/* Macro functions, to force the code inline */
+/* Return true if the track importer is running, otherwise false */
 
-#define track_is_importing(tr) ((tr)->pid != 0)
+static inline bool track_is_importing(struct track_t *tr)
+{
+    return (tr->pid != 0);
+}
 
-#define track_get_ppm(tr, s) \
-    ((tr)->block[(s) / TRACK_BLOCK_SAMPLES] \
-     ->ppm[((s) % TRACK_BLOCK_SAMPLES) / TRACK_PPM_RES])
+/* Return the pseudo-PPM meter value for the given sample */
 
-#define track_get_overview(tr, s) \
-    ((tr)->block[(s) / TRACK_BLOCK_SAMPLES] \
-     ->overview[((s) % TRACK_BLOCK_SAMPLES) / TRACK_OVERVIEW_RES])
+static inline unsigned char track_get_ppm(struct track_t *tr, int s)
+{
+    struct track_block_t *b;
+    b = tr->block[s / TRACK_BLOCK_SAMPLES];
+    return b->ppm[(s % TRACK_BLOCK_SAMPLES) / TRACK_PPM_RES];
+}
+
+/* Return the overview meter value for the given sample */
+
+static inline unsigned char track_get_overview(struct track_t *tr, int s)
+{
+    struct track_block_t *b;
+    b = tr->block[s / TRACK_BLOCK_SAMPLES];
+    return b->overview[(s % TRACK_BLOCK_SAMPLES) / TRACK_OVERVIEW_RES];
+}
 
 /* Return a pointer to (not value of) the sample data for each channel */
 
-#define track_get_sample(tr, s) \
-    (&(tr)->block[(s) / TRACK_BLOCK_SAMPLES]->pcm[((s) % TRACK_BLOCK_SAMPLES) \
-                                                  * TRACK_CHANNELS])
+static inline signed short* track_get_sample(struct track_t *tr, int s)
+{
+    struct track_block_t *b;
+    b = tr->block[s / TRACK_BLOCK_SAMPLES];
+    return &b->pcm[(s % TRACK_BLOCK_SAMPLES) * TRACK_CHANNELS];
+}
 
 #endif
 
