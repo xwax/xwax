@@ -1,3 +1,16 @@
+v0.7 (work in progress)
+-----------------------
+
+* Multiple crates in music selector (Yves Adler)
+* Fix a potential buffer overflow (Matej Laitl)
+* Higher quality resampler
+* Improved pitch stability over long mixes
+* Installation script and man page for distributions
+* Moved from Bitstream Vera to DejaVu font
+* Minor fixes
+
+Acknowledgements: Yves Adler, Matej Laitl
+
 v0.6 (2009-09-03)
 -----------------
 
