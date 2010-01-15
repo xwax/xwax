@@ -70,7 +70,7 @@ endif
 .PHONY:		clean install
 
 xwax:		$(OBJS) $(DEVICE_OBJS)
-xwax:		LDLIBS += $(SDL_LIBS) $(DEVICE_LIBS)
+xwax:		LDLIBS += $(SDL_LIBS) $(DEVICE_LIBS) -lm
 xwax:		LDFLAGS += -pthread
 
 interface.o:	CFLAGS += $(SDL_CFLAGS)
