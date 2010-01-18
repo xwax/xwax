@@ -43,7 +43,6 @@ void library_clear(struct library_t *li);
 struct crate_t* library_new_crate(struct library_t *lib, char *name,
                                   bool is_fixed);
 struct crate_t* library_get_crate(struct library_t *lib, char *name);
-void library_add_record(struct crate_t* crate, struct record_t *lr);
 int library_import(struct library_t *lib, const char *scan, const char *path);
 
 #endif
