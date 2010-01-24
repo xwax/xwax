@@ -153,14 +153,14 @@ int rig_realtime(struct rig_t *rig)
 }
 
 
-void *service(void *p)
+void* service(void *p)
 {
     rig_service(p);
     return p;
 }
 
 
-void *realtime(void *p)
+void* realtime(void *p)
 {
     rig_realtime(p);
     return p;
