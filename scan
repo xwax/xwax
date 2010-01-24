@@ -13,12 +13,10 @@
 PATHNAME="$1"
 
 if [ -d "$PATHNAME" ]; then
-	LIST="find "$PATHNAME" -type f"
+	find "$PATHNAME" -type f
 else
-	LIST="cat $PATHNAME"
-fi
-
-$LIST | sed -n '
+	cat "$PATHNAME"
+fi | sed -n '
 {
 # /[<num>[.]] <artist> - <title>.ext
 s:/\([0-9]\+.\? \+\)\?\([^/]*\) \+- \+\([^/]*\)\.[a-zA-Z0-9]*$:\0\t\2\t\3:p
