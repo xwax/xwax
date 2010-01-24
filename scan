@@ -13,7 +13,7 @@
 PATHNAME="$1"
 
 if [ -d "$PATHNAME" ]; then
-	find "$PATHNAME" -type f
+	find -L "$PATHNAME" -type f
 else
 	cat "$PATHNAME"
 fi | sed -n '
