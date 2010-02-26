@@ -29,7 +29,7 @@
 #include "rig.h"
 #include "track.h"
 
-#define REALTIME_PRIORITY 24
+#define REALTIME_PRIORITY 80
 
 
 int rig_init(struct rig_t *rig)
