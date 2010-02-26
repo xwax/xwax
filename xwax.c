@@ -384,6 +384,11 @@ int main(int argc, char *argv[])
 
             /* Load in a music library */
 
+            if (argc < 2) {
+                fprintf(stderr, "-l requires a pathname as an argument.\n");
+                return -1;
+            }
+
             if (library_import(&library, scanner, argv[1]) == -1)
                 return -1;
 
