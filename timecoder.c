@@ -124,7 +124,7 @@ struct timecode_def_t timecode_def[] = {
     },
     {
         .name = "mixvibes_7inch",
-        .desc = "MixVibes V2",
+        .desc = "MixVibes 7\"",
         .resolution = 1300,
         .flags = SWITCH_PHASE,
         .bits = 20,
