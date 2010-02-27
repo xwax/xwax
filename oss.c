@@ -188,7 +188,7 @@ int oss_init(struct device_t *dv, const char *filename, unsigned int rate,
     /* Ideally would set independent settings for the record and
      * playback buffers. Recording needs to buffer where necessary, as
      * lost audio results in zero-crossings which corrupt the
-     * timecode. Playback buffer neews to be short to avoid high
+     * timecode. Playback buffer needs to be short to avoid high
      * latency */
     
     p = (buffers << 16) | fragment;
