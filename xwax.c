@@ -64,7 +64,7 @@ struct deck_t {
 static int deck_init(struct deck_t *deck, const char *timecode,
                      const char *importer, unsigned int sample_rate)
 {
-    if(timecoder_init(&deck->timecoder, timecode, sample_rate) == -1)
+    if (timecoder_init(&deck->timecoder, timecode, sample_rate) == -1)
         return -1;
     track_init(&deck->track, importer);
     player_init(&deck->player);
@@ -173,22 +173,22 @@ int main(int argc, char *argv[])
     
     while (argc > 0) {
 
-        if(!strcmp(argv[0], "-h")) {
+        if (!strcmp(argv[0], "-h")) {
             usage(stdout);
             return 0;
 
 #ifdef WITH_OSS
-        } else if(!strcmp(argv[0], "-f")) {
+        } else if (!strcmp(argv[0], "-f")) {
 
             /* Set fragment size for subsequent devices */
             
-            if(argc < 2) {
+            if (argc < 2) {
                 fprintf(stderr, "-f requires an integer argument.\n");
                 return -1;
             }
 
             oss_fragment = strtol(argv[1], &endptr, 10);
-            if(*endptr != '\0') {
+            if (*endptr != '\0') {
                 fprintf(stderr, "-f requires an integer argument.\n");
                 return -1;
             }
@@ -196,7 +196,7 @@ int main(int argc, char *argv[])
             /* Fragment sizes greater than the default aren't useful
              * as they are dependent on DEVICE_FRAME */
 
-            if(oss_fragment < DEFAULT_OSS_FRAGMENT) {
+            if (oss_fragment < DEFAULT_OSS_FRAGMENT) {
                 fprintf(stderr, "Fragment size must be %d or more; aborting.\n",
                         DEFAULT_OSS_FRAGMENT);
                 return -1;
@@ -205,17 +205,17 @@ int main(int argc, char *argv[])
             argv += 2;
             argc -= 2;
 
-        } else if(!strcmp(argv[0], "-b")) {
+        } else if (!strcmp(argv[0], "-b")) {
             
             /* Set number of buffers for subsequent devices */
             
-            if(argc < 2) {
+            if (argc < 2) {
                 fprintf(stderr, "-b requires an integer argument.\n");
                 return -1;
             }
             
             oss_buffers = strtol(argv[1], &endptr, 10);
-            if(*endptr != '\0') {
+            if (*endptr != '\0') {
                 fprintf(stderr, "-b requires an integer argument.\n");
                 return -1;
             }
@@ -224,17 +224,17 @@ int main(int argc, char *argv[])
             argc -= 2;
 #endif
             
-        } else if(!strcmp(argv[0], "-r")) {
+        } else if (!strcmp(argv[0], "-r")) {
 
             /* Set sample rate for subsequence devices */
 
-            if(argc < 2) {
+            if (argc < 2) {
                 fprintf(stderr, "-r requires an integer argument.\n");
                 return -1;
             }
 
             rate = strtol(argv[1], &endptr, 10);
-            if(*endptr != '\0') {
+            if (*endptr != '\0') {
                 fprintf(stderr, "-r requires an integer argument.\n");
                 return -1;
             }
@@ -243,17 +243,17 @@ int main(int argc, char *argv[])
             argc -= 2;  
 
 #ifdef WITH_ALSA
-        } else if(!strcmp(argv[0], "-m")) {
+        } else if (!strcmp(argv[0], "-m")) {
             
             /* Set size of ALSA buffer for subsequence devices */
             
-            if(argc < 2) {
+            if (argc < 2) {
                 fprintf(stderr, "-m requires an integer argument.\n");
                 return -1;
             }
             
             alsa_buffer = strtol(argv[1], &endptr, 10);
-            if(*endptr != '\0') {
+            if (*endptr != '\0') {
                 fprintf(stderr, "-m requires an integer argument.\n");
                 return -1;
             }
@@ -262,20 +262,20 @@ int main(int argc, char *argv[])
             argc -= 2;
 #endif
             
-        } else if(!strcmp(argv[0], "-d") || !strcmp(argv[0], "-a") ||
+        } else if (!strcmp(argv[0], "-d") || !strcmp(argv[0], "-a") ||
 		  !strcmp(argv[0], "-j"))
 	{
 	    unsigned int sample_rate;
 
             /* Create a deck */
 
-            if(argc < 2) {
+            if (argc < 2) {
                 fprintf(stderr, "-%c requires a device name as an argument.\n",
                         argv[0][1]);
                 return -1;
             }
 
-            if(decks == MAX_DECKS) {
+            if (decks == MAX_DECKS) {
                 fprintf(stderr, "Too many decks (maximum %d); aborting.\n",
                         MAX_DECKS);
                 return -1;
@@ -311,12 +311,12 @@ int main(int argc, char *argv[])
                 return -1;
             }
 
-            if(r == -1)
+            if (r == -1)
                 return -1;
 
 	    sample_rate = device_sample_rate(device);
 
-            if(deck_init(&deck[decks], timecode, importer, sample_rate) == -1)
+            if (deck_init(&deck[decks], timecode, importer, sample_rate) == -1)
                 return -1;
 
             /* The timecoder and player are driven by requests from
@@ -336,11 +336,11 @@ int main(int argc, char *argv[])
             argv += 2;
             argc -= 2;
 
-        } else if(!strcmp(argv[0], "-t")) {
+        } else if (!strcmp(argv[0], "-t")) {
 
             /* Set the timecode definition to use */
 
-            if(argc < 2) {
+            if (argc < 2) {
                 fprintf(stderr, "-t requires a name as an argument.\n");
                 return -1;
             }
@@ -350,11 +350,11 @@ int main(int argc, char *argv[])
             argv += 2;
             argc -= 2;
             
-        } else if(!strcmp(argv[0], "-i")) {
+        } else if (!strcmp(argv[0], "-i")) {
 
             /* Importer script for subsequent decks */
 
-            if(argc < 2) {
+            if (argc < 2) {
                 fprintf(stderr, "-i requires an executable path "
                         "as an argument.\n");
                 return -1;
@@ -365,11 +365,11 @@ int main(int argc, char *argv[])
             argv += 2;
             argc -= 2;
 
-        } else if(!strcmp(argv[0], "-s")) {
+        } else if (!strcmp(argv[0], "-s")) {
 
             /* Scan script for subsequent libraries */
 
-            if(argc < 2) {
+            if (argc < 2) {
                 fprintf(stderr, "-s requires an executable path "
                         "as an argument.\n");
                 return -1;
@@ -380,11 +380,11 @@ int main(int argc, char *argv[])
             argv += 2;
             argc -= 2;
                         
-        } else if(!strcmp(argv[0], "-l")) {
+        } else if (!strcmp(argv[0], "-l")) {
 
             /* Load in a music library */
 
-            if(library_import(&library, scanner, argv[1]) == -1)
+            if (library_import(&library, scanner, argv[1]) == -1)
                 return -1;
 
             argv += 2;
@@ -396,7 +396,7 @@ int main(int argc, char *argv[])
         }
     }
 
-    if(decks == 0) {
+    if (decks == 0) {
         fprintf(stderr, "You need to give at least one audio device to use "
                 "as a deck; try -h.\n");
         return -1;
@@ -412,7 +412,7 @@ int main(int argc, char *argv[])
         player_connect_timecoder(&deck[n].player, &deck[n].timecoder);
 
     fprintf(stderr, "Starting threads...\n");
-    if(rig_start(&rig) == -1)
+    if (rig_start(&rig) == -1)
         return -1;
 
     fprintf(stderr, "Entering interface...\n");
@@ -421,7 +421,7 @@ int main(int argc, char *argv[])
     
     fprintf(stderr, "Exiting cleanly...\n");
 
-    if(rig_stop(&rig) == -1)
+    if (rig_stop(&rig) == -1)
         return -1;
     
     for (n = 0; n < decks; n++)

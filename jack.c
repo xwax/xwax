@@ -100,7 +100,7 @@ static void process_deck(struct device_t *dv, jack_nframes_t nframes)
 
     remain = nframes;
     while (remain > 0) {
-        if(remain < MAX_BLOCK)
+        if (remain < MAX_BLOCK)
             block = remain;
         else
             block = MAX_BLOCK;
@@ -108,7 +108,7 @@ static void process_deck(struct device_t *dv, jack_nframes_t nframes)
         /* Timecode input */
 
         interleave(buf, in, block);
-        if(dv->timecoder)
+        if (dv->timecoder)
             timecoder_submit(dv->timecoder, buf, block);
 
         /* Audio output -- handle in the same loop for finer granularity */
@@ -155,15 +155,15 @@ static int start_jack_client(void)
     jack_status_t status;
 
     client = jack_client_open("xwax", JackNullOption, &status, &server_name);
-    if(client == NULL) {
-        if(status & JackServerFailed)
+    if (client == NULL) {
+        if (status & JackServerFailed)
             fprintf(stderr, "JACK: Failed to connect\n");
         else
             fprintf(stderr, "jack_client_open: Failed (0x%x)\n", status);
         return -1;
     }
 
-    if(jack_set_process_callback(client, process_callback, NULL) != 0) {
+    if (jack_set_process_callback(client, process_callback, NULL) != 0) {
         fprintf(stderr, "JACK: Failed to set process callback\n");
         return -1;
     }
@@ -182,7 +182,7 @@ static int start_jack_client(void)
 
 static int stop_jack_client(void)
 {
-    if(jack_client_close(client) != 0) {
+    if (jack_client_close(client) != 0) {
         fprintf(stderr, "jack_client_close: Failed\n");
         return -1;
     }
@@ -205,7 +205,7 @@ static int register_ports(struct jack_t *jack, const char *name)
         jack->input_port[n] = jack_port_register(client, port_name,
                                                  JACK_DEFAULT_AUDIO_TYPE,
                                                  JackPortIsInput, 0);
-	if(jack->input_port[n] == NULL) {
+	if (jack->input_port[n] == NULL) {
 	    fprintf(stderr, "JACK: Failed to register timecode input port\n");
 	    return -1;
 	}
@@ -213,7 +213,7 @@ static int register_ports(struct jack_t *jack, const char *name)
 	jack->output_port[n] = jack_port_register(client, port_name,
                                                   JACK_DEFAULT_AUDIO_TYPE,
                                                   JackPortIsOutput, 0);
-	if(jack->output_port[n] == NULL) {
+	if (jack->output_port[n] == NULL) {
 	    fprintf(stderr, "JACK: Failed to register audio playback port\n");
 	    return -1;
 	}
@@ -237,8 +237,8 @@ static int start(struct device_t *dv)
 
     /* On the first call to start, start audio rolling for all decks */
 
-    if(started == 0) {
-        if(jack_activate(client) != 0) {
+    if (started == 0) {
+        if (jack_activate(client) != 0) {
             fprintf(stderr, "jack_activate: Failed\n");
             return -1;
         }
@@ -262,8 +262,8 @@ static int stop(struct device_t *dv)
 
     /* On the final stop call, stop JACK rolling */
 
-    if(started == 0) {
-        if(jack_deactivate(client) != 0) {
+    if (started == 0) {
+        if (jack_deactivate(client) != 0) {
             fprintf(stderr, "jack_deactivate: Failed\n");
             return -1;
         }
@@ -283,9 +283,9 @@ static void clear(struct device_t *dv)
     /* Unregister ports */
 
     for (n = 0; n < DEVICE_CHANNELS; n++) {
-        if(jack_port_unregister(client, jack->input_port[n]) != 0)
+        if (jack_port_unregister(client, jack->input_port[n]) != 0)
             abort();
-        if(jack_port_unregister(client, jack->output_port[n]) != 0)
+        if (jack_port_unregister(client, jack->output_port[n]) != 0)
             abort();
     }
 
@@ -295,12 +295,12 @@ static void clear(struct device_t *dv)
      * continue to run even if a deck is removed */
 
     for (n = 0; n < decks; n++) {
-        if(device[n] == dv)
+        if (device[n] == dv)
             break;
     }
     assert(n != decks);
 
-    if(decks == 1) { /* this is the last remaining deck */
+    if (decks == 1) { /* this is the last remaining deck */
         stop_jack_client();
         decks = 0;
     } else {
@@ -329,19 +329,19 @@ int jack_init(struct device_t *dv, const char *name)
 
     /* If this is the first JACK deck, initialise the global JACK services */
 
-    if(client == NULL) {
-        if(start_jack_client() == -1)
+    if (client == NULL) {
+        if (start_jack_client() == -1)
             return -1;
     }
 
     jack = malloc(sizeof(struct jack_t));
-    if(!jack) {
+    if (!jack) {
         perror("malloc");
         return -1;
     }
 
     jack->started = 0;
-    if(register_ports(jack, name) == -1)
+    if (register_ports(jack, name) == -1)
         goto fail;
 
     dv->local = jack;

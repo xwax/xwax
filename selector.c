@@ -39,11 +39,11 @@ static void scroll_reset(struct scroll_t *s)
 static void scroll_set_lines(struct scroll_t *s, unsigned int lines)
 {
     s->lines = lines;
-    if(s->selected >= s->offset + s->lines)
+    if (s->selected >= s->offset + s->lines)
         s->selected = s->offset + s->lines - 1;
-    if(s->offset + s->lines > s->entries) {
+    if (s->offset + s->lines > s->entries) {
         s->offset = s->entries - s->lines;
-        if(s->offset < 0)
+        if (s->offset < 0)
             s->offset = 0;  
     }
 }
@@ -59,7 +59,7 @@ static void scroll_set_entries(struct scroll_t *s, unsigned int entries)
         s->selected = s->entries - 1;
     if (s->offset + s->lines > s->entries) {
         s->offset = s->entries - s->lines;
-        if(s->offset < 0)
+        if (s->offset < 0)
             s->offset = 0;
     }
 
@@ -76,14 +76,14 @@ static void scroll_set_entries(struct scroll_t *s, unsigned int entries)
 static void scroll_up(struct scroll_t *s, unsigned int n)
 {
     s->selected -= n;
-    if(s->selected < 0)
+    if (s->selected < 0)
         s->selected = 0;
 
     /* Move the viewing offset up, if necessary */
 
-    if(s->selected < s->offset) {
+    if (s->selected < s->offset) {
         s->offset = s->selected - s->lines / 2 + 1;
-        if(s->offset < 0)
+        if (s->offset < 0)
             s->offset = 0;
     }
 }
@@ -92,14 +92,14 @@ static void scroll_up(struct scroll_t *s, unsigned int n)
 static void scroll_down(struct scroll_t *s, unsigned int n)
 {
     s->selected += n;
-    if(s->selected >= s->entries)
+    if (s->selected >= s->entries)
         s->selected = s->entries - 1;
 
     /* Move the viewing offset down, if necessary */
 
-    if(s->selected >= s->offset + s->lines) {
+    if (s->selected >= s->offset + s->lines) {
         s->offset = s->selected - s->lines / 2;
-        if(s->offset + s->lines > s->entries)
+        if (s->offset + s->lines > s->entries)
             s->offset = s->entries - s->lines;
     }
 }
@@ -120,7 +120,7 @@ static void scroll_last(struct scroll_t *s)
 {
     s->selected = s->entries - 1;
     s->offset = s->selected - s->lines + 1;
-    if(s->offset < 0)
+    if (s->offset < 0)
         s->offset = 0;
 }
 
@@ -133,17 +133,17 @@ static void scroll_to(struct scroll_t *s, unsigned int n)
 
     /* Move the viewing offset down, if necessary */
 
-    if(s->selected >= s->offset + s->lines) {
+    if (s->selected >= s->offset + s->lines) {
         s->offset = s->selected - s->lines / 2;
-        if(s->offset + s->lines > s->entries)
+        if (s->offset + s->lines > s->entries)
             s->offset = s->entries - s->lines;
     }
 
     /* Move the viewing offset up, if necessary */
 
-    if(s->selected < s->offset) {
+    if (s->selected < s->offset) {
         s->offset = s->selected - s->lines / 2 + 1;
-        if(s->offset < 0)
+        if (s->offset < 0)
             s->offset = 0;
     }
 }
@@ -154,7 +154,7 @@ static void scroll_to(struct scroll_t *s, unsigned int n)
 
 static int scroll_current(struct scroll_t *s)
 {
-    if(s->entries == 0) {
+    if (s->entries == 0) {
         return -1;
     } else {
         return s->selected;
@@ -249,7 +249,7 @@ struct record_t* selector_current(struct selector_t *sel)
     int i;
 
     i = scroll_current(&sel->records);
-    if(i == -1) {
+    if (i == -1) {
         return NULL;
     } else {
         return sel->view_listing->record[i];
@@ -304,7 +304,7 @@ void selector_toggle(struct selector_t *sel)
 
 void selector_search_expand(struct selector_t *sel)
 {
-    if(sel->search_len == 0)
+    if (sel->search_len == 0)
         return;
 
     sel->search[--sel->search_len] = '\0';
@@ -321,7 +321,7 @@ void selector_search_refine(struct selector_t *sel, char key)
 {
     struct listing_t *tmp;
 
-    if(sel->search_len >= sizeof(sel->search) - 1) /* would overflow */
+    if (sel->search_len >= sizeof(sel->search) - 1) /* would overflow */
         return;
 
     sel->search[sel->search_len] = key;

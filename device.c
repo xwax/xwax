@@ -44,7 +44,7 @@ unsigned int device_sample_rate(struct device_t *dv)
 
 int device_start(struct device_t *dv)
 {
-    if(dv->type->start)
+    if (dv->type->start)
         return dv->type->start(dv);
     else
         return 0;
@@ -55,7 +55,7 @@ int device_start(struct device_t *dv)
 
 int device_stop(struct device_t *dv)
 {
-    if(dv->type->stop)
+    if (dv->type->stop)
         return dv->type->stop(dv);
     else
         return 0;
@@ -80,7 +80,7 @@ void device_clear(struct device_t *dv)
 
 ssize_t device_pollfds(struct device_t *dv, struct pollfd *pe, size_t z)
 {
-    if(dv->type->pollfds)
+    if (dv->type->pollfds)
         return dv->type->pollfds(dv, pe, z);
     else
         return 0;
@@ -93,7 +93,7 @@ ssize_t device_pollfds(struct device_t *dv, struct pollfd *pe, size_t z)
 
 int device_handle(struct device_t *dv)
 {
-    if(dv->type->handle)
+    if (dv->type->handle)
         return dv->type->handle(dv);
     else
         return 0;

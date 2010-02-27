@@ -92,13 +92,13 @@ static double build_pcm(signed short *pcm, int samples, int rate,
         /* 4-sample window for interpolation */
 
         sa = (int)sample;
-        if(sample < 0.0)
+        if (sample < 0.0)
             sa--;
         f = sample - sa;
         sa--;
 
         for (q = 0; q < 4; q++, sa++) {
-            if(sa < 0 || sa >= tr->length) {
+            if (sa < 0 || sa >= tr->length) {
                 for (c = 0; c < PLAYER_CHANNELS; c++)
                     i[c][q] = 0.0;
             } else {
@@ -171,7 +171,7 @@ static int sync_to_timecode(struct player_t *pl)
     /* Instruct the caller to disconnect the timecoder if the needle
      * is outside the 'safe' zone of the record */
 
-    if(timecode != -1 && timecode > timecoder_get_safe(pl->timecoder))
+    if (timecode != -1 && timecode > timecoder_get_safe(pl->timecoder))
         return -1;
 
     /* If the timecoder is alive, use the pitch from the sine wave */
@@ -180,7 +180,7 @@ static int sync_to_timecode(struct player_t *pl)
 
     /* If we can read an absolute time from the timecode, then use it */
     
-    if(timecode == -1)
+    if (timecode == -1)
 	pl->target_valid = 0;
 
     else {
@@ -212,12 +212,12 @@ int player_collect(struct player_t *pl, signed short *pcm,
 
     dt = (float)samples / rate;
 
-    if(pl->timecoder) {
+    if (pl->timecoder) {
         if (sync_to_timecode(pl) == -1)
             player_disconnect_timecoder(pl);
     }
 
-    if(!pl->target_valid) {
+    if (!pl->target_valid) {
 
         /* Without timecode sync, tend sync_pitch towards 1.0, to
          * avoid using outlier values from scratching for too long */
@@ -230,7 +230,7 @@ int player_collect(struct player_t *pl, signed short *pcm,
          * on the vinyl so that the current position is right under
          * the needle, and continue */
 
-        if(pl->reconnect) {
+        if (pl->reconnect) {
             pl->offset += pl->target_position - pl->position;
 	    pl->position = pl->target_position;
             pl->reconnect = 0;
@@ -242,14 +242,14 @@ int player_collect(struct player_t *pl, signed short *pcm,
         diff = pl->position - pl->target_position;
         pl->last_difference = diff; /* to print in user interface */
         
-        if(fabs(diff) > SKIP_THRESHOLD) {
+        if (fabs(diff) > SKIP_THRESHOLD) {
 
             /* Jump the track to the time */
             
             pl->position = pl->target_position;
             fprintf(stderr, "Seek to new position %.2lfs.\n", pl->position);
 
-        } else if(fabs(pl->pitch) > SYNC_PITCH) {
+        } else if (fabs(pl->pitch) > SYNC_PITCH) {
 
             /* Re-calculate the drift between the timecoder pitch from
              * the sine wave and the timecode values */
@@ -264,7 +264,7 @@ int player_collect(struct player_t *pl, signed short *pcm,
     }
 
     target_volume = fabs(pl->pitch) * VOLUME;
-    if(target_volume > 1.0)
+    if (target_volume > 1.0)
         target_volume = 1.0;
 
     /* Sync pitch is applied post-filtering */

@@ -37,7 +37,7 @@ int library_init(struct library_t *li)
     listing_init(&li->storage);
 
     li->crate = malloc(sizeof(struct crate_t*));
-    if(li->crate == NULL) {
+    if (li->crate == NULL) {
         perror("malloc");
         return -1;
     }
@@ -104,16 +104,16 @@ static void library_sort_crates(struct library_t *lib)
 
         for (i = 0; i < lib->crates - 1; i++) {
 
-            if(lib->crate[i]->is_fixed)
+            if (lib->crate[i]->is_fixed)
                 continue;
 
-            if(lib->crate[i+1]->is_fixed) {
+            if (lib->crate[i+1]->is_fixed) {
                 library_swap_crates(lib, i, i+1);
                 changed++;
                 continue;
             }
 
-            if(strcmp(lib->crate[i]->name, lib->crate[i + 1]->name) > 0) {
+            if (strcmp(lib->crate[i]->name, lib->crate[i + 1]->name) > 0) {
                 library_swap_crates(lib, i, i+1);
                 changed++;
             }
@@ -130,7 +130,7 @@ struct crate_t* library_new_crate(struct library_t *lib, char *name,
 
     /* does this crate already exist? then return existing crate */
     new_crate = library_get_crate(lib, name);
-    if(new_crate != NULL) {
+    if (new_crate != NULL) {
         fprintf(stderr, "Crate '%s' already exists...\n", name);
         return new_crate;
     }
@@ -145,7 +145,7 @@ struct crate_t* library_new_crate(struct library_t *lib, char *name,
     /* add this new crate to the library */
     struct crate_t **cn;
     cn = realloc(lib->crate, sizeof(struct crate_t*) * (lib->crates + 1));
-    if(!cn) {
+    if (!cn) {
         perror("realloc");
         return NULL;
     }
@@ -164,7 +164,7 @@ struct crate_t* library_get_crate(struct library_t *lib, char *name)
     int n;
 
     for (n = 0; n < lib->crates; n++) {
-        if(strcmp(lib->crate[n]->name, name) == 0)
+        if (strcmp(lib->crate[n]->name, name) == 0)
             return lib->crate[n];
     }
 
@@ -188,7 +188,7 @@ static int get_field(FILE *fp, char delim, char **f)
     size_t n, z;
 
     z = getdelim(&s, &n, delim, fp);
-    if(z == -1) {
+    if (z == -1) {
         free(s);
         return -1;
     }
@@ -213,7 +213,7 @@ int library_import(struct library_t *li, const char *scan, const char *path)
     fprintf(stderr, "Scanning '%s'...\n", path);
 
     all_crate = library_get_crate(li, CRATE_ALL);
-    if(all_crate == NULL) {
+    if (all_crate == NULL) {
         fprintf(stderr, "Could not get ALL_CRATE..");
         return -1;
     }
@@ -222,38 +222,38 @@ int library_import(struct library_t *li, const char *scan, const char *path)
     cratename = basename(pathname); /* POSIX version, see basename(3) */
     assert(cratename != NULL);
     crate = library_new_crate(li, cratename, false);
-    if(crate == NULL)
+    if (crate == NULL)
         return -1;
 
-    if(pipe(pstdout) == -1) {
+    if (pipe(pstdout) == -1) {
         perror("pipe");
         return -1;
     }
 
     pid = vfork();
 
-    if(pid == -1) {
+    if (pid == -1) {
         perror("vfork");
         return -1;
 
-    } else if(pid == 0) { /* child */
+    } else if (pid == 0) { /* child */
 
-        if(close(pstdout[0]) == -1) {
+        if (close(pstdout[0]) == -1) {
             perror("close");
             abort();
         }
 
-        if(dup2(pstdout[1], STDOUT_FILENO) == -1) {
+        if (dup2(pstdout[1], STDOUT_FILENO) == -1) {
             perror("dup2");
             _exit(EXIT_FAILURE); /* vfork() was used */
         }
 
-        if(close(pstdout[1]) == -1) {
+        if (close(pstdout[1]) == -1) {
             perror("close");
             abort();
         }
 
-        if(execl(scan, "scan", path, NULL) == -1) {
+        if (execl(scan, "scan", path, NULL) == -1) {
             perror("execl");
             fprintf(stderr, "Failed to launch library scanner %s\n", scan);
             _exit(EXIT_FAILURE); /* vfork() was used */
@@ -262,13 +262,13 @@ int library_import(struct library_t *li, const char *scan, const char *path)
         abort(); /* execl() does not return */
     }
 
-    if(close(pstdout[1]) == -1) {
+    if (close(pstdout[1]) == -1) {
         perror("close");
         abort();
     }
 
     fp = fdopen(pstdout[0], "r");
-    if(fp == NULL) {
+    if (fp == NULL) {
         perror("fdopen");
         return -1;
     }
@@ -277,7 +277,7 @@ int library_import(struct library_t *li, const char *scan, const char *path)
         struct record_t *d;
         char *pathname;
 
-        if(get_field(fp, '\t', &pathname) != 0)
+        if (get_field(fp, '\t', &pathname) != 0)
             break;
 
         d = malloc(sizeof(struct record_t));
@@ -288,38 +288,38 @@ int library_import(struct library_t *li, const char *scan, const char *path)
 
         d->pathname = pathname;
 
-        if(get_field(fp, '\t', &d->artist) != 0) {
+        if (get_field(fp, '\t', &d->artist) != 0) {
             fprintf(stderr, "EOF when reading artist for '%s'.\n", d->pathname);
             return -1;
         }
 
-        if(get_field(fp, '\n', &d->title) != 0) {
+        if (get_field(fp, '\n', &d->title) != 0) {
             fprintf(stderr, "EOF when reading title for '%s'.\n", d->pathname);
             return -1;
         }
 
-        if(listing_add(&li->storage, d) != 0)
+        if (listing_add(&li->storage, d) != 0)
             return -1;
 
         /* Add to crates */
 
-        if(crate_add(all_crate, d) != 0)
+        if (crate_add(all_crate, d) != 0)
             return -1;
-        if(crate_add(crate, d) != 0)
+        if (crate_add(crate, d) != 0)
             return -1;
     }
 
-    if(fclose(fp) == -1) {
+    if (fclose(fp) == -1) {
         perror("close");
         abort(); /* assumption fclose() can't on read-only descriptor */
     }
 
-    if(waitpid(pid, &status, 0) == -1) {
+    if (waitpid(pid, &status, 0) == -1) {
         perror("waitpid");
         return -1;
     }
 
-    if(!WIFEXITED(status) || WEXITSTATUS(status) != EXIT_SUCCESS) {
+    if (!WIFEXITED(status) || WEXITSTATUS(status) != EXIT_SUCCESS) {
         fputs("Library scan exited reporting failure.\n", stderr);
         return -1;
     }

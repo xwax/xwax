@@ -40,7 +40,7 @@ void listing_init(struct listing_t *ls)
 
 void listing_clear(struct listing_t *ls)
 {
-    if(ls->record != NULL)
+    if (ls->record != NULL)
         free(ls->record);
 }
 
@@ -58,10 +58,10 @@ int listing_add(struct listing_t *ls, struct record_t *lr)
 {
     struct record_t **ln;
 
-    if(ls->record == NULL) { /* initial entry */
+    if (ls->record == NULL) { /* initial entry */
 
         ln = malloc(sizeof(struct record_t*) * BLOCK);
-        if(ln == NULL) {
+        if (ln == NULL) {
             perror("malloc");
             return -1;
         }
@@ -69,10 +69,10 @@ int listing_add(struct listing_t *ls, struct record_t *lr)
         ls->record = ln;
         ls->size = BLOCK;
 
-    } else if(ls->entries == ls->size) {
+    } else if (ls->entries == ls->size) {
 
         ln = realloc(ls->record, sizeof(struct record_t*) * ls->size * 2);
-        if(ln == NULL) {
+        if (ln == NULL) {
             perror("realloc");
             return -1;
         }
@@ -140,7 +140,7 @@ static void quicksort(struct listing_t *ls, int left, int right)
 {
     int pivot;
 
-    if(left < right) {
+    if (left < right) {
         pivot = quicksort_partition(ls, left, right);
         quicksort(ls, left, pivot);
         quicksort(ls, pivot + 1, right);
@@ -159,9 +159,9 @@ void listing_sort(struct listing_t *ls)
 
 static bool record_match(struct record_t *re, const char *match)
 {
-    if(strcasestr(re->artist, match) != NULL)
+    if (strcasestr(re->artist, match) != NULL)
         return true;
-    if(strcasestr(re->title, match) != NULL)
+    if (strcasestr(re->title, match) != NULL)
         return true;
     return false;
 }
@@ -191,7 +191,7 @@ int listing_copy(const struct listing_t *src, struct listing_t *dest)
     listing_blank(dest);
 
     for (n = 0; n < src->entries; n++) {
-	if(listing_add(dest, src->record[n]) != 0)
+	if (listing_add(dest, src->record[n]) != 0)
 	    return -1;
     }
 
@@ -218,7 +218,7 @@ int listing_match(struct listing_t *src, struct listing_t *dest,
     for (;;) {
         char *s;
 
-        if(n == MAX_WORDS - 1) {
+        if (n == MAX_WORDS - 1) {
             fputs("Ignoring excessive words in match string.\n", stderr);
             break;
         }
@@ -227,7 +227,7 @@ int listing_match(struct listing_t *src, struct listing_t *dest,
         n++;
 
         s = strchr(buf, SEPARATOR);
-        if(s == NULL)
+        if (s == NULL)
             break;
         *s = '\0';
         buf = s + 1; /* skip separator */
@@ -239,8 +239,8 @@ int listing_match(struct listing_t *src, struct listing_t *dest,
     for (n = 0; n < src->entries; n++) {
         re = src->record[n];
 
-        if(record_match_all(re, words)) {
-            if(listing_add(dest, re) == -1)
+        if (record_match_all(re, words)) {
+            if (listing_add(dest, re) == -1)
                 return -1;
         }
     }

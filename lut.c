@@ -47,13 +47,13 @@ int lut_init(struct lut_t *lut, int nslots)
             hashes, nslots, nslots / hashes, bytes / 1024);
 
     lut->slot = malloc(sizeof(struct slot_t) * nslots);
-    if(lut->slot == NULL) {
+    if (lut->slot == NULL) {
         perror("malloc");
         return -1;
     }
 
     lut->table = malloc(sizeof(slot_no_t) * hashes);
-    if(lut->table == NULL) {
+    if (lut->table == NULL) {
         perror("malloc");
         return -1;
     }
@@ -101,7 +101,7 @@ unsigned int lut_lookup(struct lut_t *lut, unsigned int timecode)
 
     while (slot_no != NO_SLOT) {
         slot = &lut->slot[slot_no];
-        if(slot->timecode == timecode)
+        if (slot->timecode == timecode)
             return slot_no;
         slot_no = slot->next;
     }

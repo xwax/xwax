@@ -46,7 +46,7 @@ static void clear(struct device_t *dv)
     struct oss_t *oss = (struct oss_t*)dv->local;
 
     r = close(oss->fd);
-    if(r == -1) {
+    if (r == -1) {
         perror("close");
         abort();
     }
@@ -65,12 +65,12 @@ static int push(int fd, signed short *pcm, int samples)
     
     r = write(fd, pcm, bytes);
 
-    if(r == -1) {
+    if (r == -1) {
         perror("write");
         return -1;
     }
     
-    if(r < bytes)
+    if (r < bytes)
         fprintf(stderr, "Device output overrun.\n");
 
     return r / DEVICE_CHANNELS / sizeof(short);
@@ -87,12 +87,12 @@ static int pull(int fd, signed short *pcm, int samples)
 
     r = read(fd, pcm, bytes);
 
-    if(r == -1) {
+    if (r == -1) {
         perror("read");
         return -1;
     }
 
-    if(r < bytes) 
+    if (r < bytes)
         fprintf(stderr, "Device input underrun.\n");
 
     return r / DEVICE_CHANNELS / sizeof(short);
@@ -107,32 +107,32 @@ static int handle(struct device_t *dv)
 
     /* Check input buffer for recording */
 
-    if(oss->pe->revents & POLLIN) {
+    if (oss->pe->revents & POLLIN) {
         samples = pull(oss->fd, pcm, FRAME);
-        if(samples == -1)
+        if (samples == -1)
             return -1;
         
-        if(dv->timecoder)
+        if (dv->timecoder)
             timecoder_submit(dv->timecoder, pcm, samples);
     }
 
     /* Check the output buffer for playback */
     
-    if(oss->pe->revents & POLLOUT) {
+    if (oss->pe->revents & POLLOUT) {
 
         /* Always push some audio to the soundcard, even if it means
          * silence. This has shown itself to be much more reliable
          * than starting and stopping -- which can affect other
          * devices in the system. */
         
-        if(dv->player)
+        if (dv->player)
             player_collect(dv->player, pcm, FRAME, oss->rate);
         else
             memset(pcm, 0, FRAME * DEVICE_CHANNELS * sizeof(short));
         
         samples = push(oss->fd, pcm, FRAME);
         
-        if(samples == -1)
+        if (samples == -1)
             return -1;
     }
 
@@ -144,7 +144,7 @@ static ssize_t pollfds(struct device_t *dv, struct pollfd *pe, size_t z)
 {
     struct oss_t *oss = (struct oss_t*)dv->local;
 
-    if(z < 1)
+    if (z < 1)
         return -1;
     
     pe->fd = oss->fd;
@@ -180,7 +180,7 @@ int oss_init(struct device_t *dv, const char *filename, unsigned int rate,
     struct oss_t *oss;
    
     fd = open(filename, O_RDWR, 0);
-    if(fd == -1) {
+    if (fd == -1) {
         perror("open");
         return -1;
     }
@@ -192,43 +192,43 @@ int oss_init(struct device_t *dv, const char *filename, unsigned int rate,
      * latency */
     
     p = (buffers << 16) | fragment;
-    if(ioctl(fd, SNDCTL_DSP_SETFRAGMENT, &p) == -1) {
+    if (ioctl(fd, SNDCTL_DSP_SETFRAGMENT, &p) == -1) {
         perror("SNDCTL_DSP_SETFRAGMENT");
         goto fail;
     }
 
     p = AFMT_S16_LE;
-    if(ioctl(fd, SNDCTL_DSP_SETFMT, &p) == -1) {
+    if (ioctl(fd, SNDCTL_DSP_SETFMT, &p) == -1) {
         perror("SNDCTL_DSP_SETFMT");
         goto fail;
     }
 
     p = DEVICE_CHANNELS;
-    if(ioctl(fd, SNDCTL_DSP_CHANNELS, &p) == -1) {
+    if (ioctl(fd, SNDCTL_DSP_CHANNELS, &p) == -1) {
         perror("SNDCTL_DSP_CHANNELS");
         goto fail;
     }
 
     p = rate;
-    if(ioctl(fd, SNDCTL_DSP_SPEED, &p) == -1) {
+    if (ioctl(fd, SNDCTL_DSP_SPEED, &p) == -1) {
         perror("SNDCTL_DSP_SPEED");
         goto fail;
     }
 
     p = fcntl(fd, F_GETFL);
-    if(p == -1) {
+    if (p == -1) {
         perror("F_GETFL");
         goto fail;
     }
 
     p |= O_NONBLOCK;
-    if(fcntl(fd, F_SETFL, p) == -1) {
+    if (fcntl(fd, F_SETFL, p) == -1) {
         perror("fcntl");
         return -1;
     }
 
     dv->local = malloc(sizeof(struct oss_t));
-    if(!dv->local) {
+    if (!dv->local) {
         perror("malloc");
         goto fail;
     }
