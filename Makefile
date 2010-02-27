@@ -19,7 +19,8 @@ INSTALL = install
 
 PREFIX = $(HOME)
 
-CFLAGS += -Wall -O3 -MMD
+CFLAGS += -Wall -O3
+CPPFLAGS += -MMD
 LDFLAGS += -O3
 
 SDL_CFLAGS = `sdl-config --cflags`
