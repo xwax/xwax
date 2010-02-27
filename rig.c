@@ -58,7 +58,7 @@ int rig_service(struct rig_t *rig)
     char buf;
     struct pollfd pt[MAX_TRACKS], *pe;
     
-    while(!rig->finished) {
+    while (!rig->finished) {
         pe = pt;
 
         /* ppoll() is not widely available, so use a pipe between this
@@ -135,7 +135,7 @@ int rig_realtime(struct rig_t *rig)
                 "may get wow and skips!\n");
     }
 
-    while(!rig->finished) {        
+    while (!rig->finished) {
         r = poll(rig->pt, rig->npt, -1);
         
         if(r == -1 && errno != EINTR) {

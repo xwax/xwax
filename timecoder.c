@@ -187,7 +187,7 @@ static struct timecode_def_t* find_definition(const char *name)
     struct timecode_def_t *def;
 
     def = &timecode_def[0];
-    while(def->name) {
+    while (def->name) {
         if(!strcmp(def->name, name))
             return def;
         def++;
@@ -235,7 +235,7 @@ void timecoder_free_lookup(void) {
     struct timecode_def_t *def;
 
     def = &timecode_def[0];
-    while(def->name) {
+    while (def->name) {
         if(def->lookup)
             lut_clear(&def->lut);
         def++;

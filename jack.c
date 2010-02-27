@@ -51,7 +51,7 @@ static void interleave(signed short *buf, jack_default_audio_sample_t *jbuf[],
                        jack_nframes_t nframes)
 {
     int n;
-    while(nframes--) {
+    while (nframes--) {
         for (n = 0; n < DEVICE_CHANNELS; n++) {
             *buf = (signed short)(*jbuf[n] * SCALE);
             buf++;
@@ -67,7 +67,7 @@ static void uninterleave(jack_default_audio_sample_t *jbuf[],
                          signed short *buf, jack_nframes_t nframes)
 {
     int n;
-    while(nframes--) {
+    while (nframes--) {
         for (n = 0; n < DEVICE_CHANNELS; n++) {
             *jbuf[n] = (jack_default_audio_sample_t)*buf / SCALE;
             buf++;
@@ -99,7 +99,7 @@ static void process_deck(struct device_t *dv, jack_nframes_t nframes)
      * player in smaller blocks */
 
     remain = nframes;
-    while(remain > 0) {
+    while (remain > 0) {
         if(remain < MAX_BLOCK)
             block = remain;
         else

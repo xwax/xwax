@@ -307,7 +307,7 @@ static TTF_Font* open_font(const char *name, int size) {
 
     dir = &font_dirs[0];
 
-    while(*dir) {
+    while (*dir) {
         
         sprintf(buf, "%s/%s", *dir, name);
         
@@ -337,7 +337,7 @@ static TTF_Font* open_font(const char *name, int size) {
     fprintf(stderr, "Font '%s' cannot be found in", name);
     
     dir = &font_dirs[0];
-    while(*dir) {
+    while (*dir) {
         fputc(' ', stderr);
         fputs(*dir, stderr);
         dir++;
@@ -685,14 +685,14 @@ static void draw_overview(SDL_Surface *surface, const struct rect_t *rect,
         p = pixels + y * pitch + (x + c) * bytes_per_pixel;
 
         r = h;
-        while(r > height) {
+        while (r > height) {
             p[0] = col.b >> fade;
             p[1] = col.g >> fade;
             p[2] = col.r >> fade;
             p += pitch;
             r--;
         }
-        while(r) {
+        while (r) {
             p[0] = col.b;
             p[1] = col.g;
             p[2] = col.r;
@@ -750,14 +750,14 @@ static void draw_closeup(SDL_Surface *surface, const struct rect_t *rect,
         p = pixels + y * pitch + (x + c) * bytes_per_pixel;
 
         r = h;
-        while(r > height) {
+        while (r > height) {
             p[0] = col.b >> fade;
             p[1] = col.g >> fade;
             p[2] = col.r >> fade;
             p += pitch;
             r--;
         }
-        while(r) {
+        while (r) {
             p[0] = col.b;
             p[1] = col.g;
             p[2] = col.r;
@@ -1369,7 +1369,7 @@ int interface_run(struct interface_t *in)
 
     timer = SDL_AddTimer(REFRESH, ticker, (void*)in);
 
-    while(!finished && SDL_WaitEvent(&event) >= 0) {
+    while (!finished && SDL_WaitEvent(&event) >= 0) {
 
         switch(event.type) {
             

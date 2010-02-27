@@ -171,7 +171,7 @@ int main(int argc, char *argv[])
     argv++;
     argc--;
     
-    while(argc > 0) {
+    while (argc > 0) {
 
         if(!strcmp(argv[0], "-h")) {
             usage(stdout);

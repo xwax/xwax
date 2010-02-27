@@ -119,7 +119,7 @@ static void library_sort_crates(struct library_t *lib)
             }
 
         }
-    } while(changed);
+    } while (changed);
 }
 
 

@@ -99,7 +99,7 @@ unsigned int lut_lookup(struct lut_t *lut, unsigned int timecode)
     hash = HASH(timecode);
     slot_no = lut->table[hash];
 
-    while(slot_no != NO_SLOT) {
+    while (slot_no != NO_SLOT) {
         slot = &lut->slot[slot_no];
         if(slot->timecode == timecode)
             return slot_no;

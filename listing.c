@@ -123,11 +123,11 @@ static int quicksort_partition(struct listing_t *ls, int left, int right)
 
     pivot = ls->record[left];
 
-    while(left < right) {
-        while((left < right) && (record_cmp(ls->record[right], pivot) >= 0))
+    while (left < right) {
+        while ((left < right) && (record_cmp(ls->record[right], pivot) >= 0))
             right--;
         quicksort_swap(ls, right, left);
-        while((left < right) && (record_cmp(pivot, ls->record[left]) >= 0))
+        while ((left < right) && (record_cmp(pivot, ls->record[left]) >= 0))
             left++;
         quicksort_swap(ls, right, left);
     }
