@@ -204,8 +204,8 @@ int player_recue(struct player_t *pl)
 
 /* Get a block of PCM audio data to send to the soundcard. */
 
-int player_collect(struct player_t *pl, signed short *pcm,
-                   int samples, int rate)
+void player_collect(struct player_t *pl, signed short *pcm,
+                    int samples, int rate)
 {
     double diff;
     float dt, target_volume;
@@ -276,8 +276,6 @@ int player_collect(struct player_t *pl, signed short *pcm,
                               pl->volume, target_volume);
     
     pl->volume = target_volume;
-
-    return 0;
 }
 
 

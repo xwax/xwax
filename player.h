@@ -54,8 +54,8 @@ int player_control(struct player_t *pl, float pitch, float volume,
                    int timecode_known, double target_position);
 int player_recue(struct player_t *pl);
 
-int player_collect(struct player_t *pl, signed short *pcm,
-                   int samples, int rate);
+void player_collect(struct player_t *pl, signed short *pcm,
+                    int samples, int rate);
 
 void player_connect_track(struct player_t *pl, struct track_t *tr);
 
