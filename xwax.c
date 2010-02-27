@@ -408,7 +408,7 @@ int main(int argc, char *argv[])
     /* Connect everything up. Do this after selecting a timecode and
      * built the lookup tables. */
 
-    for(n = 0; n < decks; n++)
+    for (n = 0; n < decks; n++)
         player_connect_timecoder(&deck[n].player, &deck[n].timecoder);
 
     fprintf(stderr, "Starting threads...\n");
@@ -424,7 +424,7 @@ int main(int argc, char *argv[])
     if(rig_stop(&rig) == -1)
         return -1;
     
-    for(n = 0; n < decks; n++)
+    for (n = 0; n < decks; n++)
         deck_clear(&deck[n]);
     
     timecoder_free_lookup();

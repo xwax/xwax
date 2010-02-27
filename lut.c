@@ -58,7 +58,7 @@ int lut_init(struct lut_t *lut, int nslots)
         return -1;
     }
 
-    for(n = 0; n < hashes; n++)
+    for (n = 0; n < hashes; n++)
         lut->table[n] = NO_SLOT;
 
     lut->avail = 0;

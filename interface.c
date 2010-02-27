@@ -255,10 +255,10 @@ static void calculate_spinner_lookup(int *angle, int *distance, int size)
     int r, c, nr, nc;
     float theta, rat;
 
-    for(r = 0; r < size; r++) {
+    for (r = 0; r < size; r++) {
         nr = r - size / 2;
 
-        for(c = 0; c < size; c++) {
+        for (c = 0; c < size; c++) {
             nc = c - size / 2;
 
             if(nr == 0)
@@ -503,8 +503,8 @@ static void draw_scope(SDL_Surface *surface, const struct rect_t *rect,
 
     mid = tc->mon_size / 2;
 
-    for(r = 0; r < tc->mon_size; r++) {
-        for(c = 0; c < tc->mon_size; c++) {
+    for (r = 0; r < tc->mon_size; r++) {
+        for (c = 0; c < tc->mon_size; c++) {
             p = surface->pixels
                 + (rect->y + r) * surface->pitch
                 + (rect->x + c) * surface->format->BytesPerPixel;
@@ -544,13 +544,13 @@ static void draw_spinner(SDL_Surface *surface, const struct rect_t *rect,
     else
         col = ok_col;
 
-    for(r = 0; r < SPINNER_SIZE; r++) {
+    for (r = 0; r < SPINNER_SIZE; r++) {
 
         /* Store a pointer to this row of the framebuffer */
 
         rp = surface->pixels + (y + r) * surface->pitch;
 
-        for(c = 0; c < SPINNER_SIZE; c++) {
+        for (c = 0; c < SPINNER_SIZE; c++) {
 
             /* Use the lookup table to provide the angle at each
              * pixel */
@@ -641,7 +641,7 @@ static void draw_overview(SDL_Surface *surface, const struct rect_t *rect,
     else
         current_position = 0;
 
-    for(c = 0; c < w; c++) {
+    for (c = 0; c < w; c++) {
 
         /* Collect the correct meter value for this column */
 
@@ -722,7 +722,7 @@ static void draw_closeup(SDL_Surface *surface, const struct rect_t *rect,
     bytes_per_pixel = surface->format->BytesPerPixel;
     pitch = surface->pitch;
 
-    for(c = 0; c < w; c++) {
+    for (c = 0; c < w; c++) {
 
         /* Work out the meter height in pixels for this column */
 
@@ -892,7 +892,7 @@ static void draw_decks(SDL_Surface *surface, const struct rect_t *rect,
     single = *rect;
     single.w = deck_width;
 
-    for(d = 0; d < ndecks; d++) {
+    for (d = 0; d < ndecks; d++) {
         single.x = rect->x + (deck_width + BORDER) * d;
         draw_deck(surface, &single, player[d], meter_scale);
     }
@@ -999,7 +999,7 @@ static void draw_crates(SDL_Surface *surface, const struct rect_t *rect,
     x += SCROLLBAR_SIZE + SPACER;
     w -= SCROLLBAR_SIZE + SPACER;
 
-    for(n = 0; n + sel->crates.offset < sel->library->crates; n++) {
+    for (n = 0; n + sel->crates.offset < sel->library->crates; n++) {
 
         if((n + 1) * FONT_SPACE > h)
             break;
@@ -1060,7 +1060,7 @@ static void draw_records(SDL_Surface *surface, const struct rect_t *rect,
     x += SCROLLBAR_SIZE + SPACER;
     w -= SCROLLBAR_SIZE + SPACER;
 
-    for(n = 0; n + sel->records.offset < sel->view_listing->entries; n++) {
+    for (n = 0; n + sel->records.offset < sel->view_listing->entries; n++) {
         re = sel->view_listing->record[n + sel->records.offset];
     
         if((n + 1) * FONT_SPACE > h) 
@@ -1303,7 +1303,7 @@ void interface_init(struct interface_t *in)
 {
     int n;
 
-    for(n = 0; n < MAX_PLAYERS; n++)
+    for (n = 0; n < MAX_PLAYERS; n++)
         in->player[n] = NULL;
 
     in->library = NULL;
@@ -1328,7 +1328,7 @@ int interface_run(struct interface_t *in)
     finished = 0;
     meter_scale = DEFAULT_METER_SCALE;
 
-    for(p = 0; p < in->timecoders; p++) {
+    for (p = 0; p < in->timecoders; p++) {
         if (timecoder_monitor_init(in->timecoder[p], SCOPE_SIZE) == -1)
             return -1;
     }
@@ -1471,7 +1471,7 @@ int interface_run(struct interface_t *in)
 
     SDL_RemoveTimer(timer);
 
-    for(p = 0; p < in->timecoders; p++)
+    for (p = 0; p < in->timecoders; p++)
         timecoder_monitor_clear(in->timecoder[p]);
 
     selector_clear(&selector);

@@ -62,7 +62,7 @@ void library_clear(struct library_t *li)
 {
     int n;
 
-    for(n = 0; n < li->crates; n++) {
+    for (n = 0; n < li->crates; n++) {
         struct crate_t *crate;
 
         crate = li->crate[n];
@@ -74,7 +74,7 @@ void library_clear(struct library_t *li)
 
     /* This object owns all the record pointers */
 
-    for(n = 0; n < li->storage.entries; n++) {
+    for (n = 0; n < li->storage.entries; n++) {
         struct record_t *re;
 
         re = li->storage.record[n];
@@ -102,7 +102,7 @@ static void library_sort_crates(struct library_t *lib)
     do {
         changed = 0;
 
-        for(i = 0; i < lib->crates - 1; i++) {
+        for (i = 0; i < lib->crates - 1; i++) {
 
             if(lib->crate[i]->is_fixed)
                 continue;
@@ -163,7 +163,7 @@ struct crate_t* library_get_crate(struct library_t *lib, char *name)
 {
     int n;
 
-    for(n = 0; n < lib->crates; n++) {
+    for (n = 0; n < lib->crates; n++) {
         if(strcmp(lib->crate[n]->name, name) == 0)
             return lib->crate[n];
     }
@@ -273,7 +273,7 @@ int library_import(struct library_t *li, const char *scan, const char *path)
         return -1;
     }
 
-    for(;;) {
+    for (;;) {
         struct record_t *d;
         char *pathname;
 

@@ -190,7 +190,7 @@ int listing_copy(const struct listing_t *src, struct listing_t *dest)
 
     listing_blank(dest);
 
-    for(n = 0; n < src->entries; n++) {
+    for (n = 0; n < src->entries; n++) {
 	if(listing_add(dest, src->record[n]) != 0)
 	    return -1;
     }
@@ -236,7 +236,7 @@ int listing_match(struct listing_t *src, struct listing_t *dest,
 
     listing_blank(dest);
 
-    for(n = 0; n < src->entries; n++) {
+    for (n = 0; n < src->entries; n++) {
         re = src->record[n];
 
         if(record_match_all(re, words)) {
@@ -253,6 +253,6 @@ void listing_debug(struct listing_t *ls)
 {
     int n;
 
-    for(n = 0; n < ls->entries; n++)
+    for (n = 0; n < ls->entries; n++)
         fprintf(stderr, "%d: %s\n", n, ls->record[n]->pathname);
 }

@@ -85,7 +85,7 @@ static double build_pcm(signed short *pcm, int samples, int rate,
     vol = start_vol;
     gradient = (end_vol - start_vol) / samples;
 
-    for(s = 0; s < samples; s++) {
+    for (s = 0; s < samples; s++) {
         int c, sa, q;
         float f, i[PLAYER_CHANNELS][4];
 
@@ -97,21 +97,21 @@ static double build_pcm(signed short *pcm, int samples, int rate,
         f = sample - sa;
         sa--;
 
-        for(q = 0; q < 4; q++, sa++) {
+        for (q = 0; q < 4; q++, sa++) {
             if(sa < 0 || sa >= tr->length) {
-                for(c = 0; c < PLAYER_CHANNELS; c++)
+                for (c = 0; c < PLAYER_CHANNELS; c++)
                     i[c][q] = 0.0;
             } else {
                 signed short *ts;
                 int c;
 
                 ts = track_get_sample(tr, sa);
-                for(c = 0; c < PLAYER_CHANNELS; c++)
+                for (c = 0; c < PLAYER_CHANNELS; c++)
                     i[c][q] = (float)ts[c];
             }
         }
 
-        for(c = 0; c < PLAYER_CHANNELS; c++) {
+        for (c = 0; c < PLAYER_CHANNELS; c++) {
             *pcm++ = vol * cubic_interpolate(i[c], f)
                 + (float)(rand() % 32768) / 32768 - 0.5; /* dither */
         }

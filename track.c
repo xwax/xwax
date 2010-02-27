@@ -203,7 +203,7 @@ static int read_from_pipe(struct track_t *tr)
 
     /* Meter the audio which has just been read */
     
-    for(s = tr->length; s < tr->bytes / SAMPLE; s++) {
+    for (s = tr->length; s < tr->bytes / SAMPLE; s++) {
         ls = s % TRACK_BLOCK_SAMPLES;
         
         v = (abs(block->pcm[ls * TRACK_CHANNELS])
@@ -266,7 +266,7 @@ void track_clear(struct track_t *tr)
     if(tr->pid != 0)
         abort_import(tr);
 
-    for(n = 0; n < tr->blocks; n++)
+    for (n = 0; n < tr->blocks; n++)
         free(tr->block[n]);
 
     if(pthread_mutex_destroy(&tr->mx) != 0)

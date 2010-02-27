@@ -214,7 +214,7 @@ static int build_lookup(struct timecode_def_t *def)
 
     current = def->seed;
     
-    for(n = 0; n < def->length; n++) {
+    for (n = 0; n < def->length; n++) {
         /* timecode must not wrap */
         assert(lut_lookup(&def->lut, current) == (unsigned)-1);
         lut_push(&def->lut, current);
@@ -356,7 +356,7 @@ static void update_monitor(struct timecoder_t *tc, signed int x, signed int y)
     /* Decay the pixels already in the montior */
         
     if(++tc->mon_counter % MONITOR_DECAY_EVERY == 0) {
-        for(p = 0; p < SQ(tc->mon_size); p++) {
+        for (p = 0; p < SQ(tc->mon_size); p++) {
             if(tc->mon[p])
                 tc->mon[p] = tc->mon[p] * 7 / 8;
         }

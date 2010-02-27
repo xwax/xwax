@@ -52,7 +52,7 @@ static void interleave(signed short *buf, jack_default_audio_sample_t *jbuf[],
 {
     int n;
     while(nframes--) {
-        for(n = 0; n < DEVICE_CHANNELS; n++) {
+        for (n = 0; n < DEVICE_CHANNELS; n++) {
             *buf = (signed short)(*jbuf[n] * SCALE);
             buf++;
             jbuf[n]++;
@@ -68,7 +68,7 @@ static void uninterleave(jack_default_audio_sample_t *jbuf[],
 {
     int n;
     while(nframes--) {
-        for(n = 0; n < DEVICE_CHANNELS; n++) {
+        for (n = 0; n < DEVICE_CHANNELS; n++) {
             *jbuf[n] = (jack_default_audio_sample_t)*buf / SCALE;
             buf++;
             jbuf[n]++;
@@ -88,7 +88,7 @@ static void process_deck(struct device_t *dv, jack_nframes_t nframes)
     jack_nframes_t remain, block;
     struct jack_t *jack = (struct jack_t*)dv->local;
 
-    for(n = 0; n < DEVICE_CHANNELS; n++) {
+    for (n = 0; n < DEVICE_CHANNELS; n++) {
         in[n] = jack_port_get_buffer(jack->input_port[n], nframes);
         assert(in[n] != NULL);
         out[n] = jack_port_get_buffer(jack->output_port[n], nframes);
@@ -129,7 +129,7 @@ static int process_callback(jack_nframes_t nframes, void *local)
     int n;
     struct jack_t *jack;
 
-    for(n = 0; n < decks; n++) {
+    for (n = 0; n < decks; n++) {
         jack = (struct jack_t*)device[n]->local;
         if (jack->started)
             process_deck(device[n], nframes);
@@ -200,7 +200,7 @@ static int register_ports(struct jack_t *jack, const char *name)
     char port_name[32];
 
     assert(DEVICE_CHANNELS == 2);
-    for(n = 0; n < DEVICE_CHANNELS; n++) {
+    for (n = 0; n < DEVICE_CHANNELS; n++) {
 	sprintf(port_name, "%s_timecode_%c", name, channel[n]);
         jack->input_port[n] = jack_port_register(client, port_name,
                                                  JACK_DEFAULT_AUDIO_TYPE,
@@ -282,7 +282,7 @@ static void clear(struct device_t *dv)
 
     /* Unregister ports */
 
-    for(n = 0; n < DEVICE_CHANNELS; n++) {
+    for (n = 0; n < DEVICE_CHANNELS; n++) {
         if(jack_port_unregister(client, jack->input_port[n]) != 0)
             abort();
         if(jack_port_unregister(client, jack->output_port[n]) != 0)
@@ -294,7 +294,7 @@ static void clear(struct device_t *dv)
     /* Remove this from the global list, so that potentially xwax could
      * continue to run even if a deck is removed */
 
-    for(n = 0; n < decks; n++) {
+    for (n = 0; n < decks; n++) {
         if(device[n] == dv)
             break;
     }

@@ -36,16 +36,16 @@ int rig_init(struct rig_t *rig)
 {
     int n;
 
-    for(n = 0; n < MAX_DEVICES; n++) 
+    for (n = 0; n < MAX_DEVICES; n++)
         rig->device[n] = NULL;
 
-    for(n = 0; n < MAX_TRACKS; n++) 
+    for (n = 0; n < MAX_TRACKS; n++)
         rig->track[n] = NULL;
     
-    for(n = 0; n < MAX_PLAYERS; n++) 
+    for (n = 0; n < MAX_PLAYERS; n++)
         rig->player[n] = NULL;
     
-    for(n = 0; n < MAX_TIMECODERS; n++) 
+    for (n = 0; n < MAX_TIMECODERS; n++)
         rig->timecoder[n] = NULL;
 
     return 0;
@@ -72,7 +72,7 @@ int rig_service(struct rig_t *rig)
 
         /* Fetch file descriptors to monitor from each track */
 
-        for(n = 0; n < MAX_TRACKS; n++) {
+        for (n = 0; n < MAX_TRACKS; n++) {
             if(rig->track[n])
                 pe += track_pollfd(rig->track[n], pe);
         }
@@ -95,7 +95,7 @@ int rig_service(struct rig_t *rig)
 
         /* Do any reading and writing on all tracks */
 
-        for(n = 0; n < MAX_TRACKS; n++) {
+        for (n = 0; n < MAX_TRACKS; n++) {
             if(rig->track[n])
                 track_handle(rig->track[n]);
         }
@@ -143,7 +143,7 @@ int rig_realtime(struct rig_t *rig)
             return -1;
         }
 
-        for(n = 0; n < MAX_DEVICES; n++) {
+        for (n = 0; n < MAX_DEVICES; n++) {
             if(rig->device[n])
                 device_handle(rig->device[n]);
         }
@@ -177,7 +177,7 @@ int rig_start(struct rig_t *rig)
 
     /* Register ourselves with the tracks we are looking after */
 
-    for(n = 0; n < MAX_TRACKS; n++) {
+    for (n = 0; n < MAX_TRACKS; n++) {
         if(rig->track[n])
             rig->track[n]->rig = rig;
     }
@@ -200,7 +200,7 @@ int rig_start(struct rig_t *rig)
     pe = rig->pt;
     pm = rig->pt + MAX_DEVICE_POLLFDS;
 
-    for(n = 0; n < MAX_DEVICES; n++) {
+    for (n = 0; n < MAX_DEVICES; n++) {
         dv = rig->device[n];
         
         if(!dv)
@@ -268,7 +268,7 @@ int rig_stop(struct rig_t *rig)
 
     /* Stop audio rolling on devices */
 
-    for(n = 0; n < MAX_DEVICES; n++) {
+    for (n = 0; n < MAX_DEVICES; n++) {
         if(rig->device[n])
             device_stop(rig->device[n]);
     }
