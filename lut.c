@@ -43,7 +43,7 @@ int lut_init(struct lut_t *lut, int nslots)
     bytes = sizeof(struct slot_t) * nslots + sizeof(slot_no_t) * hashes;
 
     fprintf(stderr, "Lookup table has %d hashes to %d slots"
-            " (%d slots per hash, %dKb)\n",
+            " (%d slots per hash, %zuKb)\n",
             hashes, nslots, nslots / hashes, bytes / 1024);
 
     lut->slot = malloc(sizeof(struct slot_t) * nslots);
