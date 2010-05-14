@@ -28,7 +28,7 @@ case "$FILE" in
 
 *.mp3)
     echo "Calling MP3 decoder..." >&2
-    exec mpg123 -q -s "$FILE"
+    exec mpg123 -q -s --rate 44100 --stereo "$FILE"
     ;;
 
 *.flac)
