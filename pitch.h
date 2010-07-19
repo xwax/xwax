@@ -63,7 +63,8 @@ static inline void pitch_dt_observation(struct pitch_t *p, float dx)
 
 /* Get the pitch after filtering */
 
-static inline float pitch_current(struct pitch_t *p) {
+static inline float pitch_current(struct pitch_t *p)
+{
     return p->v;
 }
 
