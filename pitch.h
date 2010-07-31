@@ -28,12 +28,12 @@
 /* State of the pitch calculation filter */
 
 struct pitch_t {
-    float dt, x, v;
+    double dt, x, v;
 };
 
 /* Prepare the filter for observations every dt seconds */
 
-static inline void pitch_init(struct pitch_t *p, float dt)
+static inline void pitch_init(struct pitch_t *p, double dt)
 {
     p->dt = dt;
     p->x = 0.0;
@@ -46,9 +46,9 @@ static inline void pitch_init(struct pitch_t *p, float dt)
  * Because the vinyl uses timestamps, the values for dx are discrete
  * rather than smooth. */
 
-static inline void pitch_dt_observation(struct pitch_t *p, float dx)
+static inline void pitch_dt_observation(struct pitch_t *p, double dx)
 {
-    float predicted_x, predicted_v, residual_x;
+    double predicted_x, predicted_v, residual_x;
 
     predicted_x = p->x + p->v * p->dt;
     predicted_v = p->v;
@@ -63,7 +63,7 @@ static inline void pitch_dt_observation(struct pitch_t *p, float dx)
 
 /* Get the pitch after filtering */
 
-static inline float pitch_current(struct pitch_t *p)
+static inline double pitch_current(struct pitch_t *p)
 {
     return p->v;
 }
