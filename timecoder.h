@@ -116,11 +116,20 @@ static inline unsigned int timecoder_get_safe(struct timecoder_t *tc)
 
 
 /* The resolution of the timecode. This is the number of bits per
- * second, which corresponds to the frequency of the sine wave */
+ * second at reference playback speed */
 
 static inline double timecoder_get_resolution(struct timecoder_t *tc)
 {
     return tc->def->resolution * tc->speed;
+}
+
+
+/* The number of revolutions per second of the timecode vinyl,
+ * used only for visual display */
+
+static inline double timecoder_revs_per_sec(struct timecoder_t *tc)
+{
+    return (33.0 + 1.0 / 3) * tc->speed / 60;
 }
 
 #endif
