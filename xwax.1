@@ -35,6 +35,16 @@ valid timecodes. You will need the corresponding timecode signal on
 vinyl to control playback.
 
 .TP
+.B \-33
+Set the reference playback speed for subsequent decks to 33 and one
+third revolutions per minute. This is the default.
+
+.TP
+.B \-45
+Set the reference playback speed for subsequent decks to 45
+revolutions per minute.
+
+.TP
 .B \-i \fIpath\fR
 Use the given importer executable for subsequent decks.
 
@@ -171,6 +181,13 @@ xwax -l ~/music -d hw:0 -d hw:1
 .sp
 .RS
 xwax -l ~/music -t serato_2a -d hw:0 -t mixvibes_v2 -d hw:1
+.RE
+
+.P
+As above, but with the second deck at 45 RPM:
+.sp
+.RS
+xwax -l ~/music -t serato_2a -d hw:0 -t mixvibes_v2 -45 -d hw:1
 .RE
 
 .P

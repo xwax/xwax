@@ -250,9 +250,9 @@ static void init_channel(struct timecoder_channel_t *ch)
 }
 
 
-/* Initialise a timecode decoder */
+/* Initialise a timecode decoder at the given reference speed */
 
-int timecoder_init(struct timecoder_t *tc, const char *def_name,
+int timecoder_init(struct timecoder_t *tc, const char *def_name, double speed,
 		   unsigned int sample_rate)
 {
     /* A definition contains a lookup table which can be shared
@@ -265,6 +265,7 @@ int timecoder_init(struct timecoder_t *tc, const char *def_name,
     }
     if (build_lookup(tc->def) == -1)
         return -1;
+    tc->speed = speed;
 
     tc->dt = 1.0 / sample_rate;
     tc->zero_alpha = tc->dt / (ZERO_RC + tc->dt);

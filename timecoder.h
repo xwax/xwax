@@ -56,6 +56,7 @@ struct timecoder_channel_t {
 
 struct timecoder_t {
     struct timecode_def_t *def;
+    double speed;
 
     /* Precomputed values */
 
@@ -84,8 +85,8 @@ struct timecoder_t {
 
 void timecoder_free_lookup(void);
 
-int timecoder_init(struct timecoder_t *tc, const char *def_name,
-		   unsigned int sample_rate);
+int timecoder_init(struct timecoder_t *tc, const char *def_name, double speed,
+                   unsigned int sample_rate);
 void timecoder_clear(struct timecoder_t *tc);
 
 int timecoder_monitor_init(struct timecoder_t *tc, int size);

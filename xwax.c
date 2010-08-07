@@ -61,10 +61,10 @@ struct deck_t {
 };
 
 
-static int deck_init(struct deck_t *deck, const char *timecode,
+static int deck_init(struct deck_t *deck, const char *timecode, double speed,
                      const char *importer, unsigned int sample_rate)
 {
-    if (timecoder_init(&deck->timecoder, timecode, sample_rate) == -1)
+    if (timecoder_init(&deck->timecoder, timecode, speed, sample_rate) == -1)
         return -1;
     track_init(&deck->track, importer);
     player_init(&deck->player);
@@ -104,6 +104,8 @@ void usage(FILE *fd)
     fprintf(fd, "Usage: xwax [<options>]\n\n"
       "  -l <directory> Directory to scan for audio tracks\n"
       "  -t <name>      Timecode name\n"
+      "  -33            Use timecode at 33.3RPM (default)\n"
+      "  -45            Use timecode at 45RPM\n"
       "  -i <program>   Importer (default '%s')\n"
       "  -s <program>   Library scanner (default '%s')\n"
       "  -h             Display this message\n\n",
@@ -131,7 +133,8 @@ void usage(FILE *fd)
       "  -j <name>      Create a JACK deck with the given name\n\n");
 #endif
 
-    fprintf(fd, "Device options, -t and -i apply to subsequent devices.\n"
+    fprintf(fd,
+      "Device options, -t, RPM options and -i apply to subsequent devices.\n"
       "Option -s applies to subsequent directories.\n"
       "Decks and audio directories can be specified multiple times.\n\n"
       "Available timecodes (for use with -t):\n"
@@ -144,6 +147,7 @@ int main(int argc, char *argv[])
 {
     int r, n, decks, oss_fragment, oss_buffers, rate, alsa_buffer;
     char *endptr, *timecode, *importer, *scanner;
+    double speed;
 
     struct deck_t deck[MAX_DECKS];
     struct rig_t rig;
@@ -165,6 +169,7 @@ int main(int argc, char *argv[])
     importer = DEFAULT_IMPORTER;
     scanner = DEFAULT_SCANNER;
     timecode = DEFAULT_TIMECODE;
+    speed = 1.0;
 
     /* Skip over command name */
     
@@ -316,8 +321,11 @@ int main(int argc, char *argv[])
 
 	    sample_rate = device_sample_rate(device);
 
-            if (deck_init(&deck[decks], timecode, importer, sample_rate) == -1)
+            if (deck_init(&deck[decks], timecode, speed,
+                          importer, sample_rate) == -1)
+            {
                 return -1;
+            }
 
             /* The timecoder and player are driven by requests from
              * the audio device */
@@ -349,7 +357,21 @@ int main(int argc, char *argv[])
             
             argv += 2;
             argc -= 2;
-            
+
+        } else if (!strcmp(argv[0], "-33")) {
+
+            speed = 1.0;
+
+            argv++;
+            argc--;
+
+        } else if (!strcmp(argv[0], "-45")) {
+
+            speed = 1.35;
+
+            argv++;
+            argc--;
+
         } else if (!strcmp(argv[0], "-i")) {
 
             /* Importer script for subsequent decks */
