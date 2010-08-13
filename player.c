@@ -17,6 +17,7 @@
  *
  */
 
+#include <limits.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -112,8 +113,18 @@ static double build_pcm(signed short *pcm, int samples, int rate,
         }
 
         for (c = 0; c < PLAYER_CHANNELS; c++) {
-            *pcm++ = vol * cubic_interpolate(i[c], f)
+            float v;
+
+            v = vol * cubic_interpolate(i[c], f)
                 + (float)(rand() % 32768) / 32768 - 0.5; /* dither */
+
+            if (v > SHRT_MAX) {
+                *pcm++ = SHRT_MAX;
+            } else if (v < SHRT_MIN) {
+                *pcm++ = SHRT_MIN;
+            } else {
+                *pcm++ = (signed short)v;
+            }
         }
 
         sample += step;
