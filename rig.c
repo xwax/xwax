@@ -52,7 +52,7 @@ int rig_init(struct rig_t *rig)
 }
 
 
-int rig_service(struct rig_t *rig)
+static int rig_service(struct rig_t *rig)
 {
     int r, n;
     char buf;
@@ -105,7 +105,7 @@ int rig_service(struct rig_t *rig)
 }
 
 
-int rig_realtime(struct rig_t *rig)
+static int rig_realtime(struct rig_t *rig)
 {
     int r, n, max_pri;
     struct sched_param sp;
@@ -153,14 +153,14 @@ int rig_realtime(struct rig_t *rig)
 }
 
 
-void* service(void *p)
+static void* service(void *p)
 {
     rig_service(p);
     return p;
 }
 
 
-void* realtime(void *p)
+static void* realtime(void *p)
 {
     rig_realtime(p);
     return p;

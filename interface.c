@@ -133,9 +133,9 @@ static const char *font_dirs[] = {
 };
 
 
-TTF_Font *clock_font, *deci_font, *detail_font, *font, *em_font;
+static TTF_Font *clock_font, *deci_font, *detail_font, *font, *em_font;
 
-SDL_Color background_col = {0, 0, 0, 255},
+static SDL_Color background_col = {0, 0, 0, 255},
     text_col = {224, 224, 224, 255},
     warn_col = {192, 64, 0, 255},
     ok_col = {32, 128, 3, 255},
@@ -148,7 +148,7 @@ SDL_Color background_col = {0, 0, 0, 255},
     vinyl_col = {0, 0, 0, 255},
     vinyl_ppm_col = {255, 255, 255, 255};
 
-int spinner_angle[SPINNER_SIZE * SPINNER_SIZE];
+static int spinner_angle[SPINNER_SIZE * SPINNER_SIZE];
 
 
 struct rect_t {

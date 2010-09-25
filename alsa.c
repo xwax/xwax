@@ -22,7 +22,7 @@
 #include <sys/poll.h>
 #include <alsa/asoundlib.h>
 
-#include "device.h"
+#include "alsa.h"
 #include "timecoder.h"
 #include "player.h"
 

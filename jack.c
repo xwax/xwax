@@ -42,7 +42,7 @@ static jack_client_t *client = NULL;
 static int rate,
     decks = 0,
     started = 0;
-struct device_t *device[MAX_DECKS];
+static struct device_t *device[MAX_DECKS];
 
 
 /* Interleave samples from a set of JACK buffers into a local buffer */

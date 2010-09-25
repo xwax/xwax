@@ -49,7 +49,7 @@
 #define SWITCH_POLARITY 0x4 /* read bit values in negative (not positive) */
 
 
-struct timecode_def_t timecode_def[] = {
+static struct timecode_def_t timecode_def[] = {
     {
         .name = "serato_2a",
         .desc = "Serato 2nd Ed., side A",

@@ -99,7 +99,7 @@ static void connect_deck_to_rig(struct rig_t *rig, int n, struct deck_t *deck)
 }
 
 
-void usage(FILE *fd)
+static void usage(FILE *fd)
 {
     fprintf(fd, "Usage: xwax [<options>]\n\n"
       "  -l <directory> Directory to scan for audio tracks\n"

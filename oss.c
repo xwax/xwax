@@ -26,7 +26,7 @@
 #include <sys/poll.h>
 #include <sys/soundcard.h>
 
-#include "device.h"
+#include "oss.h"
 #include "timecoder.h"
 #include "player.h"
 
