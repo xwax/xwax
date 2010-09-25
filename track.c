@@ -250,7 +250,7 @@ void track_init(struct track_t *tr, const char *importer)
     tr->length = 0;
     tr->rate = TRACK_RATE;
 
-    if (pthread_mutex_init(&tr->mx, 0) != 0)
+    if (pthread_mutex_init(&tr->mx, NULL) != 0)
         abort();
 }
 
