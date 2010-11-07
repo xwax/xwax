@@ -2,8 +2,10 @@ v0.8 (work in progress)
 -----------------------
 
 * 45 RPM control
+* Conversion of non-44100Hz MP3 files
+* Code cleanups and minor fixes
 
-Acknowledgements: Daniel Holbach, Matej Laitl
+Acknowledgements: Ewan Colsell, Robert Flechtner, Daniel Holbach, Matej Laitl
 
 v0.7 (2010-02-26)
 -----------------
