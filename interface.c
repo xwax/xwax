@@ -1167,6 +1167,10 @@ static bool handle_key(struct interface_t *in, struct selector_t *sel,
         selector_search_expand(sel);
         return true;
 
+    } else if (key == SDLK_PERIOD) {
+        selector_search_refine(sel, '.');
+        return true;
+
     } else if (key == SDLK_HOME) {
         selector_top(sel);
         return true;
