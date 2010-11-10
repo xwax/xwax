@@ -30,7 +30,7 @@ Scan the music library at the given path.
 
 .TP
 .B \-t \fIname\fR
-Use the named timecode for subsequent decks. See -h for a list of
+Use the named timecode for subsequent decks. See \-h for a list of
 valid timecodes. You will need the corresponding timecode signal on
 vinyl to control playback.
 
@@ -157,7 +157,7 @@ F4	F8	F12	Reconnect turntable control
 Audio display controls:
 
 .TP
-+, -
++, \-
 Zoom in/out the close-up audio meters for all decks.
 
 .SH EXAMPLES
@@ -166,56 +166,56 @@ Zoom in/out the close-up audio meters for all decks.
 2-deck setup using one directory of music and OSS devices:
 .sp
 .RS
-xwax -l ~/music -d /dev/dsp -d /dev/dsp1
+xwax \-l ~/music \-d /dev/dsp \-d /dev/dsp1
 .RE
 
 .P
 As above, but using ALSA devices:
 .sp
 .RS
-xwax -l ~/music -d hw:0 -d hw:1
+xwax \-l ~/music \-d hw:0 \-d hw:1
 .RE
 
 .P
 2-deck setup using a different timecode on each deck:
 .sp
 .RS
-xwax -l ~/music -t serato_2a -d hw:0 -t mixvibes_v2 -d hw:1
+xwax \-l ~/music \-t serato_2a \-d hw:0 \-t mixvibes_v2 \-d hw:1
 .RE
 
 .P
 As above, but with the second deck at 45 RPM:
 .sp
 .RS
-xwax -l ~/music -t serato_2a -d hw:0 -t mixvibes_v2 -45 -d hw:1
+xwax \-l ~/music \-t serato_2a \-d hw:0 \-t mixvibes_v2 \-45 \-d hw:1
 .RE
 
 .P
 3-deck setup with the third deck at a higher sample rate:
 .sp
 .RS
-xwax -l ~/music -r 48000 -a hw:0 -a hw:1 -r 96000 -a hw:2
+xwax \-l ~/music \-r 48000 \-a hw:0 \-a hw:1 \-r 96000 \-a hw:2
 .RE
 
 .P
 Using all three device types simultaneously, one deck on each:
 .sp
 .RS
-xwax -l ~/music -a hw:0 -d /dev/dsp1 -j jack0
+xwax \-l ~/music \-a hw:0 \-d /dev/dsp1 \-j jack0
 .RE
 
 .P
 Scan multiple music libraries:
 .sp
 .RS
-xwax -l ~/music -l ~/sounds -l ~/mixes -a hw:0
+xwax \-l ~/music \-l ~/sounds \-l ~/mixes \-a hw:0
 .RE
 
 .P
 Scan a second music library using a custom script:
 .sp
 .RS
-xwax -l ~/music -i ./custom-scan -l ~/sounds -a hw:0
+xwax \-l ~/music \-i ./custom-scan \-l ~/sounds \-a hw:0
 .RE
 
 .SH HOMEPAGE
