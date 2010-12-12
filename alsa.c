@@ -422,7 +422,7 @@ int alsa_init(struct device_t *dv, const char *device_name,
                 rate, buffer_time) < 0)
     {
         fputs("Failed to open device for playback.\n", stderr);
-        goto fail;
+        goto fail_capture;
     }
 
     dv->local = alsa;
@@ -430,6 +430,8 @@ int alsa_init(struct device_t *dv, const char *device_name,
 
     return 0;
 
+ fail_capture:
+    pcm_close(&alsa->capture);
  fail:
     free(alsa);
     return -1;
