@@ -22,7 +22,6 @@
 
 #include "track.h"
 
-#define PLAYER_RATE 44100
 #define PLAYER_CHANNELS 2
 
 struct player_t {
