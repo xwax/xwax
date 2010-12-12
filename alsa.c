@@ -146,18 +146,11 @@ static int pcm_open(struct alsa_pcm_t *alsa, const char *device_name,
 }
 
 
-static int pcm_close(struct alsa_pcm_t *alsa)
+static void pcm_close(struct alsa_pcm_t *alsa)
 {
-    int r;
-
-    r = snd_pcm_close(alsa->pcm);
-    if (r < 0) {
-        alsa_error("close", r);
-        return -1;
-    }
+    if (snd_pcm_close(alsa->pcm) < 0)
+        abort();
     free(alsa->buf);
-
-    return 0;
 }
 
 
