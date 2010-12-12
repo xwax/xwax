@@ -27,7 +27,7 @@
 #define PLAYER_CHANNELS 2
 
 struct player_t {
-    int reconnect; /* Re-sync the offset at next opportunity */
+    bool reconnect; /* Re-sync the offset at next opportunity */
 
     /* Current playback parameters */
 

@@ -137,7 +137,7 @@ static double build_pcm(signed short *pcm, int samples, int rate,
 
 void player_init(struct player_t *pl)
 {
-    pl->reconnect = 0;
+    pl->reconnect = false;
 
     pl->position = 0.0;
     pl->offset = 0.0;
@@ -161,7 +161,7 @@ void player_clear(struct player_t *pl)
 void player_connect_timecoder(struct player_t *pl, struct timecoder_t *tc)
 {
     pl->timecoder = tc;
-    pl->reconnect = 1;
+    pl->reconnect = true;
 }
 
 
@@ -244,7 +244,7 @@ void player_collect(struct player_t *pl, signed short *pcm,
         if (pl->reconnect) {
             pl->offset += pl->target_position - pl->position;
 	    pl->position = pl->target_position;
-            pl->reconnect = 0;
+            pl->reconnect = false;
         }
 
         /* Calculate the pitch compensation required to get us back on
