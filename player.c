@@ -141,7 +141,7 @@ void player_init(struct player_t *pl)
 
     pl->position = 0.0;
     pl->offset = 0.0;
-    pl->target_valid = 0;
+    pl->target_valid = false;
     pl->last_difference = 0.0;
 
     pl->pitch = 0.0;
@@ -192,12 +192,12 @@ static int sync_to_timecode(struct player_t *pl)
     /* If we can read an absolute time from the timecode, then use it */
     
     if (timecode == -1)
-	pl->target_valid = 0;
+	pl->target_valid = false;
 
     else {
         tcpos = (double)timecode / timecoder_get_resolution(pl->timecoder);
         pl->target_position = tcpos + pl->pitch * when;
-	pl->target_valid = 1;
+	pl->target_valid = true;
     }
 
     return 0;
@@ -271,7 +271,7 @@ void player_collect(struct player_t *pl, signed short *pcm,
 
         /* Acknowledge that we've accounted for the target position */
         
-        pl->target_valid = 0;
+        pl->target_valid = false;
     }
 
     target_volume = fabs(pl->pitch) * VOLUME;

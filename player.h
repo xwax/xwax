@@ -20,6 +20,8 @@
 #ifndef PLAYER_H
 #define PLAYER_H
 
+#include <stdbool.h>
+
 #include "track.h"
 
 #define PLAYER_CHANNELS 2
@@ -37,7 +39,7 @@ struct player_t {
         sync_pitch, /* pitch required to sync to timecode signal */
         volume;
 
-    int target_valid;
+    bool target_valid;
 
     struct track_t *track;
     struct timecoder_t *timecoder;
