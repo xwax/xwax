@@ -123,10 +123,8 @@ static int rig_realtime(struct rig_t *rig)
     sp.sched_priority = REALTIME_PRIORITY;
 
     if (sp.sched_priority > max_pri) {
-        fprintf(stderr, "Invalid scheduling priority (maximum %d).\n",
-                max_pri);
+        fprintf(stderr, "Invalid scheduling priority (maximum %d).\n", max_pri);
         return -1;
-
     }
     
     if (sched_setscheduler(0, SCHED_FIFO, &sp)) {
