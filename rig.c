@@ -78,10 +78,13 @@ static int rig_service(struct rig_t *rig)
         }
 
         r = poll(pt, pe - pt, -1);
-        
-        if (r == -1 && errno != EINTR) {
-            perror("poll");
-            return -1;
+        if (r == -1) {
+            if (errno == EINTR) {
+                continue;
+            } else {
+                perror("poll");
+                return -1;
+            }
         }
 
         /* If we were awakened, take the top byte off the event pipe */
@@ -135,10 +138,13 @@ static int rig_realtime(struct rig_t *rig)
 
     while (!rig->finished) {
         r = poll(rig->pt, rig->npt, -1);
-        
-        if (r == -1 && errno != EINTR) {
-            perror("poll");
-            return -1;
+        if (r == -1) {
+            if (errno == EINTR) {
+                continue;
+            } else {
+                perror("poll");
+                return -1;
+            }
         }
 
         for (n = 0; n < MAX_DEVICES; n++) {
