@@ -348,7 +348,7 @@ static int handle(struct device_t *dv)
             if (r == -EPIPE) {
                 fputs("ALSA: playback xrun.\n", stderr);
                 
-                r = snd_pcm_prepare(alsa->playback.pcm) < 0;
+                r = snd_pcm_prepare(alsa->playback.pcm);
                 if (r < 0) {
                     alsa_error("prepare", r);
                     return -1;
