@@ -224,7 +224,7 @@ int main(int argc, char *argv[])
         } else if (!strcmp(argv[0], "-d") || !strcmp(argv[0], "-a") ||
 		  !strcmp(argv[0], "-j"))
 	{
-	    unsigned int sample_rate;
+            unsigned int sample_rate;
 
             /* Create a deck */
 
