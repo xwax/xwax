@@ -28,15 +28,10 @@
 #include "rig.h"
 #include "track.h"
 
-#define REALTIME_PRIORITY 80
-
 
 int rig_init(struct rig_t *rig)
 {
     int n;
-
-    for (n = 0; n < MAX_DEVICES; n++)
-        rig->device[n] = NULL;
 
     for (n = 0; n < MAX_TRACKS; n++)
         rig->track[n] = NULL;
@@ -101,55 +96,6 @@ static int rig_service(struct rig_t *rig)
 }
 
 
-static int rig_realtime(struct rig_t *rig)
-{
-    int r, n, max_pri;
-    struct sched_param sp;
-
-    /* Setup the POSIX scheduler */
-    
-    fprintf(stderr, "Setting scheduler priority...\n");
-    
-    if (sched_getparam(0, &sp)) {
-        perror("sched_getparam");
-        return -1;
-    }
-    
-    max_pri = sched_get_priority_max(SCHED_FIFO);
-    sp.sched_priority = REALTIME_PRIORITY;
-
-    if (sp.sched_priority > max_pri) {
-        fprintf(stderr, "Invalid scheduling priority (maximum %d).\n", max_pri);
-        return -1;
-    }
-    
-    if (sched_setscheduler(0, SCHED_FIFO, &sp)) {
-        perror("sched_setscheduler");
-        fprintf(stderr, "Failed to set scheduler. Run as root otherwise you "
-                "may get wow and skips!\n");
-    }
-
-    while (!rig->finished) {
-        r = poll(rig->pt, rig->npt, -1);
-        if (r == -1) {
-            if (errno == EINTR) {
-                continue;
-            } else {
-                perror("poll");
-                return -1;
-            }
-        }
-
-        for (n = 0; n < MAX_DEVICES; n++) {
-            if (rig->device[n])
-                device_handle(rig->device[n]);
-        }
-    }
-
-    return 0;
-}
-
-
 static void* service(void *p)
 {
     rig_service(p);
@@ -157,18 +103,9 @@ static void* service(void *p)
 }
 
 
-static void* realtime(void *p)
-{
-    rig_realtime(p);
-    return p;
-}
-
-
 int rig_start(struct rig_t *rig)
 {
-    int r, n;
-    struct pollfd *pe, *pm;
-    struct device_t *dv;
+    int n;
 
     rig->finished = false;
 
@@ -186,51 +123,11 @@ int rig_start(struct rig_t *rig)
         return -1;
     }
 
-    if (pthread_create(&rig->pt_service, NULL, service, (void*)rig)) {
+    if (pthread_create(&rig->ph, NULL, service, (void*)rig)) {
         perror("pthread_create");
         return -1;
     }
 
-    /* The requested poll events never change, so populate the poll
-     * entry table before entering the realtime thread */
-
-    pe = rig->pt;
-    pm = rig->pt + MAX_DEVICE_POLLFDS;
-
-    for (n = 0; n < MAX_DEVICES; n++) {
-        dv = rig->device[n];
-        
-        if (!dv)
-            continue;
-        
-        r = device_pollfds(dv, pe, pm - pe);
-        if (r == -1) {
-            fprintf(stderr, "Device failed to return file descriptors.\n");
-            return -1;
-        }
-
-        pe += r;
-
-        /* Start the audio rolling on the device */
-
-        if (device_start(dv) == -1)
-            return -1;
-    }
-
-    rig->npt = pe - rig->pt;
-
-    /* If there are any devices which returned file descriptors for
-     * poll() then launch the realtime thread to handle them */
-
-    if (rig->npt > 0) {
-        fprintf(stderr, "Launching realtime thread to handle devices...\n");
-
-        if (pthread_create(&rig->pt_realtime, NULL, realtime, (void*)rig)) {
-            perror("pthread_create");
-            return -1;
-        }
-    }
-    
     return 0;
 }
 
@@ -252,27 +149,10 @@ int rig_awaken(struct rig_t *rig)
 
 int rig_stop(struct rig_t *rig)
 {
-    int n;
-
     rig->finished = true;
-
-    if (rig->npt > 0) {
-        if (pthread_join(rig->pt_realtime, NULL) != 0) {
-            perror("pthread_join");
-            return -1;
-        }
-    }
-
-    /* Stop audio rolling on devices */
-
-    for (n = 0; n < MAX_DEVICES; n++) {
-        if (rig->device[n])
-            device_stop(rig->device[n]);
-    }
-
     rig_awaken(rig);
 
-    if (pthread_join(rig->pt_service, NULL) != 0) {
+    if (pthread_join(rig->ph, NULL) != 0) {
         perror("pthread_join");
         return -1;
     }

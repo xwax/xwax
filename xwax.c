@@ -31,6 +31,7 @@
 #include "library.h"
 #include "oss.h"
 #include "player.h"
+#include "realtime.h"
 #include "rig.h"
 #include "timecoder.h"
 #include "track.h"
@@ -106,6 +107,7 @@ int main(int argc, char *argv[])
     struct timecoder_t timecoder[MAX_DECKS];
 
     struct rig_t rig;
+    struct rt_t rt;
     struct interface_t iface;
     struct library_t library;
     
@@ -297,7 +299,6 @@ int main(int argc, char *argv[])
             iface.timecoder[decks] = &timecoder[decks];
             iface.player[decks] = &player[decks];
 
-            rig.device[decks] = &device[decks];
             rig.track[decks] = &track[decks];
 
             decks++;
@@ -396,6 +397,8 @@ int main(int argc, char *argv[])
     fprintf(stderr, "Starting threads...\n");
     if (rig_start(&rig) == -1)
         return -1;
+    if (rt_start(&rt, device, decks) == -1)
+        return -1;
 
     fprintf(stderr, "Entering interface...\n");
     iface.library = &library;
@@ -403,6 +406,7 @@ int main(int argc, char *argv[])
     
     fprintf(stderr, "Exiting cleanly...\n");
 
+    rt_stop(&rt);
     if (rig_stop(&rig) == -1)
         return -1;
     

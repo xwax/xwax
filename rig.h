@@ -29,17 +29,11 @@
 
 struct rig_t {
     bool finished;
-    pthread_t pt_realtime, pt_service;
+    pthread_t ph;
 
-    struct device_t *device[MAX_DEVICES];
     struct track_t *track[MAX_TRACKS];
 
     int event[2]; /* pipe to wake up service thread */
-
-    /* Poll table for devices */
-    
-    int npt;
-    struct pollfd pt[MAX_DEVICE_POLLFDS];
 };
 
 int rig_init(struct rig_t *rig);
