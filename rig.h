@@ -22,8 +22,6 @@
 
 #define MAX_DEVICES 4
 #define MAX_TRACKS 8
-#define MAX_PLAYERS 4
-#define MAX_TIMECODERS 4
 
 #define MAX_DEVICE_POLLFDS 32
 
@@ -33,8 +31,6 @@ struct rig_t {
 
     struct device_t *device[MAX_DEVICES];
     struct track_t *track[MAX_TRACKS];
-    struct player_t *player[MAX_PLAYERS];
-    struct timecoder_t *timecoder[MAX_TIMECODERS];
 
     int event[2]; /* pipe to wake up service thread */
 

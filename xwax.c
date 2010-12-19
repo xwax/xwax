@@ -94,8 +94,6 @@ static void connect_deck_to_rig(struct rig_t *rig, int n, struct deck_t *deck)
 {
     rig->device[n] = &deck->device;
     rig->track[n] = &deck->track;
-    rig->player[n] = &deck->player;
-    rig->timecoder[n] = &deck->timecoder;
 }
 
 

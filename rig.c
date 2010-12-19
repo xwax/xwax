@@ -25,7 +25,6 @@
 #include <sys/poll.h>
 
 #include "device.h"
-#include "player.h"
 #include "rig.h"
 #include "track.h"
 
@@ -41,12 +40,6 @@ int rig_init(struct rig_t *rig)
 
     for (n = 0; n < MAX_TRACKS; n++)
         rig->track[n] = NULL;
-    
-    for (n = 0; n < MAX_PLAYERS; n++)
-        rig->player[n] = NULL;
-    
-    for (n = 0; n < MAX_TIMECODERS; n++)
-        rig->timecoder[n] = NULL;
 
     return 0;
 }
