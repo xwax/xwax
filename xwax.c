@@ -50,53 +50,6 @@
 #define DEFAULT_TIMECODE "serato_2a"
 
 
-/* We don't use the full flexibility of a rig, and just have a direct
- * correspondence between a device, track, player and timecoder */
-
-struct deck_t {
-    struct device_t device;
-    struct track_t track;
-    struct player_t player;
-    struct timecoder_t timecoder;
-};
-
-
-static int deck_init(struct deck_t *deck, const char *timecode, double speed,
-                     const char *importer, unsigned int sample_rate)
-{
-    if (timecoder_init(&deck->timecoder, timecode, speed, sample_rate) == -1)
-        return -1;
-    track_init(&deck->track, importer);
-    player_init(&deck->player);
-    player_connect_track(&deck->player, &deck->track);    
-    return 0;
-}
-
-
-static void deck_clear(struct deck_t *deck)
-{
-    track_clear(&deck->track);
-    timecoder_clear(&deck->timecoder);
-    player_clear(&deck->player);
-    device_clear(&deck->device);
-}
-
-
-static void connect_deck_to_interface(struct interface_t *iface, int n,
-                                      struct deck_t *deck)
-{
-    iface->timecoder[n] = &deck->timecoder;
-    iface->player[n] = &deck->player;
-}
-
-
-static void connect_deck_to_rig(struct rig_t *rig, int n, struct deck_t *deck)
-{
-    rig->device[n] = &deck->device;
-    rig->track[n] = &deck->track;
-}
-
-
 static void usage(FILE *fd)
 {
     fprintf(fd, "Usage: xwax [<options>]\n\n"
@@ -147,7 +100,11 @@ int main(int argc, char *argv[])
     char *endptr, *timecode, *importer, *scanner;
     double speed;
 
-    struct deck_t deck[MAX_DECKS];
+    struct device_t device[MAX_DECKS];
+    struct track_t track[MAX_DECKS];
+    struct player_t player[MAX_DECKS];
+    struct timecoder_t timecoder[MAX_DECKS];
+
     struct rig_t rig;
     struct interface_t iface;
     struct library_t library;
@@ -268,7 +225,6 @@ int main(int argc, char *argv[])
 		  !strcmp(argv[0], "-j"))
 	{
 	    unsigned int sample_rate;
-            struct device_t *device;
 
             /* Create a deck */
 
@@ -289,23 +245,22 @@ int main(int argc, char *argv[])
             /* Work out which device type we are using, and initialise
              * an appropriate device. */
 
-            device = &deck[decks].device;
-
             switch(argv[0][1]) {
 
 #ifdef WITH_OSS
             case 'd':
-                r = oss_init(device, argv[1], rate, oss_buffers, oss_fragment);
+                r = oss_init(&device[decks], argv[1], rate,
+                             oss_buffers, oss_fragment);
                 break;
 #endif
 #ifdef WITH_ALSA
             case 'a':
-                r = alsa_init(device, argv[1], rate, alsa_buffer);
+                r = alsa_init(&device[decks], argv[1], rate, alsa_buffer);
                 break;
 #endif
 #ifdef WITH_JACK
             case 'j':
-                r = jack_init(device, argv[1]);
+                r = jack_init(&device[decks], argv[1]);
                 break;
 #endif
             default:
@@ -319,23 +274,31 @@ int main(int argc, char *argv[])
 
 	    sample_rate = device_sample_rate(device);
 
-            if (deck_init(&deck[decks], timecode, speed,
-                          importer, sample_rate) == -1)
+            if (timecoder_init(&timecoder[decks], timecode,
+                               speed, sample_rate) == -1)
             {
                 return -1;
             }
 
+            track_init(&track[decks], importer);
+            player_init(&player[decks]);
+            player_connect_track(&player[decks], &track[decks]);
+            player_connect_timecoder(&player[decks], &timecoder[decks]);
+
             /* The timecoder and player are driven by requests from
              * the audio device */
             
-            device_connect_timecoder(device, &deck[decks].timecoder);
-            device_connect_player(device, &deck[decks].player);
+            device_connect_timecoder(&device[decks], &timecoder[decks]);
+            device_connect_player(&device[decks], &player[decks]);
 
             /* The rig and interface keep track of everything whilst
              * the program is running */
 
-            connect_deck_to_interface(&iface, decks, &deck[decks]);
-            connect_deck_to_rig(&rig, decks, &deck[decks]);
+            iface.timecoder[decks] = &timecoder[decks];
+            iface.player[decks] = &player[decks];
+
+            rig.device[decks] = &device[decks];
+            rig.track[decks] = &track[decks];
 
             decks++;
             
@@ -430,12 +393,6 @@ int main(int argc, char *argv[])
     iface.players = decks;
     iface.timecoders = decks;
 
-    /* Connect everything up. Do this after selecting a timecode and
-     * built the lookup tables. */
-
-    for (n = 0; n < decks; n++)
-        player_connect_timecoder(&deck[n].player, &deck[n].timecoder);
-
     fprintf(stderr, "Starting threads...\n");
     if (rig_start(&rig) == -1)
         return -1;
@@ -449,8 +406,12 @@ int main(int argc, char *argv[])
     if (rig_stop(&rig) == -1)
         return -1;
     
-    for (n = 0; n < decks; n++)
-        deck_clear(&deck[n]);
+    for (n = 0; n < decks; n++) {
+        track_clear(&track[n]);
+        timecoder_clear(&timecoder[n]);
+        player_clear(&player[n]);
+        device_clear(&device[n]);
+    }
     
     timecoder_free_lookup();
     library_clear(&library);
