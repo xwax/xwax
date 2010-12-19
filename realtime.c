@@ -17,7 +17,8 @@
 
 static int rt_main(struct rt_t *rt)
 {
-    int r, n, max_pri;
+    int r, max_pri;
+    size_t n;
     struct sched_param sp;
 
     /* Setup the POSIX scheduler */
