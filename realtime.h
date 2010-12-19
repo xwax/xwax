@@ -18,7 +18,7 @@ struct rt_t {
     size_t ndv;
     struct device_t *dv[MAX_DEVICES];
 
-    int npt;
+    size_t npt;
     struct pollfd pt[MAX_DEVICE_POLLFDS];
 };
 
