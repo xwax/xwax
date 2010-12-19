@@ -151,7 +151,6 @@ int main(int argc, char *argv[])
     struct rig_t rig;
     struct interface_t iface;
     struct library_t library;
-    struct device_t *device;
     
     fprintf(stderr, BANNER "\n\n" NOTICE "\n\n");
     
@@ -269,6 +268,7 @@ int main(int argc, char *argv[])
 		  !strcmp(argv[0], "-j"))
 	{
 	    unsigned int sample_rate;
+            struct device_t *device;
 
             /* Create a deck */
 
