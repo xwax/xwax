@@ -170,7 +170,7 @@ int rig_start(struct rig_t *rig)
     struct pollfd *pe, *pm;
     struct device_t *dv;
 
-    rig->finished = 0;
+    rig->finished = false;
 
     /* Register ourselves with the tracks we are looking after */
 
@@ -254,7 +254,7 @@ int rig_stop(struct rig_t *rig)
 {
     int n;
 
-    rig->finished = 1;
+    rig->finished = true;
 
     if (rig->npt > 0) {
         if (pthread_join(rig->pt_realtime, NULL) != 0) {

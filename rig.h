@@ -20,13 +20,15 @@
 #ifndef RIG_H
 #define RIG_H
 
+#include <stdbool.h>
+
 #define MAX_DEVICES 4
 #define MAX_TRACKS 8
 
 #define MAX_DEVICE_POLLFDS 32
 
 struct rig_t {
-    int finished;
+    bool finished;
     pthread_t pt_realtime, pt_service;
 
     struct device_t *device[MAX_DEVICES];
