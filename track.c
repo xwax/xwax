@@ -142,6 +142,33 @@ static void abort_import(struct track_t *tr)
 }
 
 
+/* Allocate more memory. Returns 0 on success otherwise -1 and errno
+ * is set to ENOMEM */
+
+static int more_space(struct track_t *tr)
+{
+    struct track_block_t *block;
+
+    if (tr->blocks >= TRACK_MAX_BLOCKS) {
+        fprintf(stderr, "Maximum track length reached.\n");
+        return -1;
+    }
+
+    block = malloc(sizeof(struct track_block_t));
+    if (block == NULL) {
+        perror("malloc");
+        return -1;
+    }
+
+    tr->block[tr->blocks++] = block;
+
+    fprintf(stderr, "Allocated new track block (%d blocks, %zu bytes).\n",
+            tr->blocks, tr->blocks * TRACK_BLOCK_SAMPLES * SAMPLE);
+
+    return 0;
+}
+
+
 /* Read the next block of data from the file. Return -1 when an error
  * occurs and requires our attention, 1 if there is no more data to be
  * read, otherwise zero. */
@@ -157,22 +184,8 @@ static int read_from_pipe(struct track_t *tr)
     /* Check whether we need to allocate a new block */
     
     if (tr->bytes >= (size_t)tr->blocks * TRACK_BLOCK_SAMPLES * SAMPLE) {
-
-        if (tr->blocks >= TRACK_MAX_BLOCKS) {
-            fprintf(stderr, "Maximum track length reached; aborting...\n");
+        if (more_space(tr) == -1)
             return -1;
-        }
-                
-        block = malloc(sizeof(struct track_block_t));
-        if (!block) {
-            perror("malloc");
-            return -1;
-        }
-
-        tr->block[tr->blocks++] = block;
-
-        fprintf(stderr, "Allocated new track block (%d at %zu bytes).\n",
-                tr->blocks, tr->bytes);
     }
 
     /* Load in audio to the end of the current block. We've just
