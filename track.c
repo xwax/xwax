@@ -33,6 +33,7 @@
 #include "track.h"
 
 #define SAMPLE 4 /* bytes per sample (all channels) */
+#define TRACK_BLOCK_PCM_BYTES (TRACK_BLOCK_SAMPLES * SAMPLE)
 
 #define LOCK(tr) pthread_mutex_lock(&(tr)->mx)
 #define UNLOCK(tr) pthread_mutex_unlock(&(tr)->mx)
@@ -169,58 +170,50 @@ static int more_space(struct track_t *tr)
 }
 
 
-/* Read the next block of data from the file. Return -1 when an error
- * occurs and requires our attention, 1 if there is no more data to be
- * read, otherwise zero. */
+/* Ask for a pointer to the PCM buffer for incoming audio. On return,
+ * *len is set to the buffer length in bytes */
 
-static int read_from_pipe(struct track_t *tr)
+static void* access_pcm_data(struct track_t *tr, size_t *len)
 {
-    int r, ls, used;
-    size_t m;
-    unsigned short v;
-    unsigned int s, w;
+    unsigned int block;
+    size_t fill;
+
+    block = tr->bytes / TRACK_BLOCK_PCM_BYTES;
+    if (block == tr->blocks) {
+        if (more_space(tr) == -1)
+            return NULL;
+    }
+
+    fill = tr->bytes % TRACK_BLOCK_PCM_BYTES;
+    *len = TRACK_BLOCK_PCM_BYTES - fill;
+
+    return (void*)tr->block[block]->pcm + fill;
+}
+
+
+/* Notify that audio has been placed in the buffer, giving the
+ * number of stereo samples */
+
+static void commit_pcm_samples(struct track_t *tr, unsigned int samples)
+{
+    unsigned int fill;
+    signed short *pcm;
     struct track_block_t *block;
 
-    /* Check whether we need to allocate a new block */
-    
-    if (tr->bytes >= (size_t)tr->blocks * TRACK_BLOCK_SAMPLES * SAMPLE) {
-        if (more_space(tr) == -1)
-            return -1;
-    }
+    block = tr->block[tr->length / TRACK_BLOCK_SAMPLES];
+    fill = tr->length % TRACK_BLOCK_SAMPLES;
+    pcm = block->pcm + TRACK_CHANNELS * fill;
 
-    /* Load in audio to the end of the current block. We've just
-     * allocated a new one if needed, so no possibility of read()
-     * returning zero, except for EOF */
+    assert(samples <= TRACK_BLOCK_SAMPLES - fill);
+    tr->length += samples;
 
-    block = tr->block[tr->bytes / (TRACK_BLOCK_SAMPLES * SAMPLE)];
-    used = tr->bytes % (TRACK_BLOCK_SAMPLES * SAMPLE);
-    
-    r = read(tr->fd, (char*)block->pcm + used,
-             TRACK_BLOCK_SAMPLES * SAMPLE - used);
+    /* Meter the new audio */
 
-    if (r == -1) {
-        if (errno == EAGAIN)
-            return 0;
-        perror("read");
-        return -1;
+    while (samples > 0) {
+        unsigned short v;
+        unsigned int w;
 
-    } else if (r == 0) {
-        m = TRACK_BLOCK_SAMPLES * SAMPLE * tr->blocks / 1024;
-        fprintf(stderr, "Track memory %zuKb PCM, %zuKb PPM, %zuKb overview.\n",
-                m, m / TRACK_PPM_RES, m / TRACK_OVERVIEW_RES);
-
-        return 1;
-    }
-    
-    tr->bytes += r;
-
-    /* Meter the audio which has just been read */
-    
-    for (s = tr->length; s < tr->bytes / SAMPLE; s++) {
-        ls = s % TRACK_BLOCK_SAMPLES;
-        
-        v = (abs(block->pcm[ls * TRACK_CHANNELS])
-             + abs(block->pcm[ls * TRACK_CHANNELS + 1]));
+        v = abs(pcm[0]) + abs(pcm[1]);
 
         /* PPM-style fast meter approximation */
 
@@ -228,25 +221,77 @@ static int read_from_pipe(struct track_t *tr)
             tr->ppm += (v - tr->ppm) >> 3;
         else
             tr->ppm -= (tr->ppm - v) >> 9;
-        
-        block->ppm[ls / TRACK_PPM_RES] = tr->ppm >> 8;
-        
+
+        block->ppm[fill / TRACK_PPM_RES] = tr->ppm >> 8;
+
         /* Update the slow-metering overview. Fixed point arithmetic
          * going on here */
 
         w = v << 16;
-        
+
         if (w > tr->overview)
             tr->overview += (w - tr->overview) >> 8;
         else
             tr->overview -= (tr->overview - w) >> 17;
 
-        block->overview[ls / TRACK_OVERVIEW_RES] = tr->overview >> 24;
-    }
-    
-    tr->length = s;
+        block->overview[fill / TRACK_OVERVIEW_RES] = tr->overview >> 24;
 
-    return 0;
+        fill++;
+        pcm += TRACK_CHANNELS;
+        samples--;
+    }
+}
+
+
+/* Notify that bytes of data have been placed in the buffer. Commit in
+ * whole samples, and leave any residual in the buffer ready for next
+ * time */
+
+static void commit_bytes(struct track_t *tr, size_t len)
+{
+    tr->bytes += len;
+    commit_pcm_samples(tr, tr->bytes / SAMPLE - tr->length);
+}
+
+
+/* Read the next block of data from the file. Return -1 when an error
+ * occurs and requires our attention, 1 if there is no more data to be
+ * read, otherwise zero. */
+
+static int read_from_pipe(struct track_t *tr)
+{
+    size_t m;
+
+    for (;;) {
+        void *pcm;
+        size_t len;
+        ssize_t z;
+
+        pcm = access_pcm_data(tr, &len);
+        if (pcm == NULL)
+            return -1;
+
+        z = read(tr->fd, pcm, len);
+        if (z == -1) {
+            if (errno == EAGAIN) {
+                return 0;
+            } else {
+                perror("read");
+                return -1;
+            }
+        }
+
+        if (z == 0) /* EOF */
+            break;
+
+        commit_bytes(tr, z);
+    }
+
+    m = TRACK_BLOCK_SAMPLES * SAMPLE * tr->blocks / 1024;
+    fprintf(stderr, "Track memory %zuKb PCM, %zuKb PPM, %zuKb overview.\n",
+            m, m / TRACK_PPM_RES, m / TRACK_OVERVIEW_RES);
+
+    return 1;
 }
 
 
