@@ -126,6 +126,9 @@ int rt_start(struct rt_t *rt, struct device_t *dv, size_t ndv)
         }
     }
 
+    /* FIXME: To avoid audio drop on startup, devices should be
+     * started here, after synchronising with the realtime thread */
+
     return 0;
 }
 
