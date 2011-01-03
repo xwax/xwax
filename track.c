@@ -143,8 +143,7 @@ static void abort_import(struct track_t *tr)
 }
 
 
-/* Allocate more memory. Returns 0 on success otherwise -1 and errno
- * is set to ENOMEM */
+/* Allocate more memory. Returns 0 on success otherwise -1 */
 
 static int more_space(struct track_t *tr)
 {
