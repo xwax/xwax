@@ -32,7 +32,7 @@
 
 #include "track.h"
 
-#define SAMPLE 4 /* bytes per sample (all channels) */
+#define SAMPLE (sizeof(signed short) * TRACK_CHANNELS) /* bytes per sample */
 #define TRACK_BLOCK_PCM_BYTES (TRACK_BLOCK_SAMPLES * SAMPLE)
 
 #define LOCK(tr) pthread_mutex_lock(&(tr)->mx)
