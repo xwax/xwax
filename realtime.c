@@ -111,10 +111,7 @@ int rt_start(struct rt_t *rt, struct device_t *dv, size_t ndv)
         rt->dv[rt->ndv] = &dv[n];
         rt->ndv++;
 
-        /* Start the audio rolling on the device */
-
-        if (device_start(&dv[n]) == -1)
-            return -1;
+        device_start(&dv[n]);
     }
 
     /* If there are any devices which returned file descriptors for

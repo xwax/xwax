@@ -17,6 +17,8 @@
  *
  */
 
+#include <stddef.h>
+
 #include "device.h"
 
 
@@ -42,23 +44,19 @@ unsigned int device_sample_rate(struct device_t *dv)
 
 /* Start the device inputting and outputting audio */
 
-int device_start(struct device_t *dv)
+void device_start(struct device_t *dv)
 {
-    if (dv->type->start)
-        return dv->type->start(dv);
-    else
-        return 0;
+    if (dv->type->start != NULL)
+        dv->type->start(dv);
 }
 
 
 /* Stop the device */
 
-int device_stop(struct device_t *dv)
+void device_stop(struct device_t *dv)
 {
-    if (dv->type->stop)
-        return dv->type->stop(dv);
-    else
-        return 0;
+    if (dv->type->stop != NULL)
+        dv->type->stop(dv);
 }
 
 

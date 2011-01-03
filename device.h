@@ -38,8 +38,8 @@ struct device_type_t {
     int (*handle)(struct device_t *dv);
 
     unsigned int (*sample_rate)(struct device_t *dv);
-    int (*start)(struct device_t *dv);
-    int (*stop)(struct device_t *dv);
+    void (*start)(struct device_t *dv);
+    void (*stop)(struct device_t *dv);
 
     void (*clear)(struct device_t *dv);
 };
@@ -49,8 +49,8 @@ void device_connect_player(struct device_t *dv, struct player_t *pl);
 
 unsigned int device_sample_rate(struct device_t *dv);
 
-int device_start(struct device_t *dv);
-int device_stop(struct device_t *dv);
+void device_start(struct device_t *dv);
+void device_stop(struct device_t *dv);
 
 void device_clear(struct device_t *dv);
 

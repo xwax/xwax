@@ -231,29 +231,25 @@ static unsigned int sample_rate(struct device_t *dv)
 
 /* Start audio rolling on this deck */
 
-static int start(struct device_t *dv)
+static void start(struct device_t *dv)
 {
     struct jack_t *jack = (struct jack_t*)dv->local;
 
     /* On the first call to start, start audio rolling for all decks */
 
     if (started == 0) {
-        if (jack_activate(client) != 0) {
-            fprintf(stderr, "jack_activate: Failed\n");
-            return -1;
-        }
+        if (jack_activate(client) != 0)
+            abort();
     }
 
     started++;
     jack->started = 1;
-
-    return 0;
 }
 
 
 /* Stop audio rolling on this deck */
 
-static int stop(struct device_t *dv)
+static void stop(struct device_t *dv)
 {
     struct jack_t *jack = (struct jack_t*)dv->local;
 
@@ -263,13 +259,9 @@ static int stop(struct device_t *dv)
     /* On the final stop call, stop JACK rolling */
 
     if (started == 0) {
-        if (jack_deactivate(client) != 0) {
-            fprintf(stderr, "jack_deactivate: Failed\n");
-            return -1;
-        }
+        if (jack_deactivate(client) != 0)
+            abort();
     }
-
-    return 0;
 }
 
 

@@ -196,18 +196,13 @@ static int pcm_revents(struct alsa_pcm_t *alsa, unsigned short *revents) {
 
 /* Start the audio device capture and playback */
 
-static int start(struct device_t *dv)
+static void start(struct device_t *dv)
 {
     int r;
     struct alsa_t *alsa = (struct alsa_t*)dv->local;
 
-    r = snd_pcm_start(alsa->capture.pcm);
-    if (r < 0) {
-        alsa_error("start", r);
-        return -1;
-    }
-
-    return 0;
+    if (snd_pcm_start(alsa->capture.pcm) < 0)
+        abort();
 }
 
 
