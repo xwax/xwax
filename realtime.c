@@ -10,18 +10,15 @@
 #define REALTIME_PRIORITY 80
 
 /*
- * The realtime thread
+ * Raise the priority of the current thread
  *
- * Return: 0 on completion, -1 on premature termination
+ * Return: -1 if priority could not be satisfactorily raised, otherwise 0
  */
 
-static int rt_main(struct rt_t *rt)
+static int raise_priority()
 {
-    int r, max_pri;
-    size_t n;
+    int max_pri;
     struct sched_param sp;
-
-    /* Setup the POSIX scheduler */
 
     fprintf(stderr, "Setting scheduler priority...\n");
 
@@ -43,6 +40,23 @@ static int rt_main(struct rt_t *rt)
         fprintf(stderr, "Failed to set scheduler. Run as root otherwise you "
                 "may get wow and skips!\n");
     }
+
+    return 0;
+}
+
+/*
+ * The realtime thread
+ *
+ * Return: 0 on completion, -1 on premature termination
+ */
+
+static int rt_main(struct rt_t *rt)
+{
+    int r;
+    size_t n;
+
+    if (raise_priority() == -1)
+        return -1;
 
     while (!rt->finished) {
         r = poll(rt->pt, rt->npt, -1);
