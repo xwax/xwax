@@ -77,6 +77,8 @@ static void* launch(void *p)
 
 int rt_start(struct rt_t *rt, struct device_t *dv, size_t ndv)
 {
+    size_t n;
+
     rt->finished = false;
     rt->ndv = 0;
     rt->npt = 0;
@@ -84,10 +86,11 @@ int rt_start(struct rt_t *rt, struct device_t *dv, size_t ndv)
     /* The requested poll events never change, so populate the poll
      * entry table before entering the realtime thread */
 
-    while (ndv > 0) {
+    for (n = 0; n < ndv; n++) {
         ssize_t z;
 
-        z = device_pollfds(dv, &rt->pt[rt->npt], MAX_DEVICE_POLLFDS - rt->npt);
+        z = device_pollfds(&dv[n], &rt->pt[rt->npt],
+                           MAX_DEVICE_POLLFDS - rt->npt);
         if (z == -1) {
             fprintf(stderr, "Device failed to return file descriptors.\n");
             return -1;
@@ -95,16 +98,13 @@ int rt_start(struct rt_t *rt, struct device_t *dv, size_t ndv)
 
         rt->npt += z;
 
-        rt->dv[rt->ndv] = dv;
+        rt->dv[rt->ndv] = &dv[n];
         rt->ndv++;
 
         /* Start the audio rolling on the device */
 
-        if (device_start(dv) == -1)
+        if (device_start(&dv[n]) == -1)
             return -1;
-
-        ndv--;
-        dv++;
     }
 
     /* If there are any devices which returned file descriptors for
