@@ -46,17 +46,15 @@ static int raise_priority()
 
 /*
  * The realtime thread
- *
- * Return: 0 on completion, -1 on premature termination
  */
 
-static int rt_main(struct rt_t *rt)
+static void rt_main(struct rt_t *rt)
 {
     int r;
     size_t n;
 
     if (raise_priority() == -1)
-        return -1;
+        return;
 
     while (!rt->finished) {
         r = poll(rt->pt, rt->npt, -1);
@@ -65,21 +63,19 @@ static int rt_main(struct rt_t *rt)
                 continue;
             } else {
                 perror("poll");
-                return -1;
+                return;
             }
         }
 
         for (n = 0; n < rt->ndv; n++)
             device_handle(rt->dv[n]);
     }
-
-    return 0;
 }
 
 static void* launch(void *p)
 {
     rt_main(p);
-    return p;
+    return NULL;
 }
 
 /*
