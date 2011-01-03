@@ -91,8 +91,5 @@ ssize_t device_pollfds(struct device_t *dv, struct pollfd *pe, size_t z)
 
 int device_handle(struct device_t *dv)
 {
-    if (dv->type->handle)
-        return dv->type->handle(dv);
-    else
-        return 0;
+    return dv->type->handle(dv);
 }
