@@ -208,7 +208,6 @@ static int pcm_revents(struct alsa_pcm_t *alsa, unsigned short *revents) {
 
 static void start(struct device_t *dv)
 {
-    int r;
     struct alsa_t *alsa = (struct alsa_t*)dv->local;
 
     if (snd_pcm_start(alsa->capture.pcm) < 0)
