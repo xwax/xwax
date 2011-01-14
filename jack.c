@@ -83,9 +83,8 @@ static void uninterleave(jack_default_audio_sample_t *jbuf[],
 static void process_deck(struct device_t *dv, jack_nframes_t nframes)
 {
     int n;
-    signed short buf[MAX_BLOCK * DEVICE_CHANNELS];
     jack_default_audio_sample_t *in[DEVICE_CHANNELS], *out[DEVICE_CHANNELS];
-    jack_nframes_t remain, block;
+    jack_nframes_t remain;
     struct jack_t *jack = (struct jack_t*)dv->local;
 
     for (n = 0; n < DEVICE_CHANNELS; n++) {
@@ -100,6 +99,9 @@ static void process_deck(struct device_t *dv, jack_nframes_t nframes)
 
     remain = nframes;
     while (remain > 0) {
+        signed short buf[MAX_BLOCK * DEVICE_CHANNELS];
+        jack_nframes_t block;
+
         if (remain < MAX_BLOCK)
             block = remain;
         else
