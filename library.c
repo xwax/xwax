@@ -31,6 +31,8 @@
 
 #include "library.h"
 
+#define CRATE_ALL "All records"
+
 
 int library_init(struct library_t *li)
 {

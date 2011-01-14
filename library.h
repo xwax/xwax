@@ -24,8 +24,6 @@
 
 #include "listing.h"
 
-#define CRATE_ALL "All records"
-
 struct crate_t {
     bool is_fixed;
     char *name;
