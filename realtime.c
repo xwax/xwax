@@ -133,6 +133,10 @@ int rt_start(struct rt_t *rt, struct device_t *dv, size_t ndv)
     return 0;
 }
 
+/*
+ * Stop realtime handling, which was previously started by rt_start()
+ */
+
 void rt_stop(struct rt_t *rt)
 {
     size_t n;
