@@ -24,11 +24,15 @@
 
 #include "listing.h"
 
+/* A single crate of records */
+
 struct crate_t {
     bool is_fixed;
     char *name;
     struct listing_t listing;
 };
+
+/* The complete music library, which consists of multiple crates */
 
 struct library_t {
     struct listing_t storage;
