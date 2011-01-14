@@ -54,8 +54,8 @@
 static void usage(FILE *fd)
 {
     fprintf(fd, "Usage: xwax [<options>]\n\n"
-      "  -l <directory> Directory to scan for audio tracks\n"
-      "  -p <playlist>  Ordered playlist for audio tracks\n"
+      "  -l <path>      Location to scan for audio tracks\n"
+      "  -p <path>      Ordered playlist for audio tracks\n"
       "  -t <name>      Timecode name\n"
       "  -33            Use timecode at 33.3RPM (default)\n"
       "  -45            Use timecode at 45RPM\n"
