@@ -118,6 +118,16 @@ static int pcm_open(struct alsa_pcm_t *alsa, const char *device_name,
         return -1;
     }
 
+    p = 2; /* double buffering */
+    dir = 1;
+    r = snd_pcm_hw_params_set_periods_min(alsa->pcm, hw_params, &p, &dir);
+    if (r < 0) {
+        alsa_error("hw_params_set_periods_min", r);
+        fprintf(stderr, "Buffer of %dms may be too small for this hardware.\n",
+                buffer_time);
+        return -1;
+    }
+
     r = snd_pcm_hw_params(alsa->pcm, hw_params);
     if (r < 0) {
         alsa_error("hw_params", r);
