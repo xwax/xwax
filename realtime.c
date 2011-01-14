@@ -110,8 +110,6 @@ int rt_start(struct rt_t *rt, struct device_t *dv, size_t ndv)
 
         rt->dv[rt->ndv] = &dv[n];
         rt->ndv++;
-
-        device_start(&dv[n]);
     }
 
     /* If there are any devices which returned file descriptors for
@@ -127,7 +125,10 @@ int rt_start(struct rt_t *rt, struct device_t *dv, size_t ndv)
     }
 
     /* FIXME: To avoid audio drop on startup, devices should be
-     * started here, after synchronising with the realtime thread */
+     * started after synchronising with the realtime thread */
+
+    for (n = 0; n < ndv; n++)
+        device_start(&dv[n]);
 
     return 0;
 }
