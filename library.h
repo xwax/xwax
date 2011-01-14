@@ -43,6 +43,7 @@ void library_clear(struct library_t *li);
 struct crate_t* library_new_crate(struct library_t *lib, char *name,
                                   bool is_fixed);
 struct crate_t* library_get_crate(struct library_t *lib, char *name);
-int library_import(struct library_t *lib, const char *scan, const char *path);
+int library_import(struct library_t *lib, bool sort,
+                   const char *scan, const char *path);
 
 #endif

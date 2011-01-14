@@ -55,6 +55,7 @@ static void usage(FILE *fd)
 {
     fprintf(fd, "Usage: xwax [<options>]\n\n"
       "  -l <directory> Directory to scan for audio tracks\n"
+      "  -p <playlist>  Ordered playlist for audio tracks\n"
       "  -t <name>      Timecode name\n"
       "  -33            Use timecode at 33.3RPM (default)\n"
       "  -45            Use timecode at 45RPM\n"
@@ -364,16 +365,25 @@ int main(int argc, char *argv[])
             argv += 2;
             argc -= 2;
                         
-        } else if (!strcmp(argv[0], "-l")) {
+        } else if (!strcmp(argv[0], "-l") || !strcmp(argv[0], "-p")) {
+
+            bool sort;
 
             /* Load in a music library */
 
             if (argc < 2) {
-                fprintf(stderr, "-l requires a pathname as an argument.\n");
+                fprintf(stderr, "-%c requires a pathname as an argument.\n",
+                        argv[0][1]);
                 return -1;
             }
 
-            if (library_import(&library, scanner, argv[1]) == -1)
+            if (argv[0][1] == 'p') {
+                sort = false;
+            } else {
+                sort = true;
+            }
+
+            if (library_import(&library, sort, scanner, argv[1]) == -1)
                 return -1;
 
             argv += 2;

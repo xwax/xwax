@@ -202,7 +202,8 @@ static int get_field(FILE *fp, char delim, char **f)
 /* Scan a record library at the given path, using the given scan
  * script. Returns -1 on fatal error which may leak resources */
 
-int library_import(struct library_t *li, const char *scan, const char *path)
+int library_import(struct library_t *li, bool sort,
+                   const char *scan, const char *path)
 {
     int pstdout[2], status;
     char *cratename, *pathname;
@@ -327,7 +328,8 @@ int library_import(struct library_t *li, const char *scan, const char *path)
     /* sort the listings */
 
     listing_sort(&all_crate->listing);
-    listing_sort(&crate->listing);
+    if (sort)
+        listing_sort(&crate->listing);
 
     return 0;
 }
