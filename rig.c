@@ -35,6 +35,15 @@
 
 /*
  * Main thread which handles input and output
+ *
+ * The rig is the main thread of execution. It is responsible for all
+ * non-priority event driven operations (eg. everything but audio).
+ *
+ * The SDL interface requires its own event loop, and so whilst the
+ * rig is technically responsible for managing it, it does very little
+ * on its behalf. In future if there are other interfaces or
+ * controllers (which expected to use more traditional file-descriptor
+ * I/O), the rig will also be responsible for them.
  */
 
 int rig_main(struct rig_t *rig, struct track_t track[], size_t ntrack)
