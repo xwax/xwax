@@ -20,6 +20,7 @@
 #include <assert.h>
 #include <errno.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
 #include <sys/poll.h>
 
@@ -96,6 +97,11 @@ int rig_main(struct rig_t *rig, struct track_t track[], size_t ntrack)
         for (n = 0; n < ntrack; n++)
             track_handle(&track[n]);
     }
+
+    if (close(rig->event[0]) == -1)
+        abort();
+    if (close(rig->event[1]) == -1)
+        abort();
 
     return 0;
 }
