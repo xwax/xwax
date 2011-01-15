@@ -114,7 +114,6 @@ int main(int argc, char *argv[])
     
     fprintf(stderr, BANNER "\n\n" NOTICE "\n\n");
     
-    rig_init(&rig);
     library_init(&library);
     
     decks = 0;
@@ -293,11 +292,6 @@ int main(int argc, char *argv[])
             device_connect_timecoder(&device[decks], &timecoder[decks]);
             device_connect_player(&device[decks], &player[decks]);
 
-            /* The rig and interface keep track of everything whilst
-             * the program is running */
-
-            rig.track[decks] = &track[decks];
-
             decks++;
             
             argv += 2;
@@ -398,21 +392,21 @@ int main(int argc, char *argv[])
     }
 
     fprintf(stderr, "Starting threads...\n");
-    if (rig_start(&rig) == -1)
-        return -1;
     if (rt_start(&rt, device, decks) == -1)
         return -1;
 
     fprintf(stderr, "Entering interface...\n");
     if (interface_start(&iface, decks, player, timecoder, &library) == -1)
         return -1;
+
+    if (rig_main(&rig, track, decks) == -1)
+        return -1;
+
     interface_stop(&iface);
 
     fprintf(stderr, "Exiting cleanly...\n");
 
     rt_stop(&rt);
-    if (rig_stop(&rig) == -1)
-        return -1;
     
     for (n = 0; n < decks; n++) {
         track_clear(&track[n]);

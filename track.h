@@ -25,8 +25,6 @@
 #include <sys/poll.h>
 #include <sys/types.h>
 
-#include "rig.h"
-
 #define TRACK_CHANNELS 2
 #define TRACK_RATE 44100
 

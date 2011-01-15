@@ -17,8 +17,8 @@
  *
  */
 
+#include <assert.h>
 #include <errno.h>
-#include <pthread.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <sys/poll.h>
@@ -26,24 +26,35 @@
 #include "rig.h"
 #include "track.h"
 
+#define MAX_POLLFDS 3
 
-int rig_init(struct rig_t *rig)
+/*
+ * Main thread which handles input and output
+ */
+
+int rig_main(struct rig_t *rig, struct track_t track[], size_t ntrack)
 {
-    int n;
-
-    for (n = 0; n < MAX_TRACKS; n++)
-        rig->track[n] = NULL;
-
-    return 0;
-}
-
-
-static int rig_service(struct rig_t *rig)
-{
-    int r, n;
+    int r;
     char buf;
-    struct pollfd pt[MAX_TRACKS], *pe;
-    
+    size_t n;
+    struct pollfd pt[MAX_POLLFDS], *pe;
+
+    assert(ntrack <= MAX_POLLFDS);
+
+    /* Register ourselves with the tracks we are looking after */
+
+    for (n = 0; n < ntrack; n++)
+        track[n].rig = rig;
+
+    /* Create a pipe which will be used to wake us from other threads */
+
+    if (pipe(rig->event) == -1) {
+        perror("pipe");
+        return -1;
+    }
+
+    rig->finished = false;
+
     while (!rig->finished) {
         pe = pt;
 
@@ -58,10 +69,8 @@ static int rig_service(struct rig_t *rig)
 
         /* Fetch file descriptors to monitor from each track */
 
-        for (n = 0; n < MAX_TRACKS; n++) {
-            if (rig->track[n])
-                pe += track_pollfd(rig->track[n], pe);
-        }
+        for (n = 0; n < ntrack; n++)
+            pe += track_pollfd(&track[n], pe);
 
         r = poll(pt, pe - pt, -1);
         if (r == -1) {
@@ -84,51 +93,12 @@ static int rig_service(struct rig_t *rig)
 
         /* Do any reading and writing on all tracks */
 
-        for (n = 0; n < MAX_TRACKS; n++) {
-            if (rig->track[n])
-                track_handle(rig->track[n]);
-        }
+        for (n = 0; n < ntrack; n++)
+            track_handle(&track[n]);
     }
     
     return 0;
 }
-
-
-static void* service(void *p)
-{
-    rig_service(p);
-    return p;
-}
-
-
-int rig_start(struct rig_t *rig)
-{
-    int n;
-
-    rig->finished = false;
-
-    /* Register ourselves with the tracks we are looking after */
-
-    for (n = 0; n < MAX_TRACKS; n++) {
-        if (rig->track[n])
-            rig->track[n]->rig = rig;
-    }
-
-    /* Create a pipe which will be used to wake the service thread */
-
-    if (pipe(rig->event) == -1) {
-        perror("pipe");
-        return -1;
-    }
-
-    if (pthread_create(&rig->ph, NULL, service, (void*)rig)) {
-        perror("pthread_create");
-        return -1;
-    }
-
-    return 0;
-}
-
 
 /* Wake up the rig when a track controlled by it has changed */
 
@@ -138,20 +108,6 @@ int rig_awaken(struct rig_t *rig)
 
     if (write(rig->event[1], "\0", 1) == -1) {
         perror("write");
-        return -1;
-    }
-
-    return 0;
-}
-
-
-int rig_stop(struct rig_t *rig)
-{
-    rig->finished = true;
-    rig_awaken(rig);
-
-    if (pthread_join(rig->ph, NULL) != 0) {
-        perror("pthread_join");
         return -1;
     }
 
