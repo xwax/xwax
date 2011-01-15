@@ -114,7 +114,6 @@ int main(int argc, char *argv[])
     
     fprintf(stderr, BANNER "\n\n" NOTICE "\n\n");
     
-    interface_init(&iface);
     rig_init(&rig);
     library_init(&library);
     
@@ -297,9 +296,6 @@ int main(int argc, char *argv[])
             /* The rig and interface keep track of everything whilst
              * the program is running */
 
-            iface.timecoder[decks] = &timecoder[decks];
-            iface.player[decks] = &player[decks];
-
             rig.track[decks] = &track[decks];
 
             decks++;
@@ -401,9 +397,6 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    iface.players = decks;
-    iface.timecoders = decks;
-
     fprintf(stderr, "Starting threads...\n");
     if (rig_start(&rig) == -1)
         return -1;
@@ -411,9 +404,10 @@ int main(int argc, char *argv[])
         return -1;
 
     fprintf(stderr, "Entering interface...\n");
-    iface.library = &library;
-    interface_run(&iface);
-    
+    if (interface_start(&iface, decks, player, timecoder, &library) == -1)
+        return -1;
+    interface_stop(&iface);
+
     fprintf(stderr, "Exiting cleanly...\n");
 
     rt_stop(&rt);

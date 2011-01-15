@@ -20,21 +20,29 @@
 #ifndef INTERFACE_H
 #define INTERFACE_H
 
+#include <pthread.h>
+
 #include "timecoder.h"
 #include "library.h"
+#include "selector.h"
 
-#define MAX_PLAYERS 4
-#define MAX_TIMECODERS 4
+#define MAX_DECKS 3
 
 struct interface_t {
-    short int players, timecoders;
-    
-    struct player_t *player[MAX_PLAYERS];
-    struct timecoder_t *timecoder[MAX_TIMECODERS];
-    struct library_t *library;
+    pthread_t ph;
+
+    size_t players;
+    struct player_t *player[MAX_DECKS];
+
+    size_t timecoders;
+    struct timecoder_t *timecoder[MAX_DECKS];
+
+    struct selector_t selector;
 };
 
-void interface_init(struct interface_t *in);
-int interface_run(struct interface_t *in);
+int interface_start(struct interface_t *in, size_t ndeck,
+                    struct player_t *pl, struct timecoder_t *tc,
+                    struct library_t *lib);
+void interface_stop(struct interface_t *in);
 
 #endif

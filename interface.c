@@ -17,6 +17,7 @@
  *
  */
 
+#include <assert.h>
 #include <errno.h>
 #include <math.h>
 #include <pthread.h>
@@ -1301,18 +1302,11 @@ static Uint32 ticker(Uint32 interval, void *p)
 }
 
 
-void interface_init(struct interface_t *in)
-{
-    int n;
+/*
+ * The SDL interface thread
+ */
 
-    for (n = 0; n < MAX_PLAYERS; n++)
-        in->player[n] = NULL;
-
-    in->library = NULL;
-}
-
-
-int interface_run(struct interface_t *in)
+static int interface_main(struct interface_t *in)
 {
     int meter_scale, p, finished,
         library_update, decks_update, status_update;
@@ -1323,41 +1317,9 @@ int interface_run(struct interface_t *in)
     SDL_Surface *surface;
 
     struct rect_t rworkspace, rplayers, rlibrary, rstatus, rtmp;
-    struct selector_t selector;
-
-    /* Initialise our own data structures */
 
     finished = 0;
     meter_scale = DEFAULT_METER_SCALE;
-
-    for (p = 0; p < in->timecoders; p++) {
-        if (timecoder_monitor_init(in->timecoder[p], SCOPE_SIZE) == -1)
-            return -1;
-    }
-
-    selector_init(&selector, in->library);
-    calculate_spinner_lookup(spinner_angle, NULL, SPINNER_SIZE);
-
-    fprintf(stderr, "Initialising SDL...\n");
-    
-    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) == -1) {
-        fprintf(stderr, "%s\n", SDL_GetError());
-        return -1;
-    }
-    SDL_WM_SetCaption(BANNER, NULL);
-    SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
-
-    /* Initialise the fonts */
-    
-    if (TTF_Init() == -1) {
-        fprintf(stderr, "%s\n", TTF_GetError());
-        return -1;
-    }
-
-    if (load_fonts() == -1)
-        return -1;
-
-    /* Initialise the screen surface */
 
     surface = set_size(DEFAULT_WIDTH, DEFAULT_HEIGHT, &rworkspace);
     if (!surface)
@@ -1403,7 +1365,7 @@ int interface_run(struct interface_t *in)
             break;
 
         case SDL_KEYDOWN:
-            if (handle_key(in, &selector, &meter_scale,
+            if (handle_key(in, &in->selector, &meter_scale,
                           event.key.keysym.sym, event.key.keysym.mod))
             {
                 library_update = UPDATE_REDRAW;
@@ -1434,14 +1396,14 @@ int interface_run(struct interface_t *in)
 
         if (library_update >= UPDATE_REDRAW) {
 
-            if (selector_current(&selector) != NULL)
-                status = selector_current(&selector)->pathname;
+            if (selector_current(&in->selector) != NULL)
+                status = selector_current(&in->selector)->pathname;
             else
                 status = "No search results found";
             status_update = UPDATE_REDRAW;
           
             LOCK(surface);
-            draw_library(surface, &rlibrary, &selector);
+            draw_library(surface, &rlibrary, &in->selector);
             UNLOCK(surface);
             UPDATE(surface, &rlibrary);
             library_update = UPDATE_NONE;
@@ -1473,15 +1435,90 @@ int interface_run(struct interface_t *in)
 
     SDL_RemoveTimer(timer);
 
-    for (p = 0; p < in->timecoders; p++)
-        timecoder_monitor_clear(in->timecoder[p]);
+    return 0;
+}
 
-    selector_clear(&selector);
+static void* launch(void *p)
+{
+    interface_main(p);
+    return NULL;
+}
+
+/*
+ * Start the SDL interface
+ *
+ * FIXME: There are multiple points where resources are leaked on
+ * error
+ */
+
+int interface_start(struct interface_t *in, size_t ndeck,
+                    struct player_t *pl, struct timecoder_t *tc,
+                    struct library_t *lib)
+{
+    size_t n;
+
+    assert(ndeck <= MAX_DECKS);
+
+    for (n = 0; n < ndeck; n++) {
+        in->player[n] = &pl[n];
+        in->timecoder[n] = &tc[n];
+        if (timecoder_monitor_init(in->timecoder[n], SCOPE_SIZE) == -1)
+            return -1;
+    }
+
+    in->players = ndeck;
+    in->timecoders = ndeck;
+
+    selector_init(&in->selector, lib);
+    calculate_spinner_lookup(spinner_angle, NULL, SPINNER_SIZE);
+
+    fprintf(stderr, "Initialising SDL...\n");
+
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) == -1) {
+        fprintf(stderr, "%s\n", SDL_GetError());
+        return -1;
+    }
+    SDL_WM_SetCaption(BANNER, NULL);
+    SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
+
+    /* Initialise the fonts */
+
+    if (TTF_Init() == -1) {
+        fprintf(stderr, "%s\n", TTF_GetError());
+        return -1;
+    }
+
+    if (load_fonts() == -1)
+        return -1;
+
+    fprintf(stderr, "Launching interface thread...\n");
+
+    if (pthread_create(&in->ph, NULL, launch, (void*)in)) {
+        perror("pthread_create");
+        return -1;
+    }
+
+    return 0;
+}
+
+/*
+ * Synchronise with the SDL interface and exit
+ */
+
+void interface_stop(struct interface_t *in)
+{
+    size_t n;
+
+    if (pthread_join(in->ph, NULL) != 0)
+        abort();
+
+    for (n = 0; n < in->timecoders; n++)
+        timecoder_monitor_clear(in->timecoder[n]);
+
+    selector_clear(&in->selector);
 
     clear_fonts();
 
     TTF_Quit();
     SDL_Quit();
-    
-    return 0;
 }
