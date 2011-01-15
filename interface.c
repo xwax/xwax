@@ -1308,7 +1308,7 @@ static Uint32 ticker(Uint32 interval, void *p)
 
 static int interface_main(struct interface_t *in)
 {
-    int meter_scale, p, finished,
+    int meter_scale, p,
         library_update, decks_update, status_update;
     const char *status = BANNER;
 
@@ -1318,7 +1318,6 @@ static int interface_main(struct interface_t *in)
 
     struct rect_t rworkspace, rplayers, rlibrary, rstatus, rtmp;
 
-    finished = 0;
     meter_scale = DEFAULT_METER_SCALE;
 
     surface = set_size(DEFAULT_WIDTH, DEFAULT_HEIGHT, &rworkspace);
@@ -1333,13 +1332,12 @@ static int interface_main(struct interface_t *in)
 
     timer = SDL_AddTimer(REFRESH, ticker, (void*)in);
 
-    while (!finished && SDL_WaitEvent(&event) >= 0) {
+    while (SDL_WaitEvent(&event) >= 0) {
 
         switch(event.type) {
             
         case SDL_QUIT:
-            finished = 1;
-            break;
+            goto finish;
 
         case SDL_VIDEORESIZE:
             surface = set_size(event.resize.w, event.resize.h, &rworkspace);
@@ -1433,6 +1431,7 @@ static int interface_main(struct interface_t *in)
 
     } /* main loop */
 
+ finish:
     SDL_RemoveTimer(timer);
 
     return 0;
