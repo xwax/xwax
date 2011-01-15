@@ -19,6 +19,7 @@
 
 #include <assert.h>
 #include <errno.h>
+#include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -54,6 +55,11 @@ int rig_main(struct rig_t *rig, struct track_t track[], size_t ntrack)
         return -1;
     }
 
+    if (fcntl(rig->event[0], F_SETFL, O_NONBLOCK) == -1) {
+        perror("fcntl");
+        return -1; /* FIXME: leak of pipe */
+    }
+
     rig->finished = false;
 
     while (!rig->finished) {
@@ -83,12 +89,21 @@ int rig_main(struct rig_t *rig, struct track_t track[], size_t ntrack)
             }
         }
 
-        /* If we were awakened, take the top byte off the event pipe */
+        /* Process all events on the event pipe */
 
-        if (pt[0].revents) {
-            if (read(rig->event[0], &buf, 1) == -1) {
-                perror("read");
-                return -1;
+        if (pt[0].revents != 0) {
+            for (;;) {
+                size_t z;
+
+                z = read(rig->event[0], &buf, 1);
+                if (z == -1) {
+                    if (errno == EAGAIN) {
+                        break;
+                    } else {
+                        perror("read");
+                        return -1;
+                    }
+                }
             }
         }
 
