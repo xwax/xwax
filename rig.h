@@ -25,11 +25,11 @@
 #include "track.h"
 
 struct rig_t {
-    bool finished;
     int event[2]; /* pipe to wake up service thread */
 };
 
 int rig_main(struct rig_t *rig, struct track_t track[], size_t ntrack);
 int rig_awaken(struct rig_t *rig);
+int rig_quit(struct rig_t *rig);
 
 #endif

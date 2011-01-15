@@ -30,6 +30,9 @@
 
 #define MAX_POLLFDS 3
 
+#define EVENT_WAKE 0
+#define EVENT_QUIT 1
+
 /*
  * Main thread which handles input and output
  */
@@ -59,9 +62,7 @@ int rig_main(struct rig_t *rig, struct track_t track[], size_t ntrack)
         return -1; /* FIXME: leak of pipe */
     }
 
-    rig->finished = false;
-
-    while (!rig->finished) {
+    for (;;) { /* exit via EVENT_QUIT */
         pe = pt;
 
         /* ppoll() is not widely available, so use a pipe between this
@@ -104,6 +105,17 @@ int rig_main(struct rig_t *rig, struct track_t track[], size_t ntrack)
                         return -1;
                     }
                 }
+
+                switch (event) {
+                case EVENT_WAKE:
+                    break;
+
+                case EVENT_QUIT:
+                    goto finish;
+
+                default:
+                    abort();
+                }
             }
         }
 
@@ -113,6 +125,7 @@ int rig_main(struct rig_t *rig, struct track_t track[], size_t ntrack)
             track_handle(&track[n]);
     }
 
+ finish:
     if (close(rig->event[0]) == -1)
         abort();
     if (close(rig->event[1]) == -1)
@@ -122,17 +135,32 @@ int rig_main(struct rig_t *rig, struct track_t track[], size_t ntrack)
 }
 
 /*
- * Wake up the rig when a track controlled by it has changed
+ * Post a simple event into the rig event loop
+ */
+
+static int post_event(struct rig_t *rig, char event)
+{
+    if (write(rig->event[1], &event, 1) == -1) {
+        perror("write");
+        return -1;
+    }
+    return 0;
+}
+
+/*
+ * Wake up the rig to inform it that the poll table has changed
  */
 
 int rig_awaken(struct rig_t *rig)
 {
-    /* Send a single byte down the event pipe to a waiting poll() */
+    return post_event(rig, EVENT_WAKE);
+}
 
-    if (write(rig->event[1], "\0", 1) == -1) {
-        perror("write");
-        return -1;
-    }
+/*
+ * Ask the rig to exit from another thread or signal handler
+ */
 
-    return 0;
+int rig_quit(struct rig_t *rig)
+{
+    return post_event(rig, EVENT_QUIT);
 }
