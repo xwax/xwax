@@ -23,7 +23,6 @@
 #include <unistd.h>
 #include <sys/poll.h>
 
-#include "device.h"
 #include "rig.h"
 #include "track.h"
 
