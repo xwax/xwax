@@ -1508,6 +1508,11 @@ int interface_start(struct interface_t *in, size_t ndeck,
 void interface_stop(struct interface_t *in)
 {
     size_t n;
+    SDL_Event quit;
+
+    quit.type = SDL_QUIT;
+    if (SDL_PushEvent(&quit) == -1)
+        abort();
 
     if (pthread_join(in->ph, NULL) != 0)
         abort();
