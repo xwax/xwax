@@ -396,7 +396,7 @@ int main(int argc, char *argv[])
         return -1;
 
     fprintf(stderr, "Entering interface...\n");
-    if (interface_start(&iface, decks, player, timecoder, &library) == -1)
+    if (interface_start(&iface, decks, player, timecoder, &library, &rig) == -1)
         return -1;
 
     if (rig_main(&rig, track, decks) == -1)

@@ -111,6 +111,12 @@
 #define UPDATE_REDRAW 1
 
 
+/* Types of SDL_USEREVENT */
+
+#define EVENT_TICKER 0
+#define EVENT_QUIT 1
+
+
 /* Macro functions */
 
 #define MIN(x,y) ((x)<(y)?(x):(y))
@@ -1295,6 +1301,7 @@ static Uint32 ticker(Uint32 interval, void *p)
     if (!SDL_PeepEvents(&event, 1, SDL_PEEKEVENT, SDL_EVENTMASK(SDL_USEREVENT)))
     {
         event.type = SDL_USEREVENT;
+        event.user.code = EVENT_TICKER;
         SDL_PushEvent(&event);
     }        
 
@@ -1335,9 +1342,10 @@ static int interface_main(struct interface_t *in)
     while (SDL_WaitEvent(&event) >= 0) {
 
         switch(event.type) {
-            
-        case SDL_QUIT:
-            goto finish;
+        case SDL_QUIT: /* user request to quit application; eg. window close */
+            if (rig_quit(in->rig) == -1)
+                return -1;
+            break;
 
         case SDL_VIDEORESIZE:
             surface = set_size(event.resize.w, event.resize.h, &rworkspace);
@@ -1355,11 +1363,19 @@ static int interface_main(struct interface_t *in)
 
             break;
             
-        case SDL_USEREVENT: /* request to update the clocks */
+        case SDL_USEREVENT:
+            switch (event.user.code) {
+            case EVENT_TICKER: /* request to poll the clocks */
+                if (decks_update < UPDATE_REDRAW)
+                    decks_update = UPDATE_REDRAW;
+                break;
 
-            if (decks_update < UPDATE_REDRAW)
-                decks_update = UPDATE_REDRAW;
-            
+            case EVENT_QUIT: /* internal request to finish this thread */
+                goto finish;
+
+            default:
+                abort();
+            }
             break;
 
         case SDL_KEYDOWN:
@@ -1452,7 +1468,7 @@ static void* launch(void *p)
 
 int interface_start(struct interface_t *in, size_t ndeck,
                     struct player_t *pl, struct timecoder_t *tc,
-                    struct library_t *lib)
+                    struct library_t *lib, struct rig_t *rig)
 {
     size_t n;
 
@@ -1468,6 +1484,7 @@ int interface_start(struct interface_t *in, size_t ndeck,
     in->players = ndeck;
     in->timecoders = ndeck;
 
+    in->rig = rig;
     selector_init(&in->selector, lib);
     calculate_spinner_lookup(spinner_angle, NULL, SPINNER_SIZE);
 
@@ -1509,7 +1526,8 @@ void interface_stop(struct interface_t *in)
     size_t n;
     SDL_Event quit;
 
-    quit.type = SDL_QUIT;
+    quit.type = SDL_USEREVENT;
+    quit.user.code = EVENT_QUIT;
     if (SDL_PushEvent(&quit) == -1)
         abort();
 
