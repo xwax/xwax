@@ -391,21 +391,17 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    fprintf(stderr, "Starting threads...\n");
     if (rt_start(&rt, device, decks) == -1)
         return -1;
-
-    fprintf(stderr, "Entering interface...\n");
     if (interface_start(&iface, decks, player, timecoder, &library, &rig) == -1)
         return -1;
 
     if (rig_main(&rig, track, decks) == -1)
         return -1;
 
-    interface_stop(&iface);
-
     fprintf(stderr, "Exiting cleanly...\n");
 
+    interface_stop(&iface);
     rt_stop(&rt);
     
     for (n = 0; n < decks; n++) {
