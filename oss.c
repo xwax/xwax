@@ -148,7 +148,7 @@ static ssize_t pollfds(struct device_t *dv, struct pollfd *pe, size_t z)
         return -1;
     
     pe->fd = oss->fd;
-    pe->events = POLLIN | POLLOUT | POLLHUP;
+    pe->events = POLLIN | POLLOUT;
     oss->pe = pe;
 
     return 1;

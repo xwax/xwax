@@ -343,7 +343,7 @@ int track_pollfd(struct track_t *tr, struct pollfd *pe)
     if (tr->pid != 0) {
         pe->fd = tr->fd;
         pe->revents = 0;
-        pe->events = POLLIN | POLLHUP | POLLERR;
+        pe->events = POLLIN;
         tr->pe = pe;
         r = 1;
     } else {

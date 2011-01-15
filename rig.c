@@ -64,7 +64,7 @@ int rig_main(struct rig_t *rig, struct track_t track[], size_t ntrack)
 
         pe->fd = rig->event[0];
         pe->revents = 0;
-        pe->events = POLLIN | POLLHUP | POLLERR;
+        pe->events = POLLIN;
         pe++;
 
         /* Fetch file descriptors to monitor from each track */
