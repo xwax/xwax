@@ -22,10 +22,7 @@
 
 #include <stdbool.h>
 
-#define MAX_DEVICES 4
 #define MAX_TRACKS 8
-
-#define MAX_DEVICE_POLLFDS 32
 
 struct rig_t {
     bool finished;
