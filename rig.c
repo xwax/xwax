@@ -37,7 +37,6 @@
 int rig_main(struct rig_t *rig, struct track_t track[], size_t ntrack)
 {
     int r;
-    char buf;
     size_t n;
     struct pollfd pt[MAX_POLLFDS], *pe;
 
@@ -93,9 +92,10 @@ int rig_main(struct rig_t *rig, struct track_t track[], size_t ntrack)
 
         if (pt[0].revents != 0) {
             for (;;) {
+                char event;
                 size_t z;
 
-                z = read(rig->event[0], &buf, 1);
+                z = read(rig->event[0], &event, 1);
                 if (z == -1) {
                     if (errno == EAGAIN) {
                         break;
