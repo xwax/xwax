@@ -96,11 +96,13 @@ int rig_main(struct rig_t *rig, struct track_t track[], size_t ntrack)
         for (n = 0; n < ntrack; n++)
             track_handle(&track[n]);
     }
-    
+
     return 0;
 }
 
-/* Wake up the rig when a track controlled by it has changed */
+/*
+ * Wake up the rig when a track controlled by it has changed
+ */
 
 int rig_awaken(struct rig_t *rig)
 {
