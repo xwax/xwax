@@ -30,6 +30,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
+#include "rig.h"
 #include "track.h"
 
 #define SAMPLE (sizeof(signed short) * TRACK_CHANNELS) /* bytes per sample */
