@@ -1315,8 +1315,7 @@ static Uint32 ticker(Uint32 interval, void *p)
 
 static int interface_main(struct interface_t *in)
 {
-    int meter_scale, p,
-        library_update, decks_update, status_update;
+    int meter_scale, library_update, decks_update, status_update;
     const char *status = BANNER;
 
     SDL_Event event;
