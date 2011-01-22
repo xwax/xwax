@@ -28,6 +28,8 @@ struct rig_t {
     int event[2]; /* pipe to wake up service thread */
 };
 
+int rig_init(struct rig_t *rig);
+void rig_clear(struct rig_t *rig);
 int rig_main(struct rig_t *rig, struct track_t track[], size_t ntrack);
 int rig_awaken(struct rig_t *rig);
 int rig_quit(struct rig_t *rig);

@@ -33,6 +33,35 @@
 #define EVENT_WAKE 0
 #define EVENT_QUIT 1
 
+int rig_init(struct rig_t *rig)
+{
+    /* Create a pipe which will be used to wake us from other threads */
+
+    if (pipe(rig->event) == -1) {
+        perror("pipe");
+        return -1;
+    }
+
+    if (fcntl(rig->event[0], F_SETFL, O_NONBLOCK) == -1) {
+        perror("fcntl");
+        if (close(rig->event[1]) == -1)
+            abort();
+        if (close(rig->event[0]) == -1)
+            abort();
+        return -1;
+    }
+
+    return 0;
+}
+
+void rig_clear(struct rig_t *rig)
+{
+    if (close(rig->event[0]) == -1)
+        abort();
+    if (close(rig->event[1]) == -1)
+        abort();
+}
+
 /*
  * Main thread which handles input and output
  *
@@ -58,18 +87,6 @@ int rig_main(struct rig_t *rig, struct track_t track[], size_t ntrack)
 
     for (n = 0; n < ntrack; n++)
         track[n].rig = rig;
-
-    /* Create a pipe which will be used to wake us from other threads */
-
-    if (pipe(rig->event) == -1) {
-        perror("pipe");
-        return -1;
-    }
-
-    if (fcntl(rig->event[0], F_SETFL, O_NONBLOCK) == -1) {
-        perror("fcntl");
-        return -1; /* FIXME: leak of pipe */
-    }
 
     for (;;) { /* exit via EVENT_QUIT */
         pe = pt;
@@ -133,12 +150,7 @@ int rig_main(struct rig_t *rig, struct track_t track[], size_t ntrack)
         for (n = 0; n < ntrack; n++)
             track_handle(&track[n]);
     }
-
  finish:
-    if (close(rig->event[0]) == -1)
-        abort();
-    if (close(rig->event[1]) == -1)
-        abort();
 
     return 0;
 }
