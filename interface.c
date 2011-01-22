@@ -1138,14 +1138,18 @@ static void draw_library(SDL_Surface *surface, const struct rect_t *rect,
 /* Initiate the process of loading a record from the library into a
  * track in memory */
 
-static void do_loading(struct track_t *track, struct record_t *record)
+static void do_loading(struct interface_t *interface,
+                       struct track_t *track, struct record_t *record)
 {
     fprintf(stderr, "Loading '%s'.\n", record->pathname);
 
-    track_import(track, record->pathname);
+    if (track_import(track, record->pathname) == -1)
+        return;
 
     track->artist = record->artist;
     track->title = record->title;
+
+    (void)rig_awaken(interface->rig);
 }
 
 
@@ -1251,7 +1255,7 @@ static bool handle_key(struct interface_t *in, struct selector_t *sel,
             case FUNC_LOAD:
                 re = selector_current(sel);
                 if (re != NULL)
-                    do_loading(pl->track, re);
+                    do_loading(in, pl->track, re);
                 break;
 
             case FUNC_RECUE:

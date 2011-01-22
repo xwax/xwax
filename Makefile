@@ -41,8 +41,8 @@ DOCDIR = $(PREFIX)/share/doc
 
 # Core objects and libraries
 
-OBJS = interface.o library.o listing.o lut.o player.o realtime.o rig.o \
-	selector.o timecoder.o track.o xwax.o
+OBJS = import.o interface.o library.o listing.o lut.o player.o realtime.o \
+	rig.o selector.o timecoder.o track.o xwax.o
 DEVICE_OBJS = device.o
 DEVICE_CPPFLAGS =
 DEVICE_LIBS =
@@ -92,8 +92,13 @@ install:
 		$(INSTALL) -m 0644 COPYING $(DOCDIR)/xwax/COPYING
 		$(INSTALL) -m 0644 README $(DOCDIR)/xwax/README
 
+# Manual tests
+
+test-track:	test-track.o import.o track.o
 
 clean:
-		rm -f xwax *.o *.d *~
+		rm -f xwax
+		rm -f test-track
+		rm -f *.o *.d *~
 
 -include *.d

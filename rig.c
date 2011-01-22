@@ -83,11 +83,6 @@ int rig_main(struct rig_t *rig, struct track_t track[], size_t ntrack)
 
     assert(ntrack <= MAX_POLLFDS);
 
-    /* Register ourselves with the tracks we are looking after */
-
-    for (n = 0; n < ntrack; n++)
-        track[n].rig = rig;
-
     for (;;) { /* exit via EVENT_QUIT */
         pe = pt;
 

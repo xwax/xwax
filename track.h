@@ -25,6 +25,8 @@
 #include <sys/poll.h>
 #include <sys/types.h>
 
+#include "import.h"
+
 #define TRACK_CHANNELS 2
 #define TRACK_RATE 44100
 
@@ -40,11 +42,8 @@ struct track_block_t {
 };
 
 struct track_t {
-    int fd, rate;
-    pid_t pid; /* 0 if not importing */
-    struct pollfd *pe;
+    int rate;
     pthread_mutex_t mx;
-    struct rig_t *rig;
 
     /* pointers to external data */
    
@@ -56,6 +55,11 @@ struct track_t {
         blocks; /* number of blocks allocated */
     struct track_block_t *block[TRACK_MAX_BLOCKS];
 
+    /* State of audio import */
+
+    bool importing, has_poll;
+    struct import_t import;
+
     /* Current value of audio meters when loading */
     
     unsigned short ppm;
@@ -64,17 +68,24 @@ struct track_t {
 
 void track_init(struct track_t *tr, const char *importer);
 void track_clear(struct track_t *tr);
+
+/* Functions used by the import operation */
+
+void track_empty(struct track_t *tr);
+void* track_access_pcm(struct track_t *tr, size_t *len);
+void track_commit(struct track_t *tr, size_t len);
+
+/* Functions used by the rig and main thread */
+
+size_t track_pollfd(struct track_t *tr, struct pollfd *pe);
+void track_handle(struct track_t *tr);
 int track_import(struct track_t *tr, const char *path);
-int track_pollfd(struct track_t *tr, struct pollfd *pe);
-int track_handle(struct track_t *tr);
-int track_abort(struct track_t *tr);
-int track_wait(struct track_t *tr);
 
 /* Return true if the track importer is running, otherwise false */
 
 static inline bool track_is_importing(struct track_t *tr)
 {
-    return (tr->pid != 0);
+    return tr->importing;
 }
 
 /* Return the pseudo-PPM meter value for the given sample */
