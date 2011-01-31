@@ -217,10 +217,7 @@ int library_import(struct library_t *li, bool sort,
     fprintf(stderr, "Scanning '%s'...\n", path);
 
     all_crate = get_crate(li, CRATE_ALL);
-    if (all_crate == NULL) {
-        fprintf(stderr, "Could not get ALL_CRATE..");
-        return -1;
-    }
+    assert(all_crate != NULL);
 
     pathname = strdupa(path);
     cratename = basename(pathname); /* POSIX version, see basename(3) */
