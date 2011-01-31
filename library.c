@@ -133,7 +133,10 @@ int library_init(struct library_t *li)
 
     li->crates = 0;
 
-    use_crate(li, CRATE_ALL, true);
+    if (use_crate(li, CRATE_ALL, true) == NULL) {
+        free(li->crate);
+        return -1;
+    }
 
     return 0;
 }
