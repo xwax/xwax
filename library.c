@@ -34,6 +34,23 @@
 #define CRATE_ALL "All records"
 
 
+/* Initialise a crate; note the deep copy of the crate name */
+
+static int crate_init(struct crate_t *c, const char *name, bool is_fixed)
+{
+    c->name = strdup(name);
+    if (c->name == NULL) {
+        perror("strdup");
+        return -1;
+    }
+
+    c->is_fixed = is_fixed;
+    listing_init(&c->listing);
+
+    return 0;
+}
+
+
 static void swap_crates(struct library_t *lib, int i, int j)
 {
     struct crate_t *tmp;
@@ -71,6 +88,27 @@ static void sort_crates(struct library_t *lib)
 }
 
 
+/* Add a crate to the list of all crates */
+
+static int add_crate(struct library_t *lib, struct crate_t *c)
+{
+    struct crate_t **cn;
+
+    cn = realloc(lib->crate, sizeof(struct crate_t*) * (lib->crates + 1));
+    if (cn == NULL) {
+        perror("realloc");
+        return -1;
+    }
+
+    lib->crate = cn;
+    lib->crate[lib->crates++] = c;
+
+    sort_crates(lib);
+
+    return 0;
+}
+
+
 struct crate_t* get_crate(struct library_t *lib, const char *name)
 {
     int n;
@@ -99,25 +137,22 @@ struct crate_t* use_crate(struct library_t *lib, char *name, bool is_fixed)
 
     /* allocate and fill space for new crate */
     new_crate = malloc(sizeof(struct crate_t));
-    new_crate->name = strdup(name);
-    new_crate->is_fixed = is_fixed;
-
-    listing_init(&new_crate->listing);
-
-    /* add this new crate to the library */
-    struct crate_t **cn;
-    cn = realloc(lib->crate, sizeof(struct crate_t*) * (lib->crates + 1));
-    if (!cn) {
-        perror("realloc");
+    if (new_crate == NULL) {
+        perror("malloc");
         return NULL;
     }
 
-    lib->crate = cn;
-    lib->crate[lib->crates++] = new_crate;
+    if (crate_init(new_crate, name, is_fixed) == -1)
+        goto fail;
 
-    sort_crates(lib);
+    if (add_crate(lib, new_crate) == -1)
+        goto fail;
 
     return new_crate;
+
+ fail:
+    free(new_crate);
+    return NULL;
 }
 
 
