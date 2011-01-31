@@ -107,50 +107,17 @@ static int record_cmp(const struct record_t *a, const struct record_t *b)
 }
 
 
-static void quicksort_swap(struct listing_t *ls, int i, int j)
+/* Comparison function for use with qsort() */
+
+static int qcompar(const void *a, const void *b)
 {
-    struct record_t *tmp;
-
-    tmp = ls->record[i];
-    ls->record[i] = ls->record[j];
-    ls->record[j] = tmp;
-}
-
-
-static int quicksort_partition(struct listing_t *ls, int left, int right)
-{
-    struct record_t *pivot;
-
-    pivot = ls->record[left];
-
-    while (left < right) {
-        while ((left < right) && (record_cmp(ls->record[right], pivot) >= 0))
-            right--;
-        quicksort_swap(ls, right, left);
-        while ((left < right) && (record_cmp(pivot, ls->record[left]) >= 0))
-            left++;
-        quicksort_swap(ls, right, left);
-    }
-
-    return left;
-}
-
-
-static void quicksort(struct listing_t *ls, int left, int right)
-{
-    int pivot;
-
-    if (left < right) {
-        pivot = quicksort_partition(ls, left, right);
-        quicksort(ls, left, pivot);
-        quicksort(ls, pivot + 1, right);
-    }
+    return record_cmp(*(struct record_t **)a, *(struct record_t **)b);
 }
 
 
 void listing_sort(struct listing_t *ls)
 {
-    quicksort(ls, 0, ls->entries - 1);
+    qsort(ls->record, ls->entries, sizeof(struct record_t*), qcompar);
 }
 
 
