@@ -71,7 +71,7 @@ static void sort_crates(struct library_t *lib)
 }
 
 
-struct crate_t* get_crate(struct library_t *lib, char *name)
+struct crate_t* get_crate(struct library_t *lib, const char *name)
 {
     int n;
 
