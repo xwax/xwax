@@ -35,7 +35,7 @@ struct crate_t {
 /* The complete music library, which consists of multiple crates */
 
 struct library_t {
-    struct crate_t **crate;
+    struct crate_t all, **crate;
     int crates;
 };
 

@@ -168,8 +168,11 @@ int library_init(struct library_t *li)
     li->crate = NULL;
     li->crates = 0;
 
-    if (use_crate(li, CRATE_ALL, true) == NULL) {
-        free(li->crate);
+    if (crate_init(&li->all, CRATE_ALL, true) == -1)
+        return -1;
+
+    if (add_crate(li, &li->all) == -1) {
+        crate_clear(&li->all);
         return -1;
     }
 
@@ -188,24 +191,20 @@ static void record_clear(struct record_t *re)
 void library_clear(struct library_t *li)
 {
     int n;
-    struct crate_t *all;
 
     /* This object is responsible for all the record pointers */
 
-    all = get_crate(li, CRATE_ALL);
-    assert(all != NULL);
-
-    for (n = 0; n < all->listing.entries; n++) {
+    for (n = 0; n < li->all.listing.entries; n++) {
         struct record_t *re;
 
-        re = all->listing.record[n];
+        re = li->all.listing.record[n];
         record_clear(re);
         free(re);
     }
 
     /* Clear crates */
 
-    for (n = 0; n < li->crates; n++) {
+    for (n = 1; n < li->crates; n++) { /* skip the 'all' crate */
         struct crate_t *crate;
 
         crate = li->crate[n];
