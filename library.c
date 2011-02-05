@@ -200,6 +200,8 @@ void library_clear(struct library_t *li)
         free(crate);
     }
     free(li->crate);
+
+    crate_clear(&li->all);
 }
 
 
