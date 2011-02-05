@@ -96,12 +96,15 @@ install:
 
 # Manual tests
 
+test-library:	test-library.o library.o listing.o
+
 test-timecoder:	test-timecoder.o lut.o timecoder.o
 
 test-track:	test-track.o import.o track.o
 
 clean:
 		rm -f xwax
+		rm -f test-library
 		rm -f test-timecoder
 		rm -f test-track
 		rm -f *.o *.d *~
