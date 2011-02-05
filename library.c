@@ -165,12 +165,7 @@ struct crate_t* use_crate(struct library_t *lib, char *name, bool is_fixed)
 
 int library_init(struct library_t *li)
 {
-    li->crate = malloc(sizeof(struct crate_t*));
-    if (li->crate == NULL) {
-        perror("malloc");
-        return -1;
-    }
-
+    li->crate = NULL;
     li->crates = 0;
 
     if (use_crate(li, CRATE_ALL, true) == NULL) {
