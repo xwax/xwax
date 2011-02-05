@@ -26,7 +26,7 @@
 
 #include "listing.h"
 
-#define BLOCK 256
+#define BLOCK 1024
 #define MAX_WORDS 32
 #define SEPARATOR ' '
 
@@ -82,7 +82,7 @@ static int enlarge(struct listing_t *ls, size_t target)
     if (target <= ls->size)
         return 0;
 
-    p = target + BLOCK; /* pre-allocate additional entries */
+    p = target + BLOCK - 1; /* pre-allocate additional entries */
 
     ln = realloc(ls->record, sizeof(struct record_t*) * p);
     if (ln == NULL) {
