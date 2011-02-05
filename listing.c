@@ -219,6 +219,75 @@ int listing_match(struct listing_t *src, struct listing_t *dest,
 }
 
 
+/*
+ * Binary search of sorted listing
+ *
+ * We implement our own binary search rather than using the bsearch()
+ * from stdlib.h, because we need to know the position to insert to if
+ * the item is not found.
+ *
+ * Pre: base is sorted
+ * Return: position of match >= item
+ * Post: on exact match, *found is true
+ */
+
+static size_t bin_search(struct record_t **base, size_t n,
+                         struct record_t *item, bool *found)
+{
+    int r;
+    size_t mid;
+
+    /* Return the first entry ordered after this one */
+
+    if (n == 0) {
+        *found = false;
+        return 0;
+    }
+
+    mid = n / 2;
+    r = record_cmp(item, base[mid]);
+
+    if (r < 0)
+        return bin_search(base, mid, item, found);
+    if (r > 0)
+        return mid + 1 + bin_search(base + mid + 1, n - mid - 1, item, found);
+
+    *found = true;
+    return mid;
+}
+
+
+/*
+ * Insert or re-use an entry in a sorted listing
+ *
+ * Pre: listing is sorted
+ * Return: pointer to item, or existing entry; NULL if out of memory
+ * Post: listing is sorted and contains item or a matching item
+ */
+
+struct record_t* listing_insert(struct listing_t *ls, struct record_t *item)
+{
+    bool found;
+    size_t z;
+
+    z = bin_search(ls->record, ls->entries, item, &found);
+    if (found)
+        return ls->record[z];
+
+    /* Insert the new item */
+
+    if (enlarge(ls, ls->entries + 1) == -1)
+        return NULL;
+
+    memmove(ls->record + z + 1, ls->record + z,
+            sizeof(struct record_t*) * (ls->entries - z));
+    ls->record[z] = item;
+    ls->entries++;
+
+    return item;
+}
+
+
 void listing_debug(struct listing_t *ls)
 {
     int n;

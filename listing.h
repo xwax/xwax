@@ -38,6 +38,7 @@ int listing_add(struct listing_t *li, struct record_t *lr);
 int listing_copy(const struct listing_t *src, struct listing_t *dest);
 int listing_match(struct listing_t *src, struct listing_t *dest,
 		  const char *match);
+struct record_t* listing_insert(struct listing_t *ls, struct record_t *item);
 void listing_debug(struct listing_t *ls);
 void listing_sort(struct listing_t *ls);
 

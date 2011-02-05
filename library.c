@@ -205,12 +205,6 @@ void library_clear(struct library_t *li)
 }
 
 
-static int crate_add(struct crate_t *crate, struct record_t *lr)
-{
-    return listing_add(&crate->listing, lr);
-}
-
-
 /* Read and allocate a null-terminated field from the given file handle.
  * If the empty string is read, *s is set to NULL. Return 0 on success,
  * -1 on error or EOF */
@@ -305,7 +299,7 @@ int library_import(struct library_t *li, bool sort,
     }
 
     for (;;) {
-        struct record_t *d;
+        struct record_t *d, *x;
         char *pathname;
 
         if (get_field(fp, '\t', &pathname) != 0)
@@ -329,12 +323,31 @@ int library_import(struct library_t *li, bool sort,
             return -1;
         }
 
-        /* Add to crates */
+        /* Add to the crate of all records */
 
-        if (crate_add(all_crate, d) != 0)
+        x = listing_insert(&all_crate->listing, d);
+        if (x == NULL)
             return -1;
-        if (crate_add(crate, d) != 0)
-            return -1;
+
+        /* If there is an existing entry, use it instead */
+
+        if (x != d) {
+            free(d->pathname);
+            free(d->artist);
+            free(d->title);
+            free(d);
+            d = x;
+        }
+
+        /* Insert into the user's crate */
+
+        if (sort) {
+            if (listing_insert(&crate->listing, d) == NULL)
+                return -1;
+        } else {
+            if (listing_add(&crate->listing, d) == -1)
+                return -1;
+        }
     }
 
     if (fclose(fp) == -1) {
@@ -351,12 +364,6 @@ int library_import(struct library_t *li, bool sort,
         fputs("Library scan exited reporting failure.\n", stderr);
         return -1;
     }
-
-    /* sort the listings */
-
-    listing_sort(&all_crate->listing);
-    if (sort)
-        listing_sort(&crate->listing);
 
     return 0;
 }
