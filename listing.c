@@ -106,7 +106,7 @@ static int record_cmp(const struct record_t *a, const struct record_t *b)
     else if (r > 0)
         return 1;
 
-    return 0;
+    return strcmp(a->pathname, b->pathname);
 }
 
 
