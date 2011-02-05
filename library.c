@@ -51,6 +51,13 @@ static int crate_init(struct crate_t *c, const char *name, bool is_fixed)
 }
 
 
+static void crate_clear(struct crate_t *c)
+{
+    listing_clear(&c->listing);
+    free(c->name);
+}
+
+
 static void swap_crates(struct library_t *lib, int i, int j)
 {
     struct crate_t *tmp;
@@ -207,8 +214,7 @@ void library_clear(struct library_t *li)
         struct crate_t *crate;
 
         crate = li->crate[n];
-        listing_clear(&crate->listing);
-        free(crate->name);
+        crate_clear(crate);
         free(crate);
     }
     free(li->crate);
