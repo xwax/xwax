@@ -21,6 +21,7 @@
 #define LIBRARY_H
 
 #include <stdbool.h>
+#include <stddef.h>
 
 #include "listing.h"
 
@@ -36,7 +37,7 @@ struct crate_t {
 
 struct library_t {
     struct crate_t all, **crate;
-    int crates;
+    size_t crates;
 };
 
 int library_init(struct library_t *li);
