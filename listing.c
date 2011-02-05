@@ -34,6 +34,7 @@
 void listing_init(struct listing_t *ls)
 {
     ls->record = NULL;
+    ls->size = 0;
     ls->entries = 0;
 }
 
@@ -51,38 +52,40 @@ void listing_blank(struct listing_t *ls)
 }
 
 
+/* Enlarge the storage space of the listing to at least the target
+ * size */
+
+static int enlarge(struct listing_t *ls, size_t target)
+{
+    size_t p;
+    struct record_t **ln;
+
+    if (target <= ls->size)
+        return 0;
+
+    p = target + BLOCK; /* pre-allocate additional entries */
+
+    ln = realloc(ls->record, sizeof(struct record_t*) * p);
+    if (ln == NULL) {
+        perror("realloc");
+        return -1;
+    }
+
+    ls->record = ln;
+    ls->size = p;
+    return 0;
+}
+
+
 /* Add a record to the listing. Return 0 on success, or -1 on memory
  * allocation failure */
 
 int listing_add(struct listing_t *ls, struct record_t *lr)
 {
-    struct record_t **ln;
-
-    if (ls->record == NULL) { /* initial entry */
-
-        ln = malloc(sizeof(struct record_t*) * BLOCK);
-        if (ln == NULL) {
-            perror("malloc");
-            return -1;
-        }
-
-        ls->record = ln;
-        ls->size = BLOCK;
-
-    } else if (ls->entries == ls->size) {
-
-        ln = realloc(ls->record, sizeof(struct record_t*) * ls->size * 2);
-        if (ln == NULL) {
-            perror("realloc");
-            return -1;
-        }
-
-        ls->record = ln;
-        ls->size *= 2;
-    }
+    if (enlarge(ls, ls->entries + 1) == -1)
+        return -1;
 
     ls->record[ls->entries++] = lr;
-
     return 0;
 }
 
