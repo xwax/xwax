@@ -58,40 +58,28 @@ static void crate_clear(struct crate_t *c)
 }
 
 
-static void swap_crates(struct library_t *lib, int i, int j)
+static int crate_cmp(const struct crate_t *a, const struct crate_t *b)
 {
-    struct crate_t *tmp;
-    tmp = lib->crate[i];
-    lib->crate[i] = lib->crate[j];
-    lib->crate[j] = tmp;
+    if (a->is_fixed && !b->is_fixed)
+        return -1;
+    if (!a->is_fixed && b->is_fixed)
+        return 1;
+
+    return strcmp(a->name, b->name);
+}
+
+
+/* Comparison function fo ruse with qsort() */
+
+static int qcompar(const void *a, const void *b)
+{
+    return crate_cmp(*(struct crate_t**)a, *(struct crate_t**)b);
 }
 
 
 static void sort_crates(struct library_t *lib)
 {
-    int i, changed;
-
-    do {
-        changed = 0;
-
-        for (i = 0; i < lib->crates - 1; i++) {
-
-            if (lib->crate[i]->is_fixed)
-                continue;
-
-            if (lib->crate[i+1]->is_fixed) {
-                swap_crates(lib, i, i+1);
-                changed++;
-                continue;
-            }
-
-            if (strcmp(lib->crate[i]->name, lib->crate[i + 1]->name) > 0) {
-                swap_crates(lib, i, i+1);
-                changed++;
-            }
-
-        }
-    } while (changed);
+    qsort(lib->crate, lib->crates, sizeof(struct crate_t*), qcompar);
 }
 
 
