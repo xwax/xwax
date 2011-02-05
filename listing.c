@@ -30,6 +30,9 @@
 #define MAX_WORDS 32
 #define SEPARATOR ' '
 
+/*
+ * Initialise a record listing
+ */
 
 void listing_init(struct listing_t *ls)
 {
@@ -38,6 +41,12 @@ void listing_init(struct listing_t *ls)
     ls->entries = 0;
 }
 
+/*
+ * Deallocate resources associated with this listing
+ *
+ * The listing does not allocate records itself, so it is not
+ * responsible for deallocating them.
+ */
 
 void listing_clear(struct listing_t *ls)
 {
@@ -45,15 +54,25 @@ void listing_clear(struct listing_t *ls)
         free(ls->record);
 }
 
+/*
+ * Blank the listing so it contains no entries
+ *
+ * We don't de-allocate memory, but this gives us an advantage where
+ * listing re-use is of similar size.
+ */
 
 void listing_blank(struct listing_t *ls)
 {
     ls->entries = 0;
 }
 
-
-/* Enlarge the storage space of the listing to at least the target
- * size */
+/*
+ * Enlarge the storage space of the listing to at least the target
+ * size
+ *
+ * Return: 0 on success or -1 on memory allocation failure
+ * Post: size of listing is greater than or equal to target
+ */
 
 static int enlarge(struct listing_t *ls, size_t target)
 {
@@ -76,9 +95,11 @@ static int enlarge(struct listing_t *ls, size_t target)
     return 0;
 }
 
-
-/* Add a record to the listing. Return 0 on success, or -1 on memory
- * allocation failure */
+/*
+ * Add a record to the listing
+ *
+ * Return: 0 on success or -1 on memory allocation failure
+ */
 
 int listing_add(struct listing_t *ls, struct record_t *lr)
 {
@@ -89,6 +110,9 @@ int listing_add(struct listing_t *ls, struct record_t *lr)
     return 0;
 }
 
+/*
+ * Standard comparison function between two records
+ */
 
 static int record_cmp(const struct record_t *a, const struct record_t *b)
 {
@@ -109,23 +133,30 @@ static int record_cmp(const struct record_t *a, const struct record_t *b)
     return strcmp(a->pathname, b->pathname);
 }
 
-
-/* Comparison function for use with qsort() */
+/*
+ * Comparison function, see qsort(3)
+ */
 
 static int qcompar(const void *a, const void *b)
 {
     return record_cmp(*(struct record_t **)a, *(struct record_t **)b);
 }
 
+/*
+ * Post: listing is sorted
+ */
 
 void listing_sort(struct listing_t *ls)
 {
     qsort(ls->record, ls->entries, sizeof(struct record_t*), qcompar);
 }
 
-
-/* Return true if the given record matches the given string. This
- * function defines what constitutes a 'match' */
+/*
+ * Check if a record matches the given string. This function is the
+ * definitive code which defines what constitutes a 'match'.
+ *
+ * Return: true if this is a match, otherwise false
+ */
 
 static bool record_match(struct record_t *re, const char *match)
 {
@@ -136,9 +167,12 @@ static bool record_match(struct record_t *re, const char *match)
     return false;
 }
 
-
-/* Return true if the given record matches all of the given strings
- * in a NULL-terminated array */
+/*
+ * Check for a match against all the strings in a given
+ * NULL-terminated array
+ *
+ * Return: true if the given record matches, otherwise false
+ */
 
 static bool record_match_all(struct record_t *re, char **matches)
 {
@@ -150,9 +184,12 @@ static bool record_match_all(struct record_t *re, char **matches)
     return true;
 }
 
-
-/* Copy the source listing; return 0 on succes or -1 on memory
- * allocation failure, which leaves dest valid but incomplete */
+/*
+ * Copy the source listing
+ *
+ * Return: 0 on success or -1 on memory allocation failure
+ * Post: on failure, dest is valid but incomplete
+ */
 
 int listing_copy(const struct listing_t *src, struct listing_t *dest)
 {
@@ -168,11 +205,16 @@ int listing_copy(const struct listing_t *src, struct listing_t *dest)
     return 0;
 }
 
-
-/* Copy the subset of the source listing which matches the given
- * string; this function defines what constitutes a match; return 0 on
- * success, or -1 on memory allocation failure, which leaves dest
- * valid but incomplete */
+/*
+ * Find entries from the source listing with match the given string
+ *
+ * Copy the subset of the source listing which matches the given
+ * string into the destination. This function defines what constitutes
+ * a match.
+ *
+ * Return: 0 on success, or -1 on memory allocation failure
+ * Post: on failure, dest is valid but incomplete
+ */
 
 int listing_match(struct listing_t *src, struct listing_t *dest,
 		  const char *match)
@@ -218,7 +260,6 @@ int listing_match(struct listing_t *src, struct listing_t *dest,
     return 0;
 }
 
-
 /*
  * Binary search of sorted listing
  *
@@ -256,7 +297,6 @@ static size_t bin_search(struct record_t **base, size_t n,
     return mid;
 }
 
-
 /*
  * Insert or re-use an entry in a sorted listing
  *
@@ -287,6 +327,9 @@ struct record_t* listing_insert(struct listing_t *ls, struct record_t *item)
     return item;
 }
 
+/*
+ * Debug the content of a listing to standard error
+ */
 
 void listing_debug(struct listing_t *ls)
 {
