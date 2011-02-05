@@ -158,8 +158,6 @@ struct crate_t* use_crate(struct library_t *lib, char *name, bool is_fixed)
 
 int library_init(struct library_t *li)
 {
-    listing_init(&li->storage);
-
     li->crate = malloc(sizeof(struct crate_t*));
     if (li->crate == NULL) {
         perror("malloc");
@@ -188,6 +186,22 @@ static void record_clear(struct record_t *re)
 void library_clear(struct library_t *li)
 {
     int n;
+    struct crate_t *all;
+
+    /* This object is responsible for all the record pointers */
+
+    all = get_crate(li, CRATE_ALL);
+    assert(all != NULL);
+
+    for (n = 0; n < all->listing.entries; n++) {
+        struct record_t *re;
+
+        re = all->listing.record[n];
+        record_clear(re);
+        free(re);
+    }
+
+    /* Clear crates */
 
     for (n = 0; n < li->crates; n++) {
         struct crate_t *crate;
@@ -198,18 +212,6 @@ void library_clear(struct library_t *li)
         free(crate);
     }
     free(li->crate);
-
-    /* This object owns all the record pointers */
-
-    for (n = 0; n < li->storage.entries; n++) {
-        struct record_t *re;
-
-        re = li->storage.record[n];
-        record_clear(re);
-        free(re);
-    }
-
-    listing_clear(&li->storage);
 }
 
 
@@ -336,9 +338,6 @@ int library_import(struct library_t *li, bool sort,
             fprintf(stderr, "EOF when reading title for '%s'.\n", d->pathname);
             return -1;
         }
-
-        if (listing_add(&li->storage, d) != 0)
-            return -1;
 
         /* Add to crates */
 
