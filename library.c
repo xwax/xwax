@@ -386,9 +386,7 @@ int library_import(struct library_t *li, bool sort,
         /* If there is an existing entry, use it instead */
 
         if (x != d) {
-            free(d->pathname);
-            free(d->artist);
-            free(d->title);
+            record_clear(d);
             free(d);
             d = x;
         }
