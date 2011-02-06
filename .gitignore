@@ -1,5 +1,6 @@
 xwax
 test-library
+test-timecoder
 test-track
 *.o
 *.d
