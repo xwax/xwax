@@ -33,8 +33,13 @@
 
 #define CRATE_ALL "All records"
 
-
-/* Initialise a crate; note the deep copy of the crate name */
+/*
+ * Initialise a crate
+ *
+ * Note the deep copy of the crate name
+ *
+ * Return: 0 on success or -1 on memory allocation failure
+ */
 
 static int crate_init(struct crate_t *c, const char *name, bool is_fixed)
 {
@@ -50,6 +55,12 @@ static int crate_init(struct crate_t *c, const char *name, bool is_fixed)
     return 0;
 }
 
+/*
+ * Deallocate resources associated with this crate
+ *
+ * The crate does not 'own' the memory allocated by the records
+ * in it, so we don't free them here.
+ */
 
 static void crate_clear(struct crate_t *c)
 {
@@ -57,6 +68,9 @@ static void crate_clear(struct crate_t *c)
     free(c->name);
 }
 
+/*
+ * Comparison function for two crates
+ */
 
 static int crate_cmp(const struct crate_t *a, const struct crate_t *b)
 {
@@ -68,22 +82,29 @@ static int crate_cmp(const struct crate_t *a, const struct crate_t *b)
     return strcmp(a->name, b->name);
 }
 
-
-/* Comparison function fo ruse with qsort() */
+/*
+ * Comparison function, see qsort(3)
+ */
 
 static int qcompar(const void *a, const void *b)
 {
     return crate_cmp(*(struct crate_t**)a, *(struct crate_t**)b);
 }
 
+/*
+ * Sort all crates into a defined order
+ */
 
 static void sort_crates(struct library_t *lib)
 {
     qsort(lib->crate, lib->crates, sizeof(struct crate_t*), qcompar);
 }
 
-
-/* Add a crate to the list of all crates */
+/*
+ * Add a crate to the list of all crates
+ *
+ * Return: 0 on success or -1 on memory allocation failure
+ */
 
 static int add_crate(struct library_t *lib, struct crate_t *c)
 {
@@ -103,6 +124,14 @@ static int add_crate(struct library_t *lib, struct crate_t *c)
     return 0;
 }
 
+/*
+ * Get a crate by the given name
+ *
+ * Beware: The match could match the fixed crates if the name is the
+ * same.
+ *
+ * Return: pointer to crate, or NULL if no crate has the given name
+ */
 
 struct crate_t* get_crate(struct library_t *lib, const char *name)
 {
@@ -116,8 +145,11 @@ struct crate_t* get_crate(struct library_t *lib, const char *name)
     return NULL;
 }
 
-
-/* Get an existing crate, or create a new one if necessary */
+/*
+ * Get an existing crate, or create a new one if necessary
+ *
+ * Return: pointer to crate, or NULL on memory allocation failure
+ */
 
 struct crate_t* use_crate(struct library_t *lib, char *name, bool is_fixed)
 {
@@ -150,6 +182,11 @@ struct crate_t* use_crate(struct library_t *lib, char *name, bool is_fixed)
     return NULL;
 }
 
+/*
+ * Initialise the record library
+ *
+ * Return: 0 on success or -1 on memory allocation failure
+ */
 
 int library_init(struct library_t *li)
 {
@@ -167,6 +204,9 @@ int library_init(struct library_t *li)
     return 0;
 }
 
+/*
+ * Free resources associated with a record
+ */
 
 static void record_clear(struct record_t *re)
 {
@@ -175,6 +215,9 @@ static void record_clear(struct record_t *re)
     free(re->title);
 }
 
+/*
+ * Free resources associated with the music library
+ */
 
 void library_clear(struct library_t *li)
 {
@@ -204,10 +247,16 @@ void library_clear(struct library_t *li)
     crate_clear(&li->all);
 }
 
-
-/* Read and allocate a null-terminated field from the given file handle.
- * If the empty string is read, *s is set to NULL. Return 0 on success,
- * -1 on error or EOF */
+/*
+ * Read a string from a file.
+ *
+ * A null-terminated string is read from the given file handle
+ * by reading until the delimiter.
+ *
+ * Return: 0 on success, -1 on error or EOF
+ * Post: On success, *s is an alloc'd string returned to the caller;
+ *     if an empty string is read, *s is set to NULL
+ */
 
 static int get_field(FILE *fp, char delim, char **f)
 {
@@ -225,9 +274,14 @@ static int get_field(FILE *fp, char delim, char **f)
     return 0;
 }
 
-
-/* Scan a record library at the given path, using the given scan
- * script. Returns -1 on fatal error which may leak resources */
+/*
+ * Scan a record library
+ *
+ * Launch the given scan script and pass it the path argument.
+ * Parse the results into the crates.
+ *
+ * Return: 0 on success, -1 on fatal error (may leak)
+ */
 
 int library_import(struct library_t *li, bool sort,
                    const char *scan, const char *path)
