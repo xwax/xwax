@@ -20,6 +20,8 @@
 #ifndef LISTING_H
 #define LISTING_H
 
+#include <stddef.h>
+
 struct record_t {
     char *pathname, *artist, *title;
 };
@@ -28,7 +30,7 @@ struct record_t {
 
 struct listing_t {
     struct record_t **record;
-    int size, entries;
+    size_t size, entries;
 };
 
 void listing_init(struct listing_t *ls);
