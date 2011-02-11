@@ -941,7 +941,7 @@ static void draw_search(SDL_Surface *surface, const struct rect_t *rect,
     SDL_FillRect(surface, &cursor, palette(surface, &cursor_col));
 
     if (sel->view_listing->entries > 1)
-        sprintf(cm, "%d matches", sel->view_listing->entries);
+        sprintf(cm, "%zd matches", sel->view_listing->entries);
     else if (sel->view_listing->entries > 0)
         sprintf(cm, "1 match");
     else
