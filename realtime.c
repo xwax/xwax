@@ -98,38 +98,64 @@ static void* launch(void *p)
 }
 
 /*
- * Start realtime handling of the given devices
- *
- * This forks the realtime thread if it is required (eg. ALSA). Some
- * devices (eg. JACK) start their own thread.
+ * Initialise state of realtime handler
  */
 
-int rt_start(struct rt_t *rt, struct device_t *dv, size_t ndv)
+void rt_init(struct rt_t *rt)
 {
-    size_t n;
-
     rt->finished = false;
     rt->ndv = 0;
     rt->npt = 0;
+}
+
+/*
+ * Clear resources associated with the realtime handler
+ */
+
+void rt_clear(struct rt_t *rt)
+{
+}
+
+/*
+ * Add a device to this realtime handler
+ *
+ * Return: -1 if the device could not be added, otherwise 0
+ * Post: if 0 is returned the device is added
+ */
+
+int rt_add_device(struct rt_t *rt, struct device_t *dv)
+{
+    ssize_t z;
 
     /* The requested poll events never change, so populate the poll
      * entry table before entering the realtime thread */
 
-    for (n = 0; n < ndv; n++) {
-        ssize_t z;
-
-        z = device_pollfds(&dv[n], &rt->pt[rt->npt],
-                           MAX_DEVICE_POLLFDS - rt->npt);
-        if (z == -1) {
-            fprintf(stderr, "Device failed to return file descriptors.\n");
-            return -1;
-        }
-
-        rt->npt += z;
-
-        rt->dv[rt->ndv] = &dv[n];
-        rt->ndv++;
+    z = device_pollfds(dv, &rt->pt[rt->npt], MAX_DEVICE_POLLFDS - rt->npt);
+    if (z == -1) {
+        fprintf(stderr, "Device failed to return file descriptors.\n");
+        return -1;
     }
+
+    rt->npt += z;
+
+    rt->dv[rt->ndv] = dv;
+    rt->ndv++;
+
+    return 0;
+}
+
+/*
+ * Start realtime handling of the given devices
+ *
+ * This forks the realtime thread if it is required (eg. ALSA). Some
+ * devices (eg. JACK) start their own thread.
+ *
+ * Return: -1 on error, otherwise 0
+ */
+
+int rt_start(struct rt_t *rt)
+{
+    size_t n;
 
     /* If there are any devices which returned file descriptors for
      * poll() then launch the realtime thread to handle them */
@@ -146,8 +172,8 @@ int rt_start(struct rt_t *rt, struct device_t *dv, size_t ndv)
     /* FIXME: To avoid audio drop on startup, devices should be
      * started after synchronising with the realtime thread */
 
-    for (n = 0; n < ndv; n++)
-        device_start(&dv[n]);
+    for (n = 0; n < rt->ndv; n++)
+        device_start(rt->dv[n]);
 
     return 0;
 }

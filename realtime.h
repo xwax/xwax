@@ -41,7 +41,12 @@ struct rt_t {
     struct pollfd pt[MAX_DEVICE_POLLFDS];
 };
 
-int rt_start(struct rt_t *rt, struct device_t *dv, size_t ndv);
+void rt_init(struct rt_t *rt);
+void rt_clear(struct rt_t *rt);
+
+int rt_add_device(struct rt_t *rt, struct device_t *dv);
+
+int rt_start(struct rt_t *rt);
 void rt_stop(struct rt_t *rt);
 
 #endif

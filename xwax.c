@@ -114,6 +114,7 @@ int main(int argc, char *argv[])
     
     fprintf(stderr, BANNER "\n\n" NOTICE "\n\n");
     
+    rt_init(&rt);
     library_init(&library);
     
     decks = 0;
@@ -281,6 +282,9 @@ int main(int argc, char *argv[])
                 return -1;
             }
 
+            if (rt_add_device(&rt, &device[decks]) == -1)
+                return -1;
+
             track_init(&track[decks], importer);
             player_init(&player[decks]);
             player_connect_track(&player[decks], &track[decks]);
@@ -393,7 +397,7 @@ int main(int argc, char *argv[])
 
     if (rig_init(&rig) == -1)
         return -1;
-    if (rt_start(&rt, device, decks) == -1)
+    if (rt_start(&rt) == -1)
         return -1;
     if (interface_start(&iface, decks, player, timecoder, &library, &rig) == -1)
         return -1;
@@ -416,6 +420,7 @@ int main(int argc, char *argv[])
     
     timecoder_free_lookup();
     library_clear(&library);
+    rt_clear(&rt);
     
     fprintf(stderr, "Done.\n");
     
