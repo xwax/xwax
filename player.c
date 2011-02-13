@@ -231,6 +231,18 @@ static int sync_to_timecode(struct player_t *pl)
 }
 
 /*
+ * Synchronise to the position given by the timecoder without
+ * affecting the audio playback position
+ */
+
+static void calibrate_to_timecode_position(struct player_t *pl)
+{
+    assert(pl->target_valid);
+    pl->offset += pl->target_position - pl->position;
+    pl->position = pl->target_position;
+}
+
+/*
  * Cue to the zero position of the track
  */
 
@@ -277,8 +289,7 @@ void player_collect(struct player_t *pl, signed short *pcm,
          * the needle, and continue */
 
         if (pl->reconnect) {
-            pl->offset += pl->target_position - pl->position;
-	    pl->position = pl->target_position;
+            calibrate_to_timecode_position(pl);
             pl->reconnect = false;
         }
 
