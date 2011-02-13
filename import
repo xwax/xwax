@@ -1,11 +1,14 @@
 #!/bin/sh
 #
+# Audio import handler for xwax
+#
 # This script takes an output sample rate and filename as arguments,
 # and outputs signed, little-endian, 16-bit, 2 channel audio on
 # standard output. Errors to standard error.
 #
 # You can adjust this script yourself to customise the support for
 # different file formats and codecs.
+#
 
 FILE="$1"
 RATE="$2"
@@ -40,7 +43,6 @@ case "$FILE" in
 *)
     echo "Calling fallback decoder..." >&2
     exec ffmpeg -v 0 -i "$FILE" -f s16le -ar "$RATE" -
-    #exec sox "$FILE" -t raw -s -
     ;;
 
 esac
