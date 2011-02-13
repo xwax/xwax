@@ -44,8 +44,8 @@ struct player_t {
     /* Timecode control */
 
     struct timecoder_t *timecoder;
-    bool timecode_control;
-    bool reconnect; /* re-sync offset at next opportunity */
+    bool timecode_control,
+        recalibrate; /* re-sync offset at next opportunity */
 };
 
 void player_init(struct player_t *pl, struct track_t *track);

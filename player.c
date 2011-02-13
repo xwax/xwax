@@ -158,7 +158,7 @@ void player_init(struct player_t *pl, struct track_t *track)
 
     pl->timecoder = NULL;
     pl->timecode_control = false;
-    pl->reconnect = false;
+    pl->recalibrate = false;
 }
 
 /*
@@ -177,7 +177,7 @@ void player_clear(struct player_t *pl)
 void player_connect_timecoder(struct player_t *pl, struct timecoder_t *tc)
 {
     pl->timecoder = tc;
-    pl->reconnect = true;
+    pl->recalibrate = true;
     pl->timecode_control = true;
 }
 
@@ -188,7 +188,7 @@ void player_connect_timecoder(struct player_t *pl, struct timecoder_t *tc)
 void player_set_timecode_control(struct player_t *pl, bool on)
 {
     if (on && !pl->timecode_control)
-        pl->reconnect = true;
+        pl->recalibrate = true;
     pl->timecode_control = on;
 }
 
@@ -283,14 +283,9 @@ void player_collect(struct player_t *pl, signed short *pcm,
         pl->sync_pitch += dt / (SYNC_RC + dt) * (1.0 - pl->sync_pitch);
 
     } else {
-
-        /* If reconnection has been requested, move the logical record
-         * on the vinyl so that the current position is right under
-         * the needle, and continue */
-
-        if (pl->reconnect) {
+        if (pl->recalibrate) {
             calibrate_to_timecode_position(pl);
-            pl->reconnect = false;
+            pl->recalibrate = false;
         }
 
         /* Calculate the pitch compensation required to get us back on

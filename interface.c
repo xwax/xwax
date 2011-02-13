@@ -845,7 +845,7 @@ static void draw_deck_status(SDL_Surface *surface,
             pl->sync_pitch,
             pl->last_difference,
             pl->pitch * pl->sync_pitch,
-            pl->reconnect ? "RECN  " : "");
+            pl->recalibrate ? "RCAL  " : "");
     
     draw_font_rect(surface, rect, buf, detail_font,
                    detail_col, background_col);
