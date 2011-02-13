@@ -41,7 +41,10 @@ int import_start(struct import_t *im, struct track_t *track,
                  const char *cmd, const char *path)
 {
     int pstdout[2];
+    char rate[16];
     pid_t pid;
+
+    sprintf(rate, "%d", track->rate);
 
     if (pipe(pstdout) == -1) {
         perror("pipe");
@@ -78,7 +81,7 @@ int import_start(struct import_t *im, struct track_t *track,
             abort();
         }
 
-        if (execl(cmd, "import", path, NULL) == -1) {
+        if (execl(cmd, "import", path, rate, NULL) == -1) {
             perror("execl");
             fprintf(stderr, "Failed to launch importer %s\n", cmd);
             _exit(EXIT_FAILURE); /* vfork() was used */
