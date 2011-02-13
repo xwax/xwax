@@ -27,6 +27,8 @@
 #define PLAYER_CHANNELS 2
 
 struct player_t {
+    struct track_t *track;
+
     bool reconnect; /* Re-sync the offset at next opportunity */
 
     /* Current playback parameters */
@@ -45,11 +47,9 @@ struct player_t {
 
     struct timecoder_t *timecoder;
     bool timecode_control;
-
-    struct track_t *track;
 };
 
-void player_init(struct player_t *pl);
+void player_init(struct player_t *pl, struct track_t *track);
 void player_clear(struct player_t *pl);
 
 void player_connect_timecoder(struct player_t *pl, struct timecoder_t *tc);
@@ -59,7 +59,5 @@ int player_recue(struct player_t *pl);
 
 void player_collect(struct player_t *pl, signed short *pcm,
                     int samples, int rate);
-
-void player_connect_track(struct player_t *pl, struct track_t *tr);
 
 #endif

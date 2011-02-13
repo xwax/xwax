@@ -17,6 +17,7 @@
  *
  */
 
+#include <assert.h>
 #include <limits.h>
 #include <math.h>
 #include <stdio.h>
@@ -141,8 +142,11 @@ static double build_pcm(signed short *pcm, int samples, int rate,
  * Post: player is initialised
  */
 
-void player_init(struct player_t *pl)
+void player_init(struct player_t *pl, struct track_t *track)
 {
+    assert(track != NULL);
+    pl->track = track;
+
     pl->reconnect = false;
 
     pl->position = 0.0;
@@ -153,8 +157,6 @@ void player_init(struct player_t *pl)
     pl->pitch = 0.0;
     pl->sync_pitch = 1.0;
     pl->volume = 0.0;
-
-    pl->track = NULL;
 
     pl->timecoder = NULL;
     pl->timecode_control = false;
@@ -321,13 +323,4 @@ void player_collect(struct player_t *pl, signed short *pcm,
                               pl->volume, target_volume);
     
     pl->volume = target_volume;
-}
-
-/*
- * Post: the given track will be given as the source for input audio
- */
-
-void player_connect_track(struct player_t *pl, struct track_t *tr)
-{
-    pl->track = tr;
 }
