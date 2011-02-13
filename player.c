@@ -149,7 +149,9 @@ void player_init(struct player_t *pl)
     pl->volume = 0.0;
 
     pl->track = NULL;
+
     pl->timecoder = NULL;
+    pl->timecode_control = false;
 }
 
 
@@ -162,12 +164,15 @@ void player_connect_timecoder(struct player_t *pl, struct timecoder_t *tc)
 {
     pl->timecoder = tc;
     pl->reconnect = true;
+    pl->timecode_control = true;
 }
 
 
-void player_disconnect_timecoder(struct player_t *pl)
+void player_set_timecode_control(struct player_t *pl, bool on)
 {
-    pl->timecoder = NULL;
+    if (on && !pl->timecode_control)
+        pl->reconnect = true;
+    pl->timecode_control = on;
 }
 
 
@@ -223,9 +228,9 @@ void player_collect(struct player_t *pl, signed short *pcm,
 
     dt = (float)samples / rate;
 
-    if (pl->timecoder) {
+    if (pl->timecode_control) {
         if (sync_to_timecode(pl) == -1)
-            player_disconnect_timecoder(pl);
+            pl->timecode_control = false;
     }
 
     if (!pl->target_valid) {

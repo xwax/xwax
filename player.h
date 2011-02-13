@@ -41,15 +41,19 @@ struct player_t {
 
     bool target_valid;
 
-    struct track_t *track;
+    /* Timecode control */
+
     struct timecoder_t *timecoder;
+    bool timecode_control;
+
+    struct track_t *track;
 };
 
 void player_init(struct player_t *pl);
 void player_clear(struct player_t *pl);
 
 void player_connect_timecoder(struct player_t *pl, struct timecoder_t *tc);
-void player_disconnect_timecoder(struct player_t *pl);
+void player_set_timecode_control(struct player_t *pl, bool on);
 
 int player_recue(struct player_t *pl);
 

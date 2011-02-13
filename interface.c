@@ -803,7 +803,7 @@ static void draw_deck_top(SDL_Surface *surface, const struct rect_t *rect,
     /* If there is no timecoder to display information on, or not enough 
      * available space, just draw clocks which span the overall space */
 
-    if (!pl->timecoder || right.w < 0) {
+    if (!pl->timecode_control || right.w < 0) {
         draw_deck_clocks(surface, rect, pl);
         return;
     }
@@ -833,8 +833,9 @@ static void draw_deck_status(SDL_Surface *surface,
 {
     char buf[128];
     int tc;
-    
-    if (pl->timecoder && (tc=timecoder_get_position(pl->timecoder, NULL)) != -1)
+
+    tc = timecoder_get_position(pl->timecoder, NULL);
+    if (pl->timecode_control && tc != -1)
         sprintf(buf, "timecode:%d      ", tc);
     else
         sprintf(buf, "timecode:        ");
@@ -1263,11 +1264,11 @@ static bool handle_key(struct interface_t *in, struct selector_t *sel,
                 break;
 
             case FUNC_DISCONNECT:
-                player_disconnect_timecoder(pl);
+                player_set_timecode_control(pl, false);
                 break;
 
             case FUNC_RECONNECT:
-                player_connect_timecoder(pl, in->timecoder[deck]);
+                player_set_timecode_control(pl, true);
                 break;
             }
         }
