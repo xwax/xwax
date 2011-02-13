@@ -29,8 +29,6 @@
 struct player_t {
     struct track_t *track;
 
-    bool reconnect; /* Re-sync the offset at next opportunity */
-
     /* Current playback parameters */
 
     double position, /* seconds */
@@ -47,6 +45,7 @@ struct player_t {
 
     struct timecoder_t *timecoder;
     bool timecode_control;
+    bool reconnect; /* re-sync offset at next opportunity */
 };
 
 void player_init(struct player_t *pl, struct track_t *track);

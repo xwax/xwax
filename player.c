@@ -147,8 +147,6 @@ void player_init(struct player_t *pl, struct track_t *track)
     assert(track != NULL);
     pl->track = track;
 
-    pl->reconnect = false;
-
     pl->position = 0.0;
     pl->offset = 0.0;
     pl->target_valid = false;
@@ -160,6 +158,7 @@ void player_init(struct player_t *pl, struct track_t *track)
 
     pl->timecoder = NULL;
     pl->timecode_control = false;
+    pl->reconnect = false;
 }
 
 /*
