@@ -17,30 +17,28 @@
  *
  */
 
-#ifndef DECK_H
-#define DECK_H
+#ifndef CUES_H
+#define CUES_H
 
-#include "cues.h"
-#include "device.h"
-#include "player.h"
-#include "rig.h"
-#include "realtime.h"
-#include "timecoder.h"
-#include "track.h"
+#include <math.h>
 
-struct deck_t {
-    struct device_t device;
-    struct timecoder_t timecoder;
-    struct track_t track;
+#define MAX_CUES 16
+#define CUE_UNSET (HUGE_VAL)
 
-    struct cues_t cues;
-    struct player_t player;
+/*
+ * A set of cue points
+ */
+
+struct cues_t {
+    double position[MAX_CUES];
 };
 
-int deck_init(struct deck_t *deck, struct rt_t *rt, struct rig_t *rig);
-void deck_clear(struct deck_t *deck);
+void cues_reset(struct cues_t *q);
 
-void deck_set_cue(struct deck_t *deck, unsigned int label);
-void deck_seek_to_cue(struct deck_t *deck, unsigned int label);
+void cues_unset(struct cues_t *q, unsigned int label);
+void cues_set(struct cues_t *q, unsigned int label, double position);
+double cues_get(const struct cues_t *q, unsigned int label);
+double cues_prev(const struct cues_t *q, double current);
+double cues_next(const struct cues_t *q, double current);
 
 #endif

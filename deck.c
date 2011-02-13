@@ -17,6 +17,7 @@
  *
  */
 
+#include "cues.h"
 #include "deck.h"
 
 /*
@@ -34,6 +35,7 @@ int deck_init(struct deck_t *deck, struct rt_t *rt, struct rig_t *rig)
     if (rt_add_device(rt, &deck->device) == -1)
         return -1;
 
+    cues_reset(&deck->cues);
     player_init(&deck->player, &deck->track, &deck->timecoder);
 
     /* The timecoder and player are driven by requests from
@@ -52,4 +54,26 @@ void deck_clear(struct deck_t *deck)
     track_clear(&deck->track);
     timecoder_clear(&deck->timecoder);
     device_clear(&deck->device);
+}
+
+/*
+ * Set a cue point to the current playback position
+ */
+
+void deck_set_cue(struct deck_t *d, unsigned int label)
+{
+    cues_set(&d->cues, label, player_position(&d->player));
+}
+
+/*
+ * Seek the current playback position to a cue point position
+ */
+
+void deck_seek_to_cue(struct deck_t *d, unsigned int label)
+{
+    double p;
+
+    p = cues_get(&d->cues, label);
+    if (p != CUE_UNSET)
+        player_seek_to(&d->player, p);
 }

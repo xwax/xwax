@@ -256,12 +256,30 @@ static void calibrate_to_timecode_position(struct player_t *pl)
 }
 
 /*
+ * Return: the position in the audio track, in seconds
+ */
+
+double player_position(struct player_t *pl)
+{
+    return pl->position - pl->offset;
+}
+
+/*
  * Cue to the zero position of the track
  */
 
 void player_recue(struct player_t *pl)
 {
     pl->offset = pl->position;
+}
+
+/*
+ * Seek to the given position
+ */
+
+void player_seek_to(struct player_t *pl, double seconds)
+{
+    pl->offset = pl->position - seconds;
 }
 
 /*

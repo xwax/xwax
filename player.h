@@ -56,6 +56,9 @@ void player_set_timecoder(struct player_t *pl, struct timecoder_t *tc);
 void player_set_timecode_control(struct player_t *pl, bool on);
 bool player_toggle_timecode_control(struct player_t *pl);
 
+double player_position(struct player_t *pl);
+
+void player_seek_to(struct player_t *pl, double seconds);
 void player_recue(struct player_t *pl);
 
 void player_collect(struct player_t *pl, signed short *pcm,
