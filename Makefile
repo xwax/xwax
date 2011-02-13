@@ -41,7 +41,8 @@ DOCDIR = $(PREFIX)/share/doc
 
 # Core objects and libraries
 
-OBJS = deck.o external.o import.o interface.o library.o listing.o lut.o \
+OBJS = cues.o deck.o external.o import.o interface.o \
+	library.o listing.o lut.o \
 	player.o realtime.o \
 	rig.o selector.o timecoder.o track.o xwax.o
 DEVICE_OBJS = device.o
@@ -118,6 +119,8 @@ dist:		.version
 
 # Manual tests
 
+test-cues:	test-cues.o cues.o
+
 test-library:	test-library.o external.o library.o listing.o
 
 test-timecoder:	test-timecoder.o lut.o timecoder.o
@@ -126,6 +129,7 @@ test-track:	test-track.o import.o track.o
 
 clean:
 		rm -f xwax \
+			test-cues \
 			test-library \
 			test-timecoder \
 			test-track \

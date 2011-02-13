@@ -19,6 +19,7 @@
 
 #include <assert.h>
 
+#include "cues.h"
 #include "deck.h"
 #include "rig.h"
 
@@ -54,6 +55,7 @@ int deck_init(struct deck *deck, struct rt *rt)
     sample_rate = device_sample_rate(&deck->device);
     player_init(&deck->player, sample_rate, track_get_empty(),
                 &deck->timecoder);
+    cues_reset(&deck->cues);
 
     /* The timecoder and player are driven by requests from
      * the audio device */
@@ -86,4 +88,26 @@ void deck_load(struct deck *deck, struct record *record)
 
     deck->record = record;
     player_set_track(&deck->player, t); /* passes reference */
+}
+
+/*
+ * Set a cue point to the current playback position
+ */
+
+void deck_set_cue(struct deck *d, unsigned int label)
+{
+    cues_set(&d->cues, label, player_get_elapsed(&d->player));
+}
+
+/*
+ * Seek the current playback position to a cue point position
+ */
+
+void deck_seek_to_cue(struct deck *d, unsigned int label)
+{
+    double p;
+
+    p = cues_get(&d->cues, label);
+    if (p != CUE_UNSET)
+        player_seek_to(&d->player, p);
 }
