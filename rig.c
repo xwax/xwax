@@ -51,6 +51,8 @@ int rig_init(struct rig_t *rig)
         return -1;
     }
 
+    rig->ntrack = 0;
+
     return 0;
 }
 
@@ -60,6 +62,23 @@ void rig_clear(struct rig_t *rig)
         abort();
     if (close(rig->event[1]) == -1)
         abort();
+}
+
+/*
+ * Add a track to be monitored
+ *
+ * This function is not thread or signal safe to rig_main() as
+ * is only used as part of initialisation.
+ *
+ * Pre: less than MAX_TRACKS tracks already added to this rig
+ */
+
+void rig_add_track(struct rig_t *rig, struct track_t *track)
+{
+    assert(rig->ntrack < MAX_TRACKS);
+
+    rig->track[rig->ntrack] = track;
+    rig->ntrack++;
 }
 
 /*
@@ -75,13 +94,13 @@ void rig_clear(struct rig_t *rig)
  * I/O), the rig will also be responsible for them.
  */
 
-int rig_main(struct rig_t *rig, struct track_t track[], size_t ntrack)
+int rig_main(struct rig_t *rig)
 {
     int r;
     size_t n;
     struct pollfd pt[MAX_POLLFDS], *pe;
 
-    assert(ntrack <= MAX_POLLFDS);
+    assert(rig->ntrack <= MAX_POLLFDS);
 
     for (;;) { /* exit via EVENT_QUIT */
         pe = pt;
@@ -97,8 +116,8 @@ int rig_main(struct rig_t *rig, struct track_t track[], size_t ntrack)
 
         /* Fetch file descriptors to monitor from each track */
 
-        for (n = 0; n < ntrack; n++)
-            pe += track_pollfd(&track[n], pe);
+        for (n = 0; n < rig->ntrack; n++)
+            pe += track_pollfd(rig->track[n], pe);
 
         r = poll(pt, pe - pt, -1);
         if (r == -1) {
@@ -142,8 +161,8 @@ int rig_main(struct rig_t *rig, struct track_t track[], size_t ntrack)
 
         /* Do any reading and writing on all tracks */
 
-        for (n = 0; n < ntrack; n++)
-            track_handle(&track[n]);
+        for (n = 0; n < rig->ntrack; n++)
+            track_handle(rig->track[n]);
     }
  finish:
 

@@ -113,10 +113,12 @@ int main(int argc, char *argv[])
     struct library_t library;
     
     fprintf(stderr, BANNER "\n\n" NOTICE "\n\n");
-    
+
+    if (rig_init(&rig) == -1)
+        return -1;
     rt_init(&rt);
     library_init(&library);
-    
+
     decks = 0;
     oss_fragment = DEFAULT_OSS_FRAGMENT;
     oss_buffers = DEFAULT_OSS_BUFFERS;
@@ -286,6 +288,8 @@ int main(int argc, char *argv[])
                 return -1;
 
             track_init(&track[decks], importer);
+            rig_add_track(&rig, &track[decks]);
+
             player_init(&player[decks]);
             player_connect_track(&player[decks], &track[decks]);
             player_connect_timecoder(&player[decks], &timecoder[decks]);
@@ -395,21 +399,18 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    if (rig_init(&rig) == -1)
-        return -1;
     if (rt_start(&rt) == -1)
         return -1;
     if (interface_start(&iface, decks, player, timecoder, &library, &rig) == -1)
         return -1;
 
-    if (rig_main(&rig, track, decks) == -1)
+    if (rig_main(&rig) == -1)
         return -1;
 
     fprintf(stderr, "Exiting cleanly...\n");
 
     interface_stop(&iface);
     rt_stop(&rt);
-    rig_clear(&rig);
 
     for (n = 0; n < decks; n++) {
         track_clear(&track[n]);
@@ -421,6 +422,7 @@ int main(int argc, char *argv[])
     timecoder_free_lookup();
     library_clear(&library);
     rt_clear(&rt);
+    rig_clear(&rig);
     
     fprintf(stderr, "Done.\n");
     

@@ -22,15 +22,22 @@
 
 #include <stdbool.h>
 
-#include "track.h"
+#define MAX_TRACKS 3
 
 struct rig_t {
     int event[2]; /* pipe to wake up service thread */
+
+    size_t ntrack;
+    struct track_t *track[MAX_TRACKS];
 };
 
 int rig_init(struct rig_t *rig);
 void rig_clear(struct rig_t *rig);
-int rig_main(struct rig_t *rig, struct track_t track[], size_t ntrack);
+
+void rig_add_track(struct rig_t *rig, struct track_t *track);
+
+int rig_main(struct rig_t *rig);
+
 int rig_awaken(struct rig_t *rig);
 int rig_quit(struct rig_t *rig);
 
