@@ -101,8 +101,7 @@
 
 #define FUNC_LOAD 0
 #define FUNC_RECUE 1
-#define FUNC_DISCONNECT 2
-#define FUNC_RECONNECT 3
+#define FUNC_TIMECODE 2
 
 
 /* State variables used to trigger certain actions */
@@ -1263,12 +1262,8 @@ static bool handle_key(struct interface_t *in, struct selector_t *sel,
                 player_recue(pl);
                 break;
 
-            case FUNC_DISCONNECT:
-                player_set_timecode_control(pl, false);
-                break;
-
-            case FUNC_RECONNECT:
-                player_set_timecode_control(pl, true);
+            case FUNC_TIMECODE:
+                (void)player_toggle_timecode_control(pl);
                 break;
             }
         }

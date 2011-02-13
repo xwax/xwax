@@ -193,6 +193,20 @@ void player_set_timecode_control(struct player_t *pl, bool on)
 }
 
 /*
+ * Toggle timecode control
+ *
+ * Return: the new state of timecode control
+ */
+
+bool player_toggle_timecode_control(struct player_t *pl)
+{
+    pl->timecode_control = !pl->timecode_control;
+    if (pl->timecode_control)
+        pl->recalibrate = true;
+    return pl->timecode_control;
+}
+
+/*
  * Synchronise to the position and speed given by the timecoder
  *
  * Return: 0 on success or -1 if the timecoder is not currently valid

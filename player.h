@@ -53,6 +53,7 @@ void player_clear(struct player_t *pl);
 
 void player_connect_timecoder(struct player_t *pl, struct timecoder_t *tc);
 void player_set_timecode_control(struct player_t *pl, bool on);
+bool player_toggle_timecode_control(struct player_t *pl);
 
 int player_recue(struct player_t *pl);
 
