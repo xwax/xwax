@@ -31,8 +31,11 @@
 #define LOCK(tr) pthread_mutex_lock(&(tr)->mx)
 #define UNLOCK(tr) pthread_mutex_unlock(&(tr)->mx)
 
-
-/* Allocate more memory. Returns 0 on success otherwise -1 */
+/*
+ * Allocate more memory
+ *
+ * Return: -1 if memory could not be allocated, otherwize 0
+ */
 
 static int more_space(struct track_t *tr)
 {
@@ -57,9 +60,12 @@ static int more_space(struct track_t *tr)
     return 0;
 }
 
-
-/* Ask for a pointer to the PCM buffer for incoming audio. On return,
- * *len is set to the buffer length in bytes */
+/*
+ * Get access to the PCM buffer for incoming audio
+ *
+ * Return: pointer to buffer
+ * Post: len contains the length of the buffer, in bytes
+ */
 
 void* track_access_pcm(struct track_t *tr, size_t *len)
 {
@@ -78,9 +84,15 @@ void* track_access_pcm(struct track_t *tr, size_t *len)
     return (void*)tr->block[block]->pcm + fill;
 }
 
-
-/* Notify that audio has been placed in the buffer, giving the
- * number of stereo samples */
+/*
+ * Notify that audio has been placed in the buffer
+ *
+ * The parameter is the number of stereo samples which have been
+ * placed in the buffer.
+ *
+ * Pre: the number of samples does not overflow the size of the buffer,
+ * given by track_access_pcm()
+ */
 
 static void commit_pcm_samples(struct track_t *tr, unsigned int samples)
 {
@@ -130,10 +142,15 @@ static void commit_pcm_samples(struct track_t *tr, unsigned int samples)
     }
 }
 
-
-/* Notify that bytes of data have been placed in the buffer. Commit in
- * whole samples, and leave any residual in the buffer ready for next
- * time */
+/*
+ * Notify that data has been placed in the buffer
+ *
+ * This function passes any whole samples to commit_pcm_samples()
+ * and leaves the residual in the buffer ready for next time.
+ *
+ * Pre: len is not greater than the size of the buffer, available
+ * from track_access_pcm()
+ */
 
 void track_commit(struct track_t *tr, size_t len)
 {
@@ -141,6 +158,11 @@ void track_commit(struct track_t *tr, size_t len)
     commit_pcm_samples(tr, tr->bytes / SAMPLE - tr->length);
 }
 
+/*
+ * Initialise object which will hold PCM audio data
+ *
+ * Post: track is initialised
+ */
 
 void track_init(struct track_t *tr, const char *importer)
 {
@@ -158,8 +180,14 @@ void track_init(struct track_t *tr, const char *importer)
         abort();
 }
 
-
-/* Destroy this track from memory, and any child process */
+/*
+ * Destroy this track from memory
+ *
+ * Terminates any import processes and frees any memory allocated by
+ * this object.
+ *
+ * Pre: track is initialised
+ */
 
 void track_clear(struct track_t *tr)
 {
@@ -179,8 +207,15 @@ void track_clear(struct track_t *tr)
         abort();
 }
 
-
-/* Empty this track, used to clear the audio data before importing */
+/*
+ * Make the given track empty
+ *
+ * This function does not deallocate the buffer, which is a quick
+ * way to handle concurrency issues -- the realtime thread accessing
+ * the audio.
+ *
+ * Post: track is 0 seconds in length
+ */
 
 void track_empty(struct track_t *tr)
 {
@@ -190,9 +225,14 @@ void track_empty(struct track_t *tr)
     tr->overview = 0;
 }
 
-
-/* A request to begin importing a new track. Can be called when the
- * track is in any state */
+/*
+ * Import audio from the given path
+ *
+ * Cleans up any existing import operation, and so can be called
+ * when the track is in any initialised state.
+ *
+ * Post: track is importing
+ */
 
 int track_import(struct track_t *tr, const char *path)
 {
@@ -216,9 +256,12 @@ int track_import(struct track_t *tr, const char *path)
     return r;
 }
 
-
-/* Return the number of file descriptors which should be watched for
- * this track, and fill pe */
+/*
+ * Get entry for use by poll()
+ *
+ * Return: number of file descriptors placed in *pe
+ * Post: *pe contains 0 or 1 file descriptors
+ */
 
 size_t track_pollfd(struct track_t *tr, struct pollfd *pe)
 {
@@ -240,7 +283,9 @@ size_t track_pollfd(struct track_t *tr, struct pollfd *pe)
     return r;
 }
 
-/* Handle any file descriptor activity on this track */
+/*
+ * Handle any file descriptor activity on this track
+ */
 
 void track_handle(struct track_t *tr)
 {
