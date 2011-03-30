@@ -5,3 +5,4 @@ test-track
 *.o
 *.d
 .config
+.version

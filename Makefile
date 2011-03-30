@@ -72,14 +72,29 @@ endif
 
 all:		xwax
 
+# Dynamic versioning
+
+.PHONY:		FORCE
+
+.version:	FORCE
+		./mkversion -r
+
+VERSION = $(shell ./mkversion)
+
+# Main binary
+
 xwax:		$(OBJS) $(DEVICE_OBJS)
 xwax:		LDLIBS += $(SDL_LIBS) $(DEVICE_LIBS) -lm
 xwax:		LDFLAGS += -pthread
 
 interface.o:	CFLAGS += $(SDL_CFLAGS)
+interface.o:	CPPFLAGS += -DVERSION=\"$(VERSION)\"
+interface.o:	.version
 
 xwax.o:		CFLAGS += $(SDL_CFLAGS) $(DEVICE_CPPFLAGS)
 xwax.o:		CPPFLAGS += -DEXECDIR=\"$(EXECDIR)\"
+xwax.o:		CPPFLAGS += -DVERSION=\"$(VERSION)\"
+xwax.o:		.version
 
 install:
 		$(INSTALL) -d $(BINDIR)
