@@ -96,6 +96,8 @@ xwax.o:		CPPFLAGS += -DEXECDIR=\"$(EXECDIR)\"
 xwax.o:		CPPFLAGS += -DVERSION=\"$(VERSION)\"
 xwax.o:		.version
 
+# Install to system
+
 install:
 		$(INSTALL) -d $(BINDIR)
 		$(INSTALL) xwax $(BINDIR)/xwax
@@ -108,6 +110,13 @@ install:
 		$(INSTALL) -m 0644 CHANGES $(DOCDIR)/xwax/CHANGES
 		$(INSTALL) -m 0644 COPYING $(DOCDIR)/xwax/COPYING
 		$(INSTALL) -m 0644 README $(DOCDIR)/xwax/README
+
+# Distribution archive from Git source code
+
+.PHONY:		dist
+
+dist:		.version
+		./mkdist $(VERSION)
 
 # Manual tests
 
