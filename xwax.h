@@ -20,12 +20,7 @@
 #ifndef XWAX_H
 #define XWAX_H
 
-#ifndef VERSION
-#error "VERSION must be defined"
-#endif
-
-#define BANNER "xwax " VERSION \
-    " (C) Copyright 2011 Mark Hills <mark@pogo.org.uk>"
+extern char *banner;
 
 #define NOTICE \
   "This software is supplied WITHOUT ANY WARRANTY; without even the implied\n"\

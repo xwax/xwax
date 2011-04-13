@@ -88,12 +88,9 @@ xwax:		LDLIBS += $(SDL_LIBS) $(DEVICE_LIBS) -lm
 xwax:		LDFLAGS += -pthread
 
 interface.o:	CFLAGS += $(SDL_CFLAGS)
-interface.o:	CPPFLAGS += -DVERSION=\"$(VERSION)\"
-interface.o:	.version
 
 xwax.o:		CFLAGS += $(SDL_CFLAGS) $(DEVICE_CPPFLAGS)
-xwax.o:		CPPFLAGS += -DEXECDIR=\"$(EXECDIR)\"
-xwax.o:		CPPFLAGS += -DVERSION=\"$(VERSION)\"
+xwax.o:		CPPFLAGS += -DEXECDIR=\"$(EXECDIR)\" -DVERSION=\"$(VERSION)\"
 xwax.o:		.version
 
 # Install to system

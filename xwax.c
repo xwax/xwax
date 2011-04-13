@@ -51,6 +51,10 @@
 #define DEFAULT_TIMECODE "serato_2a"
 
 
+char *banner = "xwax " VERSION \
+    " (C) Copyright 2011 Mark Hills <mark@pogo.org.uk>";
+
+
 static void usage(FILE *fd)
 {
     fprintf(fd, "Usage: xwax [<options>]\n\n"
@@ -112,7 +116,7 @@ int main(int argc, char *argv[])
     struct interface_t iface;
     struct library_t library;
     
-    fprintf(stderr, BANNER "\n\n" NOTICE "\n\n");
+    fprintf(stderr, "%s\n\n" NOTICE "\n\n", banner);
 
     if (rig_init(&rig) == -1)
         return -1;

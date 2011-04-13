@@ -1316,7 +1316,7 @@ static Uint32 ticker(Uint32 interval, void *p)
 static int interface_main(struct interface_t *in)
 {
     int meter_scale, library_update, decks_update, status_update;
-    const char *status = BANNER;
+    const char *status = banner;
 
     SDL_Event event;
     SDL_TimerID timer;
@@ -1493,7 +1493,7 @@ int interface_start(struct interface_t *in, size_t ndeck,
         fprintf(stderr, "%s\n", SDL_GetError());
         return -1;
     }
-    SDL_WM_SetCaption(BANNER, NULL);
+    SDL_WM_SetCaption(banner, NULL);
     SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
 
     /* Initialise the fonts */
