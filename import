@@ -15,16 +15,6 @@ RATE="$2"
 
 case "$FILE" in
 
-*.ogg)
-    echo "Calling Ogg decoder..." >&2
-    exec oggdec -Q --bits 16 --endianness 0 --sign 1 --raw --output - "$FILE"
-    ;;
-
-*.aac)
-    echo "Calling AAC decoder..." >&2
-    exec faad -b 1 -f 2 -w "$FILE"
-    ;;
-
 *.cdaudio)
     echo "Calling CD extract..." >&2
     exec cdparanoia -r `cat "$FILE"` -
@@ -33,11 +23,6 @@ case "$FILE" in
 *.mp3)
     echo "Calling MP3 decoder..." >&2
     exec mpg123 -q -s --rate "$RATE" --stereo "$FILE"
-    ;;
-
-*.flac)
-    echo "Calling FLAC decoder..." >&2
-    exec flac -d -c -s --force-raw-format --sign=signed --endian=little "$FILE"
     ;;
 
 *)
