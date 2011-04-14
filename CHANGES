@@ -3,6 +3,7 @@ v0.9 (work in progress)
 
 * Internal cleanups
 * Filtering of duplicate entries in the record library
+* Scanning of ordered playlists
 * Improved response when scratching
 * New parsing rules for filenames
 * A single button toggles timecode control on/off
