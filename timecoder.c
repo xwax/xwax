@@ -40,6 +40,7 @@
 #define MONITOR_DECAY_EVERY 512 /* in samples */
 
 #define SQ(x) ((x)*(x))
+#define ARRAY_SIZE(x) (sizeof(x) / sizeof(*x))
 
 /* Timecode definitions */
 
@@ -132,9 +133,6 @@ static struct timecode_def_t timecode_def[] = {
         .safe = 310000,
         .lookup = false
     },
-    {
-        .name = NULL
-    }
 };
 
 /*
@@ -194,14 +192,17 @@ static inline bits_t rev(bits_t current, struct timecode_def_t *def)
 
 struct timecode_def_t* timecoder_find_definition(const char *name)
 {
-    struct timecode_def_t *def;
+    struct timecode_def_t *def, *end;
 
     def = &timecode_def[0];
-    while (def->name) {
+    end = def + ARRAY_SIZE(timecode_def);
+
+    while (def < end) {
         if (!strcmp(def->name, name))
             return def;
         def++;
     }
+
     return NULL;
 }
 
@@ -246,10 +247,12 @@ static int build_lookup(struct timecode_def_t *def)
  */
 
 void timecoder_free_lookup(void) {
-    struct timecode_def_t *def;
+    struct timecode_def_t *def, *end;
 
     def = &timecode_def[0];
-    while (def->name) {
+    end = def + ARRAY_SIZE(timecode_def);
+
+    while (def < end) {
         if (def->lookup)
             lut_clear(&def->lut);
         def++;
