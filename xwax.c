@@ -101,8 +101,9 @@ static void usage(FILE *fd)
 int main(int argc, char *argv[])
 {
     int r, n, decks, oss_fragment, oss_buffers, rate, alsa_buffer;
-    char *endptr, *timecode, *importer, *scanner;
+    char *endptr, *importer, *scanner;
     double speed;
+    struct timecode_def_t *timecode;
 
     struct device_t device[MAX_DECKS];
     struct track_t track[MAX_DECKS];
@@ -128,7 +129,7 @@ int main(int argc, char *argv[])
     alsa_buffer = DEFAULT_ALSA_BUFFER;
     importer = DEFAULT_IMPORTER;
     scanner = DEFAULT_SCANNER;
-    timecode = DEFAULT_TIMECODE;
+    timecode = timecoder_find_definition(DEFAULT_TIMECODE);
     speed = 1.0;
 
     /* Skip over command name */
@@ -315,7 +316,11 @@ int main(int argc, char *argv[])
                 return -1;
             }
 
-            timecode = argv[1];
+            timecode = timecoder_find_definition(argv[1]);
+            if (timecode == NULL) {
+                fprintf(stderr, "Timecode '%s' is not known.\n", argv[1]);
+                return -1;
+            }
 
             argv += 2;
             argc -= 2;

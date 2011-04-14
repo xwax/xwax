@@ -188,9 +188,11 @@ static inline bits_t rev(bits_t current, struct timecode_def_t *def)
 
 /*
  * Find a timecode definition by name
+ *
+ * Return: pointer to timecode definition, or NULL if not found
  */
 
-static struct timecode_def_t* find_definition(const char *name)
+struct timecode_def_t* timecoder_find_definition(const char *name)
 {
     struct timecode_def_t *def;
 
@@ -270,19 +272,17 @@ static void init_channel(struct timecoder_channel_t *ch)
  * Return: -1 if the timecoder could not be initialised, otherwise 0
  */
 
-int timecoder_init(struct timecoder_t *tc, const char *def_name, double speed,
-		   unsigned int sample_rate)
+int timecoder_init(struct timecoder_t *tc, struct timecode_def_t *def,
+                   double speed, unsigned int sample_rate)
 {
+    assert(def != NULL);
+
     /* A definition contains a lookup table which can be shared
      * across multiple timecoders */
 
-    tc->def = find_definition(def_name);
-    if (tc->def == NULL) {
-        fprintf(stderr, "Timecode definition '%s' is not known.\n", def_name);
+    if (build_lookup(def) == -1)
         return -1;
-    }
-    if (build_lookup(tc->def) == -1)
-        return -1;
+    tc->def = def;
     tc->speed = speed;
 
     tc->dt = 1.0 / sample_rate;
