@@ -94,7 +94,8 @@ static void usage(FILE *fd)
       "Decks and audio directories can be specified multiple times.\n\n"
       "Available timecodes (for use with -t):\n"
       "  serato_2a (default), serato_2b, serato_cd,\n"
-      "  traktor_a, traktor_b, mixvibes_v2, mixvibes_7inch\n\n");
+      "  traktor_a, traktor_b, mixvibes_v2, mixvibes_7inch\n\n"
+      "See the xwax(1) man page for full information and examples.\n");
 }
 
 int main(int argc, char *argv[])
