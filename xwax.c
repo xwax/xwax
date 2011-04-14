@@ -50,10 +50,8 @@
 #define DEFAULT_SCANNER EXECDIR "/xwax-scan"
 #define DEFAULT_TIMECODE "serato_2a"
 
-
 char *banner = "xwax " VERSION \
     " (C) Copyright 2011 Mark Hills <mark@pogo.org.uk>";
-
 
 static void usage(FILE *fd)
 {
@@ -98,7 +96,6 @@ static void usage(FILE *fd)
       "  serato_2a (default), serato_2b, serato_cd,\n"
       "  traktor_a, traktor_b, mixvibes_v2, mixvibes_7inch\n\n");
 }
-
 
 int main(int argc, char *argv[])
 {
