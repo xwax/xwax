@@ -4,12 +4,12 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * version 2, as published by the Free Software Foundation.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * General Public License version 2 for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * version 2 along with this program; if not, write to the Free
  * Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
@@ -31,8 +31,8 @@
 
 #define REF_PEAKS_AVG 48 /* in wave cycles */
 
-/* The number of correct bits which come in before the timecode 
- * is declared valid. Set this too low, and risk the record skipping around 
+/* The number of correct bits which come in before the timecode
+ * is declared valid. Set this too low, and risk the record skipping around
  * (often to blank areas of track) during scratching */
 
 #define VALID_BITS 24
@@ -96,7 +96,7 @@ static struct timecode_def_t timecode_def[] = {
         .taps = 0x041040,
         .length = 1500000,
         .safe = 1480000,
-        .lookup = false        
+        .lookup = false
     },
     {
         .name = "traktor_b",
@@ -213,7 +213,7 @@ static int build_lookup(struct timecode_def_t *def)
 	return -1;
 
     current = def->seed;
-    
+
     for (n = 0; n < def->length; n++) {
         /* timecode must not wrap */
         assert(lut_lookup(&def->lut, current) == (unsigned)-1);
@@ -224,8 +224,8 @@ static int build_lookup(struct timecode_def_t *def)
     }
 
     def->lookup = true;
-    
-    return 0;    
+
+    return 0;
 }
 
 
@@ -339,7 +339,7 @@ static void detect_zero_crossing(struct timecoder_channel_t *ch,
         ch->positive = 0;
         ch->crossing_ticker = 0;
     }
-    
+
     ch->zero += alpha * (v - ch->zero);
 }
 
@@ -355,22 +355,22 @@ static void update_monitor(struct timecoder_t *tc, signed int x, signed int y)
         return;
 
     /* Decay the pixels already in the montior */
-        
+
     if (++tc->mon_counter % MONITOR_DECAY_EVERY == 0) {
         for (p = 0; p < SQ(tc->mon_size); p++) {
             if (tc->mon[p])
                 tc->mon[p] = tc->mon[p] * 7 / 8;
         }
     }
-        
+
     v = (float)x / tc->ref_level / 2;
     w = (float)y / tc->ref_level / 2;
-        
+
     px = tc->mon_size / 2 + (v * tc->mon_size / 2);
     py = tc->mon_size / 2 + (w * tc->mon_size / 2);
 
     /* Set the pixel value to white */
-            
+
     if (px > 0 && px < tc->mon_size && py > 0 && py < tc->mon_size)
         tc->mon[py * tc->mon_size + px] = 0xff;
 }
@@ -411,7 +411,7 @@ static void process_bitstream(struct timecoder_t *tc, signed int m)
     }
 
     /* Take note of the last time we read a valid timecode */
-    
+
     tc->timecode_ticker = 0;
 
     /* Adjust the reference level based on this new peak */
@@ -523,6 +523,6 @@ signed int timecoder_get_position(struct timecoder_t *tc, float *when)
             return r;
         }
     }
-    
+
     return -1;
 }
