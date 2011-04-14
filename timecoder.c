@@ -48,7 +48,7 @@
 #define SWITCH_PRIMARY 0x2 /* use left channel (not right) as primary */
 #define SWITCH_POLARITY 0x4 /* read bit values in negative (not positive) */
 
-static struct timecode_def_t timecode_def[] = {
+static struct timecode_def_t timecodes[] = {
     {
         .name = "serato_2a",
         .desc = "Serato 2nd Ed., side A",
@@ -194,8 +194,8 @@ struct timecode_def_t* timecoder_find_definition(const char *name)
 {
     struct timecode_def_t *def, *end;
 
-    def = &timecode_def[0];
-    end = def + ARRAY_SIZE(timecode_def);
+    def = &timecodes[0];
+    end = def + ARRAY_SIZE(timecodes);
 
     while (def < end) {
         if (!strcmp(def->name, name))
@@ -249,8 +249,8 @@ static int build_lookup(struct timecode_def_t *def)
 void timecoder_free_lookup(void) {
     struct timecode_def_t *def, *end;
 
-    def = &timecode_def[0];
-    end = def + ARRAY_SIZE(timecode_def);
+    def = &timecodes[0];
+    end = def + ARRAY_SIZE(timecodes);
 
     while (def < end) {
         if (def->lookup)
