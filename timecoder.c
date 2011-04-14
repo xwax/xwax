@@ -31,9 +31,9 @@
 
 #define REF_PEAKS_AVG 48 /* in wave cycles */
 
-/* The number of correct bits which come in before the timecode
- * is declared valid. Set this too low, and risk the record skipping around
- * (often to blank areas of track) during scratching */
+/* The number of correct bits which come in before the timecode is
+ * declared valid. Set this too low, and risk the record skipping
+ * around (often to blank areas of track) during scratching */
 
 #define VALID_BITS 24
 
@@ -41,13 +41,11 @@
 
 #define SQ(x) ((x)*(x))
 
-
 /* Timecode definitions */
 
 #define SWITCH_PHASE 0x1 /* tone phase difference of 270 (not 90) degrees */
 #define SWITCH_PRIMARY 0x2 /* use left channel (not right) as primary */
 #define SWITCH_POLARITY 0x4 /* read bit values in negative (not positive) */
-
 
 static struct timecode_def_t timecode_def[] = {
     {
@@ -139,9 +137,9 @@ static struct timecode_def_t timecode_def[] = {
     }
 };
 
-
-/* Linear Feeback Shift Register in the forward direction. New values
- * are generated at the least-significant bit. */
+/*
+ * Calculate LFSR bit
+ */
 
 static inline bits_t lfsr(bits_t code, bits_t taps)
 {
@@ -158,6 +156,10 @@ static inline bits_t lfsr(bits_t code, bits_t taps)
     return xrs & 0x1;
 }
 
+/*
+ * Linear Feedback Shift Register in the forward direction. New values
+ * are generated at the least-significant bit.
+ */
 
 static inline bits_t fwd(bits_t current, struct timecode_def_t *def)
 {
@@ -169,6 +171,9 @@ static inline bits_t fwd(bits_t current, struct timecode_def_t *def)
     return (current >> 1) | (l << (def->bits - 1));
 }
 
+/*
+ * Linear Feedback Shift Register in the reverse direction
+ */
 
 static inline bits_t rev(bits_t current, struct timecode_def_t *def)
 {
@@ -181,6 +186,9 @@ static inline bits_t rev(bits_t current, struct timecode_def_t *def)
     return ((current << 1) & mask) | l;
 }
 
+/*
+ * Find a timecode definition by name
+ */
 
 static struct timecode_def_t* find_definition(const char *name)
 {
@@ -195,8 +203,11 @@ static struct timecode_def_t* find_definition(const char *name)
     return NULL;
 }
 
-
-/* Where necessary, build the lookup table required for this timecode */
+/*
+ * Where necessary, build the lookup table required for this timecode
+ *
+ * Return: -1 if not enough memory could be allocated, otherwise 0
+ */
 
 static int build_lookup(struct timecode_def_t *def)
 {
@@ -228,8 +239,9 @@ static int build_lookup(struct timecode_def_t *def)
     return 0;
 }
 
-
-/* Free the timecoder lookup tables when they are no longer needed */
+/*
+ * Free the timecoder lookup tables when they are no longer needed
+ */
 
 void timecoder_free_lookup(void) {
     struct timecode_def_t *def;
@@ -242,6 +254,9 @@ void timecoder_free_lookup(void) {
     }
 }
 
+/*
+ * Initialise filter values for one channel
+ */
 
 static void init_channel(struct timecoder_channel_t *ch)
 {
@@ -249,8 +264,11 @@ static void init_channel(struct timecoder_channel_t *ch)
     ch->zero = 0;
 }
 
-
-/* Initialise a timecode decoder at the given reference speed */
+/*
+ * Initialise a timecode decoder at the given reference speed
+ *
+ * Return: -1 if the timecoder could not be initialised, otherwise 0
+ */
 
 int timecoder_init(struct timecoder_t *tc, const char *def_name, double speed,
 		   unsigned int sample_rate)
@@ -286,18 +304,23 @@ int timecoder_init(struct timecoder_t *tc, const char *def_name, double speed,
     return 0;
 }
 
-
-/* Clear a timecode decoder */
+/*
+ * Clear resources associated with a timecode decoder
+ */
 
 void timecoder_clear(struct timecoder_t *tc)
 {
     timecoder_monitor_clear(tc);
 }
 
-
-/* The monitor (otherwise known as 'scope' in the interface) is the
- * display of the incoming audio. Initialise one for the given
- * timecoder */
+/*
+ * Initialise a raster display of the incoming audio
+ *
+ * The monitor (otherwise known as 'scope' in the interface) is an x-y
+ * display of the post-calibrated incoming audio.
+ *
+ * Return: -1 if not enough memory could be allocated, otherwise 0
+ */
 
 int timecoder_monitor_init(struct timecoder_t *tc, int size)
 {
@@ -312,8 +335,9 @@ int timecoder_monitor_init(struct timecoder_t *tc, int size)
     return 0;
 }
 
-
-/* Clear the monitor on the given timecoder */
+/*
+ * Clear the monitor on the given timecoder
+ */
 
 void timecoder_monitor_clear(struct timecoder_t *tc)
 {
@@ -323,6 +347,9 @@ void timecoder_monitor_clear(struct timecoder_t *tc)
     }
 }
 
+/*
+ * Update channel information with axis-crossings
+ */
 
 static void detect_zero_crossing(struct timecoder_channel_t *ch,
                                  signed int v, float alpha)
@@ -343,8 +370,9 @@ static void detect_zero_crossing(struct timecoder_channel_t *ch,
     ch->zero += alpha * (v - ch->zero);
 }
 
-
-/* Plot the given sample value in the monitor (scope) */
+/*
+ * Plot the given sample value in the x-y monitor
+ */
 
 static void update_monitor(struct timecoder_t *tc, signed int x, signed int y)
 {
@@ -375,8 +403,9 @@ static void update_monitor(struct timecoder_t *tc, signed int x, signed int y)
         tc->mon[py * tc->mon_size + px] = 0xff;
 }
 
-
-/* Process a single bitstream reading */
+/*
+ * Extract the bitstream from the sample value
+ */
 
 static void process_bitstream(struct timecoder_t *tc, signed int m)
 {
@@ -429,8 +458,9 @@ static void process_bitstream(struct timecoder_t *tc, signed int m)
 #endif
 }
 
-
-/* Process a single sample from the incoming audio */
+/*
+ * Process a single sample from the incoming audio
+ */
 
 static void process_sample(struct timecoder_t *tc,
 			   signed int primary, signed int secondary)
@@ -481,8 +511,9 @@ static void process_sample(struct timecoder_t *tc,
     tc->timecode_ticker++;
 }
 
-
-/* Submit and decode a block of PCM audio data to the timecoder */
+/*
+ * Submit and decode a block of PCM audio data to the timecode decoder
+ */
 
 void timecoder_submit(struct timecoder_t *tc, signed short *pcm, size_t npcm)
 {
@@ -504,11 +535,17 @@ void timecoder_submit(struct timecoder_t *tc, signed short *pcm, size_t npcm)
     }
 }
 
-
-/* Return the known position in the timecode, or -1 if not known. If
- * two few bits have been error-checked, then this also counts as
- * invalid. If 'when' is given, return the time, in seconds since this
- * value was read. */
+/*
+ * Get the last-known position of the timecode
+ *
+ * If now data is available or if too few bits have been error
+ * checked, then this counts as invalid. The last known position is
+ * given along with the time elapsed since the position stamp was
+ * read.
+ *
+ * Return: the known position of the timecode, or -1 if not known
+ * Post: if when != -1, *when contains the elapsed time in seconds
+ */
 
 signed int timecoder_get_position(struct timecoder_t *tc, float *when)
 {
