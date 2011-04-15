@@ -185,28 +185,6 @@ static inline bits_t rev(bits_t current, struct timecode_def_t *def)
 }
 
 /*
- * Find a timecode definition by name
- *
- * Return: pointer to timecode definition, or NULL if not found
- */
-
-struct timecode_def_t* timecoder_find_definition(const char *name)
-{
-    struct timecode_def_t *def, *end;
-
-    def = &timecodes[0];
-    end = def + ARRAY_SIZE(timecodes);
-
-    while (def < end) {
-        if (!strcmp(def->name, name))
-            return def;
-        def++;
-    }
-
-    return NULL;
-}
-
-/*
  * Where necessary, build the lookup table required for this timecode
  *
  * Return: -1 if not enough memory could be allocated, otherwise 0
@@ -240,6 +218,35 @@ static int build_lookup(struct timecode_def_t *def)
     def->lookup = true;
 
     return 0;
+}
+
+/*
+ * Find a timecode definition by name
+ *
+ * Return: pointer to timecode definition, or NULL if not found
+ */
+
+struct timecode_def_t* timecoder_find_definition(const char *name)
+{
+    struct timecode_def_t *def, *end;
+
+    def = &timecodes[0];
+    end = def + ARRAY_SIZE(timecodes);
+
+    for (;;) {
+        if (!strcmp(def->name, name))
+            break;
+
+        def++;
+
+        if (def == end)
+            return NULL;
+    }
+
+    if (build_lookup(def) == -1)
+        return NULL;
+
+    return def;
 }
 
 /*
@@ -283,8 +290,7 @@ int timecoder_init(struct timecoder_t *tc, struct timecode_def_t *def,
     /* A definition contains a lookup table which can be shared
      * across multiple timecoders */
 
-    if (build_lookup(def) == -1)
-        return -1;
+    assert(def->lookup);
     tc->def = def;
     tc->speed = speed;
 
@@ -512,6 +518,38 @@ static void process_sample(struct timecoder_t *tc,
     }
 
     tc->timecode_ticker++;
+}
+
+/*
+ * Cycle to the next timecode definition which has a valid lookup
+ *
+ * Return: pointer to timecode definition
+ */
+
+static struct timecode_def_t* next_definition(struct timecode_def_t *def)
+{
+    assert(def != NULL);
+
+    do {
+        def++;
+
+        if (def > timecodes + ARRAY_SIZE(timecodes))
+            def = timecodes;
+
+    } while (!def->lookup);
+
+    return def;
+}
+
+/*
+ * Change the timecode definition to the next available
+ */
+
+void timecoder_cycle_definition(struct timecoder_t *tc)
+{
+    tc->def = next_definition(tc->def);
+    tc->valid_counter = 0;
+    tc->timecode_ticker = 0;
 }
 
 /*

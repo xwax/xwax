@@ -88,8 +88,18 @@ void timecoder_clear(struct timecoder_t *tc);
 int timecoder_monitor_init(struct timecoder_t *tc, int size);
 void timecoder_monitor_clear(struct timecoder_t *tc);
 
+void timecoder_cycle_definition(struct timecoder_t *tc);
 void timecoder_submit(struct timecoder_t *tc, signed short *pcm, size_t npcm);
 signed int timecoder_get_position(struct timecoder_t *tc, float *when);
+
+/*
+ * The timecode definition currently in use by this decoder
+ */
+
+static inline struct timecode_def_t* timecoder_get_definition(struct timecoder_t *tc)
+{
+    return tc->def;
+}
 
 /*
  * Return the pitch relative to reference playback speed

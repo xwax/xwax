@@ -1249,12 +1249,17 @@ static bool handle_key(struct interface_t *in, struct selector_t *sel,
         if (deck < in->players) {
             struct player_t *pl;
             struct record_t *re;
+            struct timecoder_t *tc;
 
             pl = in->player[deck];
+            tc = in->timecoder[deck];
 
             if (mod & KMOD_SHIFT) {
                 if (func < in->timecoders)
                     player_connect_timecoder(pl, in->timecoder[func]);
+
+            } else if (mod & KMOD_CTRL) {
+                timecoder_cycle_definition(tc);
 
             } else switch(func) {
             case FUNC_LOAD:
