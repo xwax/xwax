@@ -4,12 +4,12 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * version 2, as published by the Free Software Foundation.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * General Public License version 2 for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * version 2 along with this program; if not, write to the Free
  * Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
@@ -131,7 +131,7 @@
 
 static const char *font_dirs[] = {
     "/usr/X11R6/lib/X11/fonts/TTF",
-    "/usr/share/fonts/truetype/ttf-dejavu/", 
+    "/usr/share/fonts/truetype/ttf-dejavu/",
     "/usr/share/fonts/ttf-dejavu",
     "/usr/share/fonts/dejavu",
     "/usr/share/fonts/TTF",
@@ -241,7 +241,7 @@ static void time_to_clock(char *buf, char *deci, int t)
     minutes = (t / 60 / 1000) % (60*60);
     seconds = (t / 1000) % 60;
     frac = t % 1000;
-    
+
     if (neg)
         *buf++ = '-';
 
@@ -269,18 +269,18 @@ static void calculate_spinner_lookup(int *angle, int *distance, int size)
 
             else if (nc == 0) {
                 theta = 0;
-                
+
                 if (nr < 0)
                     theta = M_PI;
-            
+
             } else {
                 rat = (float)(nc) / -nr;
                 theta = atanf(rat);
-                
+
                 if (rat < 0)
                     theta += M_PI;
             }
-            
+
             if (nc <= 0)
                 theta += M_PI;
 
@@ -293,7 +293,7 @@ static void calculate_spinner_lookup(int *angle, int *distance, int size)
             if (distance)
                 distance[r * size + c] = sqrt(SQ(nc) + SQ(nr));
         }
-    }    
+    }
 }
 
 
@@ -311,34 +311,34 @@ static TTF_Font* open_font(const char *name, int size) {
     dir = &font_dirs[0];
 
     while (*dir) {
-        
+
         sprintf(buf, "%s/%s", *dir, name);
-        
+
         r = stat(buf, &st);
 
         if (r != -1) { /* something exists at this path */
             fprintf(stderr, "Loading font '%s', %dpt...\n", buf, size);
-            
+
             font = TTF_OpenFont(buf, size);
             if (!font) {
                 fputs("Font error: ", stderr);
                 fputs(TTF_GetError(), stderr);
                 fputc('\n', stderr);
-            }            
+            }
             return font; /* or NULL */
         }
-        
+
         if (errno != ENOENT) {
             perror("stat");
             return NULL;
         }
-        
+
         dir++;
         continue;
     }
 
     fprintf(stderr, "Font '%s' cannot be found in", name);
-    
+
     dir = &font_dirs[0];
     while (*dir) {
         fputc(' ', stderr);
@@ -357,23 +357,23 @@ static int load_fonts(void)
     clock_font = open_font(CLOCK_FONT, CLOCK_FONT_SIZE);
     if (!clock_font)
         return -1;
-    
+
     deci_font = open_font(DECI_FONT, DECI_FONT_SIZE);
     if (!deci_font)
         return -1;
-    
+
     font = open_font(FONT, FONT_SIZE);
     if (!font)
         return -1;
-    
+
     em_font = open_font(EM_FONT, FONT_SIZE);
     if (!em_font)
         return -1;
-    
+
     detail_font = open_font(DETAIL_FONT, DETAIL_FONT_SIZE);
     if (!detail_font)
         return -1;
-    
+
     return 0;
 }
 
@@ -411,18 +411,18 @@ static int draw_font(SDL_Surface *sf, int x, int y, int w, int h,
 
     } else {
         rendered = TTF_RenderText_Shaded(font, buf, fg, bg);
-        
+
         src.x = 0;
         src.y = 0;
         src.w = MIN(w, rendered->w);
         src.h = MIN(h, rendered->h);
-        
+
         dst.x = x;
         dst.y = y;
-        
+
         SDL_BlitSurface(rendered, &src, sf, &dst);
         SDL_FreeSurface(rendered);
-    } 
+    }
 
     /* Complete the remaining space with a blank rectangle */
 
@@ -430,7 +430,7 @@ static int draw_font(SDL_Surface *sf, int x, int y, int w, int h,
         fill.x = x + src.w;
         fill.y = y;
         fill.w = w - src.w;
-        fill.h = h;   
+        fill.h = h;
         SDL_FillRect(sf, &fill, palette(sf, &bg));
     }
 
@@ -482,16 +482,16 @@ static void draw_clock(SDL_Surface *surface, const struct rect_t *rect, int t,
     struct rect_t sr;
 
     time_to_clock(hms, deci, t);
-    
+
     v = draw_font_rect(surface, rect, hms, clock_font, col, background_col);
-    
+
     offset = CLOCK_FONT_SIZE - DECI_FONT_SIZE * 1.04;
 
-    sr.x = rect->x + v; 
+    sr.x = rect->x + v;
     sr.y = rect->y + offset;
     sr.w = rect->w - v;
     sr.h = rect->h - offset;
-    
+
     draw_font_rect(surface, &sr, deci, deci_font, col, background_col);
 }
 
@@ -520,9 +520,9 @@ static void draw_scope(SDL_Surface *surface, const struct rect_t *rect,
 
             p[0] = v;
             p[1] = p[0];
-            p[2] = p[1];            
+            p[2] = p[1];
         }
-    }    
+    }
 }
 
 
@@ -576,7 +576,7 @@ static void draw_spinner(SDL_Surface *surface, const struct rect_t *rect,
                 p[2] = col.r;
             }
         }
-    }    
+    }
 }
 
 
@@ -773,7 +773,7 @@ static void draw_closeup(SDL_Surface *surface, const struct rect_t *rect,
 }
 
 
-/* Draw the audio meters for a deck */                         
+/* Draw the audio meters for a deck */
 
 static void draw_meters(SDL_Surface *surface, const struct rect_t *rect,
                         struct track_t *tr, int position, int scale)
@@ -797,10 +797,10 @@ static void draw_deck_top(SDL_Surface *surface, const struct rect_t *rect,
                           struct player_t *pl)
 {
     struct rect_t clocks, left, right, spinner, scope;
-    
+
     split_left(rect, &clocks, &right, CLOCKS_WIDTH, SPACER);
 
-    /* If there is no timecoder to display information on, or not enough 
+    /* If there is no timecoder to display information on, or not enough
      * available space, just draw clocks which span the overall space */
 
     if (!pl->timecode_control || right.w < 0) {
@@ -808,7 +808,7 @@ static void draw_deck_top(SDL_Surface *surface, const struct rect_t *rect,
         return;
     }
 
-    draw_deck_clocks(surface, &clocks, pl);    
+    draw_deck_clocks(surface, &clocks, pl);
 
     split_right(&right, &left, &spinner, SPINNER_SIZE, SPACER);
     if (left.w < 0)
@@ -851,7 +851,7 @@ static void draw_deck_status(SDL_Surface *surface,
             pl->last_difference,
             pl->pitch * pl->sync_pitch,
             pl->recalibrate ? "RCAL  " : "");
-    
+
     draw_font_rect(surface, rect, buf, detail_font,
                    detail_col, background_col);
 }
@@ -878,8 +878,8 @@ static void draw_deck(SDL_Surface *surface, const struct rect_t *rect,
         lower = rest;
     else
         draw_deck_top(surface, &top, pl);
-    
-    split_bottom(&lower, &meters, &status, FONT_SPACE, SPACER); 
+
+    split_bottom(&lower, &meters, &status, FONT_SPACE, SPACER);
     if (meters.h < 64)
         meters = lower;
     else
@@ -1060,7 +1060,7 @@ static void draw_records(SDL_Surface *surface, const struct rect_t *rect,
     struct record_t *re;
     SDL_Rect box;
     SDL_Color col;
-    
+
     x = rect->x;
     y = rect->y;
     w = rect->w;
@@ -1073,12 +1073,12 @@ static void draw_records(SDL_Surface *surface, const struct rect_t *rect,
 
     for (n = 0; n + sel->records.offset < sel->view_listing->entries; n++) {
         re = sel->view_listing->record[n + sel->records.offset];
-    
+
         if ((n + 1) * FONT_SPACE > h)
             break;
 
         r = y + n * FONT_SPACE;
-    
+
         if (n + sel->records.offset == sel->records.selected)
             col = selected_col;
         else
@@ -1093,21 +1093,21 @@ static void draw_records(SDL_Surface *surface, const struct rect_t *rect,
         box.h = FONT_SPACE;
 
         SDL_FillRect(surface, &box, palette(surface, &col));
-            
+
         draw_font(surface, x + RESULTS_ARTIST_WIDTH + SPACER, r,
                   w - RESULTS_ARTIST_WIDTH - SPACER, FONT_SPACE,
                   re->title, em_font, text_col, col);
     }
 
     /* Blank any remaining space */
-    
+
     box.x = x;
     box.y = y + n * FONT_SPACE;
     box.w = w;
     box.h = h - (n * FONT_SPACE);
-    
+
     SDL_FillRect(surface, &box, palette(surface, &background_col));
-    
+
     rs.x = ox;
     rs.y = y;
     rs.w = SCROLLBAR_SIZE;
@@ -1292,14 +1292,14 @@ static SDL_Surface* set_size(int w, int h, struct rect_t *rect)
         fprintf(stderr, "%s\n", SDL_GetError());
         return NULL;
     }
-    
+
     rect->x = BORDER;
     rect->y = BORDER;
     rect->w = w - 2 * BORDER;
     rect->h = h - 2 * BORDER;
 
     fprintf(stderr, "New interface size is %dx%d.\n", w, h);
-    
+
     return surface;
 }
 
@@ -1307,13 +1307,13 @@ static SDL_Surface* set_size(int w, int h, struct rect_t *rect)
 static Uint32 ticker(Uint32 interval, void *p)
 {
     SDL_Event event;
-    
+
     if (!SDL_PeepEvents(&event, 1, SDL_PEEKEVENT, SDL_EVENTMASK(SDL_USEREVENT)))
     {
         event.type = SDL_USEREVENT;
         event.user.code = EVENT_TICKER;
         SDL_PushEvent(&event);
-    }        
+    }
 
     return interval;
 }
@@ -1371,7 +1371,7 @@ static int interface_main(struct interface_t *in)
                 status_update = UPDATE_REDRAW;
 
             break;
-            
+
         case SDL_USEREVENT:
             switch (event.user.code) {
             case EVENT_TICKER: /* request to poll the clocks */
@@ -1405,7 +1405,7 @@ static int interface_main(struct interface_t *in)
             status_update = UPDATE_NONE;
         }
 
-        split_top(&rtmp, &rplayers, &rlibrary, PLAYER_HEIGHT, SPACER);        
+        split_top(&rtmp, &rplayers, &rlibrary, PLAYER_HEIGHT, SPACER);
         if (rlibrary.h < LIBRARY_MIN_HEIGHT || rlibrary.w < LIBRARY_MIN_WIDTH) {
             rplayers = rtmp;
             library_update = UPDATE_NONE;
@@ -1424,7 +1424,7 @@ static int interface_main(struct interface_t *in)
             else
                 status = "No search results found";
             status_update = UPDATE_REDRAW;
-          
+
             LOCK(surface);
             draw_library(surface, &rlibrary, &in->selector);
             UNLOCK(surface);
