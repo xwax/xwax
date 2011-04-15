@@ -39,11 +39,9 @@
 #include "timecoder.h"
 #include "xwax.h"
 
-
 /* Screen refresh time in milliseconds */
 
 #define REFRESH 10
-
 
 /* Font definitions */
 
@@ -61,7 +59,6 @@
 
 #define DETAIL_FONT "DejaVuSansMono.ttf"
 #define DETAIL_FONT_SIZE 9
-
 
 /* Screen dimensions */
 
@@ -96,25 +93,21 @@
 
 #define METER_WARNING_TIME 20 /* time in seconds for "red waveform" warning */
 
-
 /* Function key (F1-F12) definitions */
 
 #define FUNC_LOAD 0
 #define FUNC_RECUE 1
 #define FUNC_TIMECODE 2
 
-
 /* State variables used to trigger certain actions */
 
 #define UPDATE_NONE 0
 #define UPDATE_REDRAW 1
 
-
 /* Types of SDL_USEREVENT */
 
 #define EVENT_TICKER 0
 #define EVENT_QUIT 1
-
 
 /* Macro functions */
 
@@ -126,7 +119,6 @@
 #define UPDATE(sf, rect) SDL_UpdateRect(sf, (rect)->x, (rect)->y, \
                                         (rect)->w, (rect)->h)
 
-
 /* List of directories to use as search path for fonts. */
 
 static const char *font_dirs[] = {
@@ -137,7 +129,6 @@ static const char *font_dirs[] = {
     "/usr/share/fonts/TTF",
     NULL
 };
-
 
 static TTF_Font *clock_font, *deci_font, *detail_font, *font, *em_font;
 
@@ -153,14 +144,16 @@ static SDL_Color background_col = {0, 0, 0, 255},
 
 static int spinner_angle[SPINNER_SIZE * SPINNER_SIZE];
 
-
 struct rect_t {
     signed short x, y, w, h;
 };
 
-
-/* Split the given rectangle split v pixels from the top, with a gap
- * of 'space' between the output rectangles */
+/*
+ * Split the given rectangle split v pixels from the top, with a gap
+ * of 'space' between the output rectangles
+ *
+ * Post: upper and lower are set
+ */
 
 static void split_top(const struct rect_t *source, struct rect_t *upper,
                       struct rect_t *lower, int v, int space)
@@ -184,8 +177,9 @@ static void split_top(const struct rect_t *source, struct rect_t *upper,
     }
 }
 
-
-/* As above, x pixels from the bottom */
+/*
+ * As above, x pixels from the bottom
+ */
 
 static void split_bottom(const struct rect_t *source, struct rect_t *upper,
                          struct rect_t *lower, int v, int space)
@@ -193,8 +187,9 @@ static void split_bottom(const struct rect_t *source, struct rect_t *upper,
     split_top(source, upper, lower, source->h - v - space, space);
 }
 
-
-/* As above, v pixels from the left */
+/*
+ * As above, v pixels from the left
+ */
 
 static void split_left(const struct rect_t *source, struct rect_t *left,
                        struct rect_t *right, int v, int space)
@@ -218,8 +213,9 @@ static void split_left(const struct rect_t *source, struct rect_t *left,
     }
 }
 
-
-/* As above, v pixels from the right */
+/*
+ * As above, v pixels from the right
+ */
 
 static void split_right(const struct rect_t *source, struct rect_t *left,
                         struct rect_t *right, int v, int space)
@@ -227,6 +223,9 @@ static void split_right(const struct rect_t *source, struct rect_t *left,
     split_left(source, left, right, source->w - v - space, space);
 }
 
+/*
+ * Convert the given time (in milliseconds) to displayable time
+ */
 
 static void time_to_clock(char *buf, char *deci, int t)
 {
@@ -249,9 +248,10 @@ static void time_to_clock(char *buf, char *deci, int t)
     sprintf(deci, "%03d", frac);
 }
 
-
-/* Calculate a lookup which maps a position on screen to an angle,
- * relative to the centre of the spinner */
+/*
+ * Calculate a lookup which maps a position on screen to an angle,
+ * relative to the centre of the spinner
+ */
 
 static void calculate_spinner_lookup(int *angle, int *distance, int size)
 {
@@ -296,10 +296,15 @@ static void calculate_spinner_lookup(int *angle, int *distance, int size)
     }
 }
 
-
-/* Open a font, given the leafname. This scans the available font
- * directories for the file, to account for different software
- * distributions. */
+/*
+ * Open a font, given the leafname
+ *
+ * This scans the available font directories for the file, to account
+ * for different software distributions.
+ *
+ * As this is an SDL (it is not an X11 app) we prefer to avoid the use
+ * of fontconfig to select fonts.
+ */
 
 static TTF_Font* open_font(const char *name, int size) {
     int r;
@@ -351,6 +356,9 @@ static TTF_Font* open_font(const char *name, int size) {
     return NULL;
 }
 
+/*
+ * Load all fonts
+ */
 
 static int load_fonts(void)
 {
@@ -377,6 +385,9 @@ static int load_fonts(void)
     return 0;
 }
 
+/*
+ * Free resources associated with fonts
+ */
 
 static void clear_fonts(void)
 {
@@ -387,12 +398,16 @@ static void clear_fonts(void)
     TTF_CloseFont(detail_font);
 }
 
-
 static Uint32 palette(SDL_Surface *sf, SDL_Color *col)
 {
     return SDL_MapRGB(sf->format, col->r, col->g, col->b);
 }
 
+/*
+ * Draw text at the given coordinates
+ *
+ * Return: width of text drawn
+ */
 
 static int draw_font(SDL_Surface *sf, int x, int y, int w, int h,
                      const char *buf, TTF_Font *font,
@@ -445,6 +460,11 @@ static int draw_font(SDL_Surface *sf, int x, int y, int w, int h,
     return src.w;
 }
 
+/*
+ * Draw text at the given rectangle
+ *
+ * Return: width of text drawn
+ */
 
 static int draw_font_rect(SDL_Surface *surface, const struct rect_t *rect,
                           const char *buf, TTF_Font *font,
@@ -454,8 +474,9 @@ static int draw_font_rect(SDL_Surface *surface, const struct rect_t *rect,
                      buf, font, fg, bg);
 }
 
-
-/* Draw the display of artist name and track name */
+/*
+ * Draw the display of artist name and track name
+ */
 
 static void draw_track_summary(SDL_Surface *surface, const struct rect_t *rect,
                                struct track_t *track)
@@ -470,8 +491,9 @@ static void draw_track_summary(SDL_Surface *surface, const struct rect_t *rect,
                    em_font, text_col, background_col);
 }
 
-
-/* Draw a single clock, in hours:minutes.seconds format */
+/*
+ * Draw a single time in milliseconds in hours:minutes.seconds format
+ */
 
 static void draw_clock(SDL_Surface *surface, const struct rect_t *rect, int t,
                        SDL_Color col)
@@ -495,9 +517,9 @@ static void draw_clock(SDL_Surface *surface, const struct rect_t *rect, int t,
     draw_font_rect(surface, &sr, deci, deci_font, col, background_col);
 }
 
-
-/* Draw the visual display of the input audio to the timecoder (the
- * 'scope') */
+/*
+ * Draw the visual monitor of the input audio to the timecoder
+ */
 
 static void draw_scope(SDL_Surface *surface, const struct rect_t *rect,
                        struct timecoder_t *tc)
@@ -525,9 +547,12 @@ static void draw_scope(SDL_Surface *surface, const struct rect_t *rect,
     }
 }
 
-
-/* Draw the spinner which shows the rotational position of the record,
- * and matches the physical rotation of the vinyl record */
+/*
+ * Draw the spinner
+ *
+ * The spinner shows the rotational position of the record, and
+ * matches the physical rotation of the vinyl record.
+ */
 
 static void draw_spinner(SDL_Surface *surface, const struct rect_t *rect,
                          struct player_t *pl)
@@ -579,8 +604,9 @@ static void draw_spinner(SDL_Surface *surface, const struct rect_t *rect,
     }
 }
 
-
-/* Draw the clocks which show time elapsed and time remaining */
+/*
+ * Draw the clocks which show time elapsed and time remaining
+ */
 
 static void draw_deck_clocks(SDL_Surface *surface, const struct rect_t *rect,
                              struct player_t *pl)
@@ -620,9 +646,10 @@ static void draw_deck_clocks(SDL_Surface *surface, const struct rect_t *rect,
     draw_clock(surface, &lower, remain, col);
 }
 
-
-/* Draw the high-level overview meter which shows the whole length
- * of the track */
+/*
+ * Draw the high-level overview meter which shows the whole length
+ * of the track
+ */
 
 static void draw_overview(SDL_Surface *surface, const struct rect_t *rect,
                           struct track_t *tr, int position)
@@ -707,9 +734,10 @@ static void draw_overview(SDL_Surface *surface, const struct rect_t *rect,
     }
 }
 
-
-/* Draw the close-up meter, which can be zoomed to a level set by
- * 'scale' */
+/*
+ * Draw the close-up meter, which can be zoomed to a level set by
+ * 'scale'
+ */
 
 static void draw_closeup(SDL_Surface *surface, const struct rect_t *rect,
                          struct track_t *tr, int position, int scale)
@@ -772,8 +800,9 @@ static void draw_closeup(SDL_Surface *surface, const struct rect_t *rect,
     }
 }
 
-
-/* Draw the audio meters for a deck */
+/*
+ * Draw the audio meters for a deck
+ */
 
 static void draw_meters(SDL_Surface *surface, const struct rect_t *rect,
                         struct track_t *tr, int position, int scale)
@@ -790,8 +819,9 @@ static void draw_meters(SDL_Surface *surface, const struct rect_t *rect,
     draw_closeup(surface, &closeup, tr, position, scale);
 }
 
-
-/* Draw the current playback status -- clocks, spinner and scope */
+/*
+ * Draw the current playback status -- clocks, spinner and scope
+ */
 
 static void draw_deck_top(SDL_Surface *surface, const struct rect_t *rect,
                           struct player_t *pl)
@@ -823,9 +853,10 @@ static void draw_deck_top(SDL_Surface *surface, const struct rect_t *rect,
     draw_scope(surface, &scope, pl->timecoder);
 }
 
-
-/* Draw the textual description of playback status, which includes
- * information on the timecode */
+/*
+ * Draw the textual description of playback status, which includes
+ * information on the timecode
+ */
 
 static void draw_deck_status(SDL_Surface *surface,
                                  const struct rect_t *rect,
@@ -856,8 +887,9 @@ static void draw_deck_status(SDL_Surface *surface,
                    detail_col, background_col);
 }
 
-
-/* Draw a single deck */
+/*
+ * Draw a single deck
+ */
 
 static void draw_deck(SDL_Surface *surface, const struct rect_t *rect,
                       struct player_t *pl, int meter_scale)
@@ -888,8 +920,9 @@ static void draw_deck(SDL_Surface *surface, const struct rect_t *rect,
     draw_meters(surface, &meters, pl->track, position, meter_scale);
 }
 
-
-/* Draw all the decks in the system */
+/*
+ * Draw all the decks in the system left to right
+ */
 
 static void draw_decks(SDL_Surface *surface, const struct rect_t *rect,
                        int ndecks, struct player_t **player,
@@ -909,8 +942,9 @@ static void draw_decks(SDL_Surface *surface, const struct rect_t *rect,
     }
 }
 
-
-/* Draw the status bar */
+/*
+ * Draw the status bar
+ */
 
 static void draw_status(SDL_Surface *sf, const struct rect_t *rect,
                         const char *text)
@@ -918,8 +952,9 @@ static void draw_status(SDL_Surface *sf, const struct rect_t *rect,
     draw_font_rect(sf, rect, text, detail_font, detail_col, background_col);
 }
 
-
-/* Draw the search field which the user types into */
+/*
+ * Draw the search field which the user types into
+ */
 
 static void draw_search(SDL_Surface *surface, const struct rect_t *rect,
                         struct selector_t *sel)
@@ -959,9 +994,10 @@ static void draw_search(SDL_Surface *surface, const struct rect_t *rect,
     draw_font_rect(surface, &rtext, cm, em_font, detail_col, background_col);
 }
 
-
-/* Draw a vertical scroll bar representing our view on a list of the
- * given number of entries */
+/*
+ * Draw a vertical scroll bar representing our view on a list of the
+ * given number of entries
+ */
 
 static void draw_scroll_bar(SDL_Surface *surface, const struct rect_t *rect,
                             struct scroll_t *scroll)
@@ -989,9 +1025,11 @@ static void draw_scroll_bar(SDL_Surface *surface, const struct rect_t *rect,
     }
 }
 
-
-/* Display a crate listing, with scrollbar and current
- * selection. Return the number of lines which fit on the display. */
+/*
+ * Display a crate listing, with scrollbar and current selection
+ *
+ * Return: the number of lines which fit on the display.
+ */
 
 static void draw_crates(SDL_Surface *surface, const struct rect_t *rect,
                         struct selector_t *sel)
@@ -1048,9 +1086,12 @@ static void draw_crates(SDL_Surface *surface, const struct rect_t *rect,
     draw_scroll_bar(surface, &rs, &sel->crates);
 }
 
-
-/* Display a record library listing, with scrollbar and current
- * selection. Return the number of lines which fit on the display. */
+/*
+ * Display a record library listing, with scrollbar and current
+ * selection
+ *
+ * Return: the number of lines which fit on the display
+ */
 
 static void draw_records(SDL_Surface *surface, const struct rect_t *rect,
                          struct selector_t *sel)
@@ -1115,9 +1156,10 @@ static void draw_records(SDL_Surface *surface, const struct rect_t *rect,
     draw_scroll_bar(surface, &rs, &sel->records);
 }
 
-
-/* Display the music library, which consists of the query, and search
- * results */
+/*
+ * Display the music library, which consists of the query, and search
+ * results
+ */
 
 static void draw_library(SDL_Surface *surface, const struct rect_t *rect,
                          struct selector_t *sel)
@@ -1140,9 +1182,10 @@ static void draw_library(SDL_Surface *surface, const struct rect_t *rect,
     }
 }
 
-
-/* Initiate the process of loading a record from the library into a
- * track in memory */
+/*
+ * Initiate the process of loading a record from the library into a
+ * track in memory
+ */
 
 static void do_loading(struct interface_t *interface,
                        struct track_t *track, struct record_t *record)
@@ -1158,9 +1201,11 @@ static void do_loading(struct interface_t *interface,
     (void)rig_awaken(interface->rig);
 }
 
-
-/* Handle a single key event. Return true if the selector needs
- * to be redrawn */
+/*
+ * Handle a single key event
+ *
+ * Return: true if the selector needs to be redrawn, otherwise false
+ */
 
 static bool handle_key(struct interface_t *in, struct selector_t *sel,
                        int *meter_scale, SDLKey key, SDLMod mod)
@@ -1282,6 +1327,9 @@ static bool handle_key(struct interface_t *in, struct selector_t *sel,
     return false;
 }
 
+/*
+ * Action on size change event on the main window
+ */
 
 static SDL_Surface* set_size(int w, int h, struct rect_t *rect)
 {
@@ -1303,6 +1351,9 @@ static SDL_Surface* set_size(int w, int h, struct rect_t *rect)
     return surface;
 }
 
+/*
+ * Timer which posts a screen redraw event
+ */
 
 static Uint32 ticker(Uint32 interval, void *p)
 {
@@ -1317,7 +1368,6 @@ static Uint32 ticker(Uint32 interval, void *p)
 
     return interval;
 }
-
 
 /*
  * The SDL interface thread
