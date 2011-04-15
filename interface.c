@@ -831,16 +831,21 @@ static void draw_deck_status(SDL_Surface *surface,
                                  const struct rect_t *rect,
                                  struct player_t *pl)
 {
-    char buf[128];
+    char buf[128], *c;
     int tc;
 
+    c = buf;
+
+    c += sprintf(c, "%s: ", pl->timecoder->def->name);
+
     tc = timecoder_get_position(pl->timecoder, NULL);
-    if (pl->timecode_control && tc != -1)
-        sprintf(buf, "timecode:%d      ", tc);
-    else
-        sprintf(buf, "timecode:        ");
-    
-    sprintf(buf + 17, "pitch:%+0.2f (sync %0.2f %+.5fs = %+0.2f)  %s",
+    if (pl->timecode_control && tc != -1) {
+        c += sprintf(c, "%7d ", tc);
+    } else {
+        c += sprintf(c, "        ");
+    }
+
+    c += sprintf(c, "pitch:%+0.2f (sync %0.2f %+.5fs = %+0.2f)  %s",
             pl->pitch,
             pl->sync_pitch,
             pl->last_difference,
