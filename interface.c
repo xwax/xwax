@@ -1165,9 +1165,6 @@ static void do_loading(struct interface_t *interface,
 static bool handle_key(struct interface_t *in, struct selector_t *sel,
                        int *meter_scale, SDLKey key, SDLMod mod)
 {
-    struct player_t *pl;
-    struct record_t* re;
-
     if (key >= SDLK_a && key <= SDLK_z) {
         selector_search_refine(sel, (key - SDLK_a) + 'a');
         return true;
@@ -1250,6 +1247,9 @@ static bool handle_key(struct interface_t *in, struct selector_t *sel,
         deck = (key - SDLK_F1) / 4;
 
         if (deck < in->players) {
+            struct player_t *pl;
+            struct record_t *re;
+
             pl = in->player[deck];
 
             if (mod & KMOD_SHIFT) {
@@ -1257,7 +1257,6 @@ static bool handle_key(struct interface_t *in, struct selector_t *sel,
                     player_connect_timecoder(pl, in->timecoder[func]);
 
             } else switch(func) {
-
             case FUNC_LOAD:
                 re = selector_current(sel);
                 if (re != NULL)
