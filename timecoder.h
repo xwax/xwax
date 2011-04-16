@@ -22,11 +22,10 @@
 
 #include <stdbool.h>
 
-#include "device.h"
 #include "lut.h"
 #include "pitch.h"
 
-#define TIMECODER_CHANNELS DEVICE_CHANNELS
+#define TIMECODER_CHANNELS 2
 
 typedef unsigned int bits_t;
 
