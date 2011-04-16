@@ -17,6 +17,7 @@
  *
  */
 
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -129,7 +130,7 @@ int main(int argc, char *argv[])
     alsa_buffer = DEFAULT_ALSA_BUFFER;
     importer = DEFAULT_IMPORTER;
     scanner = DEFAULT_SCANNER;
-    timecode = timecoder_find_definition(DEFAULT_TIMECODE);
+    timecode = NULL;
     speed = 1.0;
 
     /* Skip over command name */
@@ -280,6 +281,13 @@ int main(int argc, char *argv[])
                 return -1;
 
 	    sample_rate = device_sample_rate(device);
+
+            /* Default timecode decoder where none is specified */
+
+            if (timecode == NULL) {
+                timecode = timecoder_find_definition(DEFAULT_TIMECODE);
+                assert(timecode != NULL);
+            }
 
             if (timecoder_init(&timecoder[decks], timecode,
                                speed, sample_rate) == -1)
