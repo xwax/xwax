@@ -380,9 +380,10 @@ static int load_fonts(void)
 
 static void clear_fonts(void)
 {
+    TTF_CloseFont(clock_font);
+    TTF_CloseFont(deci_font);
     TTF_CloseFont(font);
     TTF_CloseFont(em_font);
-    TTF_CloseFont(clock_font);
     TTF_CloseFont(detail_font);
 }
 
