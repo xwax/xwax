@@ -289,11 +289,7 @@ int main(int argc, char *argv[])
                 assert(timecode != NULL);
             }
 
-            if (timecoder_init(&timecoder[decks], timecode,
-                               speed, sample_rate) == -1)
-            {
-                return -1;
-            }
+            timecoder_init(&timecoder[decks], timecode, speed, sample_rate);
 
             if (rt_add_device(&rt, &device[decks]) == -1)
                 return -1;

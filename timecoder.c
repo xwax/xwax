@@ -282,8 +282,8 @@ static void init_channel(struct timecoder_channel_t *ch)
  * Return: -1 if the timecoder could not be initialised, otherwise 0
  */
 
-int timecoder_init(struct timecoder_t *tc, struct timecode_def_t *def,
-                   double speed, unsigned int sample_rate)
+void timecoder_init(struct timecoder_t *tc, struct timecode_def_t *def,
+                    double speed, unsigned int sample_rate)
 {
     assert(def != NULL);
 
@@ -309,8 +309,6 @@ int timecoder_init(struct timecoder_t *tc, struct timecode_def_t *def,
     tc->timecode_ticker = 0;
 
     tc->mon = NULL;
-
-    return 0;
 }
 
 /*

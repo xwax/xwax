@@ -81,8 +81,8 @@ struct timecoder_t {
 struct timecode_def_t* timecoder_find_definition(const char *name);
 void timecoder_free_lookup(void);
 
-int timecoder_init(struct timecoder_t *tc, struct timecode_def_t *def,
-                   double speed, unsigned int sample_rate);
+void timecoder_init(struct timecoder_t *tc, struct timecode_def_t *def,
+                    double speed, unsigned int sample_rate);
 void timecoder_clear(struct timecoder_t *tc);
 
 int timecoder_monitor_init(struct timecoder_t *tc, int size);
