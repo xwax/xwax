@@ -38,8 +38,6 @@
 #include "track.h"
 #include "xwax.h"
 
-#define MAX_DECKS 3
-
 #define DEFAULT_OSS_BUFFERS 8
 #define DEFAULT_OSS_FRAGMENT 7
 
@@ -106,7 +104,7 @@ int main(int argc, char *argv[])
     double speed;
     struct timecode_def_t *timecode;
 
-    struct deck_t deck[MAX_DECKS];
+    struct deck_t deck[3];
     struct rig_t rig;
     struct rt_t rt;
     struct interface_t iface;
@@ -241,9 +239,8 @@ int main(int argc, char *argv[])
                 return -1;
             }
 
-            if (decks == MAX_DECKS) {
-                fprintf(stderr, "Too many decks (maximum %d); aborting.\n",
-                        MAX_DECKS);
+            if (decks == sizeof deck) {
+                fprintf(stderr, "Too many decks; aborting.\n");
                 return -1;
             }
 
