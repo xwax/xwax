@@ -17,28 +17,28 @@
  *
  */
 
-#ifndef INTERFACE_H
-#define INTERFACE_H
+#ifndef DECK_H
+#define DECK_H
 
-#include <pthread.h>
-
-#include "deck.h"
-#include "library.h"
+#include "device.h"
+#include "player.h"
 #include "rig.h"
-#include "selector.h"
+#include "realtime.h"
+#include "timecoder.h"
+#include "track.h"
 
-struct interface_t {
-    pthread_t ph;
+struct deck_t {
+    struct device_t device;
+    struct timecoder_t timecoder;
+    struct track_t track;
 
-    size_t ndeck;
-    struct deck_t *deck;
-
-    struct rig_t *rig;
-    struct selector_t selector;
+    struct player_t player;
 };
 
-int interface_start(struct interface_t *in, struct deck_t deck[], size_t ndeck,
-                    struct library_t *lib, struct rig_t *rig);
-void interface_stop(struct interface_t *in);
+int deck_init(struct deck_t *deck, struct rt_t *rt, struct rig_t *rig,
+              const struct device_t *device,
+              const struct timecoder_t *timecoder,
+              const struct track_t *track);
+void deck_clear(struct deck_t *deck);
 
 #endif

@@ -892,10 +892,13 @@ static void draw_deck_status(SDL_Surface *surface,
  */
 
 static void draw_deck(SDL_Surface *surface, const struct rect_t *rect,
-                      struct player_t *pl, int meter_scale)
+                      struct deck_t *deck, int meter_scale)
 {
     int position;
     struct rect_t track, top, meters, status, rest, lower;
+    struct player_t *pl;
+
+    pl = &deck->player;
 
     position = (pl->position - pl->offset) * pl->track->rate;
 
@@ -925,8 +928,7 @@ static void draw_deck(SDL_Surface *surface, const struct rect_t *rect,
  */
 
 static void draw_decks(SDL_Surface *surface, const struct rect_t *rect,
-                       int ndecks, struct player_t **player,
-                       int meter_scale)
+                       struct deck_t deck[], size_t ndecks, int meter_scale)
 {
     int d, deck_width;
     struct rect_t single;
@@ -938,7 +940,7 @@ static void draw_decks(SDL_Surface *surface, const struct rect_t *rect,
 
     for (d = 0; d < ndecks; d++) {
         single.x = rect->x + (deck_width + BORDER) * d;
-        draw_deck(surface, &single, player[d], meter_scale);
+        draw_deck(surface, &single, &deck[d], meter_scale);
     }
 }
 
@@ -1291,17 +1293,17 @@ static bool handle_key(struct interface_t *in, struct selector_t *sel,
         func = (key - SDLK_F1) % 4;
         deck = (key - SDLK_F1) / 4;
 
-        if (deck < in->players) {
+        if (deck < in->ndeck) {
             struct player_t *pl;
             struct record_t *re;
             struct timecoder_t *tc;
 
-            pl = in->player[deck];
-            tc = in->timecoder[deck];
+            pl = &in->deck[deck].player;
+            tc = &in->deck[deck].timecoder;
 
             if (mod & KMOD_SHIFT) {
-                if (func < in->timecoders)
-                    player_set_timecoder(pl, in->timecoder[func]);
+                if (func < in->ndeck)
+                    player_set_timecoder(pl, &in->deck[func].timecoder);
 
             } else if (mod & KMOD_CTRL) {
                 timecoder_cycle_definition(tc);
@@ -1497,8 +1499,7 @@ static int interface_main(struct interface_t *in)
 
         if (decks_update >= UPDATE_REDRAW) {
             LOCK(surface);
-            draw_decks(surface, &rplayers, in->players, in->player,
-                       meter_scale);
+            draw_decks(surface, &rplayers, in->deck, in->ndeck, meter_scale);
             UNLOCK(surface);
             UPDATE(surface, &rplayers);
             decks_update = UPDATE_NONE;
@@ -1525,23 +1526,18 @@ static void* launch(void *p)
  * error
  */
 
-int interface_start(struct interface_t *in, size_t ndeck,
-                    struct player_t *pl, struct timecoder_t *tc,
+int interface_start(struct interface_t *in, struct deck_t deck[], size_t ndeck,
                     struct library_t *lib, struct rig_t *rig)
 {
     size_t n;
 
-    assert(ndeck <= MAX_DECKS);
-
     for (n = 0; n < ndeck; n++) {
-        in->player[n] = &pl[n];
-        in->timecoder[n] = &tc[n];
-        if (timecoder_monitor_init(in->timecoder[n], SCOPE_SIZE) == -1)
+        if (timecoder_monitor_init(&deck[n].timecoder, SCOPE_SIZE) == -1)
             return -1;
     }
 
-    in->players = ndeck;
-    in->timecoders = ndeck;
+    in->deck = deck;
+    in->ndeck = ndeck;
 
     in->rig = rig;
     selector_init(&in->selector, lib);
@@ -1593,8 +1589,8 @@ void interface_stop(struct interface_t *in)
     if (pthread_join(in->ph, NULL) != 0)
         abort();
 
-    for (n = 0; n < in->timecoders; n++)
-        timecoder_monitor_clear(in->timecoder[n]);
+    for (n = 0; n < in->ndeck; n++)
+        timecoder_monitor_clear(&in->deck[n].timecoder);
 
     selector_clear(&in->selector);
 

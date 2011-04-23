@@ -26,12 +26,12 @@
 #include <SDL.h> /* may override main() */
 
 #include "alsa.h"
+#include "deck.h"
 #include "device.h"
 #include "interface.h"
 #include "jack.h"
 #include "library.h"
 #include "oss.h"
-#include "player.h"
 #include "realtime.h"
 #include "rig.h"
 #include "timecoder.h"
@@ -106,11 +106,7 @@ int main(int argc, char *argv[])
     double speed;
     struct timecode_def_t *timecode;
 
-    struct device_t device[MAX_DECKS];
-    struct track_t track[MAX_DECKS];
-    struct player_t player[MAX_DECKS];
-    struct timecoder_t timecoder[MAX_DECKS];
-
+    struct deck_t deck[MAX_DECKS];
     struct rig_t rig;
     struct rt_t rt;
     struct interface_t iface;
@@ -233,6 +229,9 @@ int main(int argc, char *argv[])
 		  !strcmp(argv[0], "-j"))
 	{
             unsigned int sample_rate;
+            struct device_t device;
+            struct track_t track;
+            struct timecoder_t timecoder;
 
             /* Create a deck */
 
@@ -257,18 +256,17 @@ int main(int argc, char *argv[])
 
 #ifdef WITH_OSS
             case 'd':
-                r = oss_init(&device[decks], argv[1], rate,
-                             oss_buffers, oss_fragment);
+                r = oss_init(&device, argv[1], rate, oss_buffers, oss_fragment);
                 break;
 #endif
 #ifdef WITH_ALSA
             case 'a':
-                r = alsa_init(&device[decks], argv[1], rate, alsa_buffer);
+                r = alsa_init(&device, argv[1], rate, alsa_buffer);
                 break;
 #endif
 #ifdef WITH_JACK
             case 'j':
-                r = jack_init(&device[decks], argv[1]);
+                r = jack_init(&device, argv[1]);
                 break;
 #endif
             default:
@@ -280,7 +278,7 @@ int main(int argc, char *argv[])
             if (r == -1)
                 return -1;
 
-	    sample_rate = device_sample_rate(&device[decks]);
+	    sample_rate = device_sample_rate(&device);
 
             /* Default timecode decoder where none is specified */
 
@@ -289,21 +287,14 @@ int main(int argc, char *argv[])
                 assert(timecode != NULL);
             }
 
-            timecoder_init(&timecoder[decks], timecode, speed, sample_rate);
+            timecoder_init(&timecoder, timecode, speed, sample_rate);
+            track_init(&track, importer);
 
-            if (rt_add_device(&rt, &device[decks]) == -1)
+            /* Combine these elements together into a operational deck */
+
+            r = deck_init(&deck[decks], &rt, &rig, &device, &timecoder, &track);
+            if (r == -1)
                 return -1;
-
-            track_init(&track[decks], importer);
-            rig_add_track(&rig, &track[decks]);
-
-            player_init(&player[decks], &track[decks], &timecoder[decks]);
-
-            /* The timecoder and player are driven by requests from
-             * the audio device */
-
-            device_connect_timecoder(&device[decks], &timecoder[decks]);
-            device_connect_player(&device[decks], &player[decks]);
 
             decks++;
 
@@ -408,7 +399,7 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    if (interface_start(&iface, decks, player, timecoder, &library, &rig) == -1)
+    if (interface_start(&iface, deck, decks, &library, &rig) == -1)
         return -1;
     if (rt_start(&rt) == -1)
         return -1;
@@ -421,12 +412,8 @@ int main(int argc, char *argv[])
     rt_stop(&rt);
     interface_stop(&iface);
 
-    for (n = 0; n < decks; n++) {
-        track_clear(&track[n]);
-        timecoder_clear(&timecoder[n]);
-        player_clear(&player[n]);
-        device_clear(&device[n]);
-    }
+    for (n = 0; n < decks; n++)
+        deck_clear(&deck[n]);
 
     timecoder_free_lookup();
     library_clear(&library);
