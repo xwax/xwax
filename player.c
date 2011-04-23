@@ -139,13 +139,27 @@ static double build_pcm(signed short *pcm, int samples, int rate,
 }
 
 /*
+ * Change the timecoder used by this playback
+ */
+
+void player_set_timecoder(struct player_t *pl, struct timecoder_t *tc)
+{
+    assert(tc != NULL);
+    pl->timecoder = tc;
+    pl->recalibrate = true;
+    pl->timecode_control = true;
+}
+
+/*
  * Post: player is initialised
  */
 
-void player_init(struct player_t *pl, struct track_t *track)
+void player_init(struct player_t *pl, struct track_t *track,
+                 struct timecoder_t *tc)
 {
     assert(track != NULL);
     pl->track = track;
+    player_set_timecoder(pl, tc);
 
     pl->position = 0.0;
     pl->offset = 0.0;
@@ -155,10 +169,6 @@ void player_init(struct player_t *pl, struct track_t *track)
     pl->pitch = 0.0;
     pl->sync_pitch = 1.0;
     pl->volume = 0.0;
-
-    pl->timecoder = NULL;
-    pl->timecode_control = false;
-    pl->recalibrate = false;
 }
 
 /*
@@ -168,17 +178,6 @@ void player_init(struct player_t *pl, struct track_t *track)
 
 void player_clear(struct player_t *pl)
 {
-}
-
-/*
- * Connect the given timecoder and enable timecode control
- */
-
-void player_connect_timecoder(struct player_t *pl, struct timecoder_t *tc)
-{
-    pl->timecoder = tc;
-    pl->recalibrate = true;
-    pl->timecode_control = true;
 }
 
 /*

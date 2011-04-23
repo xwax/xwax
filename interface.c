@@ -1301,7 +1301,7 @@ static bool handle_key(struct interface_t *in, struct selector_t *sel,
 
             if (mod & KMOD_SHIFT) {
                 if (func < in->timecoders)
-                    player_connect_timecoder(pl, in->timecoder[func]);
+                    player_set_timecoder(pl, in->timecoder[func]);
 
             } else if (mod & KMOD_CTRL) {
                 timecoder_cycle_definition(tc);

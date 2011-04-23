@@ -297,8 +297,7 @@ int main(int argc, char *argv[])
             track_init(&track[decks], importer);
             rig_add_track(&rig, &track[decks]);
 
-            player_init(&player[decks], &track[decks]);
-            player_connect_timecoder(&player[decks], &timecoder[decks]);
+            player_init(&player[decks], &track[decks], &timecoder[decks]);
 
             /* The timecoder and player are driven by requests from
              * the audio device */

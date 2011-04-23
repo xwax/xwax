@@ -48,10 +48,11 @@ struct player_t {
         recalibrate; /* re-sync offset at next opportunity */
 };
 
-void player_init(struct player_t *pl, struct track_t *track);
+void player_init(struct player_t *pl, struct track_t *track,
+                 struct timecoder_t *timecoder);
 void player_clear(struct player_t *pl);
 
-void player_connect_timecoder(struct player_t *pl, struct timecoder_t *tc);
+void player_set_timecoder(struct player_t *pl, struct timecoder_t *tc);
 void player_set_timecode_control(struct player_t *pl, bool on);
 bool player_toggle_timecode_control(struct player_t *pl);
 
