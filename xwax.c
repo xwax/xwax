@@ -278,7 +278,7 @@ int main(int argc, char *argv[])
             if (r == -1)
                 return -1;
 
-	    sample_rate = device_sample_rate(device);
+	    sample_rate = device_sample_rate(&device[decks]);
 
             if (timecoder_init(&timecoder[decks], timecode,
                                speed, sample_rate) == -1)
