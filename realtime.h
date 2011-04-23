@@ -23,7 +23,6 @@
 #include <stdbool.h>
 
 #define MAX_DEVICES 4
-#define MAX_DEVICE_POLLFDS 32
 
 /*
  * State data for the realtime thread, maintained during rt_start and
@@ -38,7 +37,7 @@ struct rt_t {
     struct device_t *dv[MAX_DEVICES];
 
     size_t npt;
-    struct pollfd pt[MAX_DEVICE_POLLFDS];
+    struct pollfd pt[32];
 };
 
 void rt_init(struct rt_t *rt);

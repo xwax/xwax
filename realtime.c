@@ -130,7 +130,7 @@ int rt_add_device(struct rt_t *rt, struct device_t *dv)
     /* The requested poll events never change, so populate the poll
      * entry table before entering the realtime thread */
 
-    z = device_pollfds(dv, &rt->pt[rt->npt], MAX_DEVICE_POLLFDS - rt->npt);
+    z = device_pollfds(dv, &rt->pt[rt->npt], sizeof(rt->pt) - rt->npt);
     if (z == -1) {
         fprintf(stderr, "Device failed to return file descriptors.\n");
         return -1;
