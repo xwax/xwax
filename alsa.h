@@ -25,4 +25,6 @@
 int alsa_init(struct device_t *dv, const char *name,
               int rate, int buffer_time);
 
+void alsa_clear_config_cache(void);
+
 #endif

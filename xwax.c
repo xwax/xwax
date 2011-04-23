@@ -390,6 +390,10 @@ int main(int argc, char *argv[])
         }
     }
 
+#ifdef WITH_ALSA
+    alsa_clear_config_cache();
+#endif
+
     if (decks == 0) {
         fprintf(stderr, "You need to give at least one audio device to use "
                 "as a deck; try -h.\n");

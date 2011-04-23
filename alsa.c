@@ -440,3 +440,16 @@ int alsa_init(struct device_t *dv, const char *device_name,
     free(alsa);
     return -1;
 }
+
+
+/* ALSA caches information when devices are open. Provide a call
+ * to clear these caches so that valgrind output is clean. */
+
+void alsa_clear_config_cache(void)
+{
+    int r;
+
+    r = snd_config_update_free_global();
+    if (r < 0)
+        alsa_error("config_update_free_global", r);
+}
