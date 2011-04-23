@@ -127,6 +127,11 @@ int rt_add_device(struct rt_t *rt, struct device_t *dv)
 {
     ssize_t z;
 
+    if (rt->ndv == sizeof rt->dv) {
+        fprintf(stderr, "Too many audio devices\n");
+        return -1;
+    }
+
     /* The requested poll events never change, so populate the poll
      * entry table before entering the realtime thread */
 
