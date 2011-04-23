@@ -73,7 +73,7 @@ void rig_clear(struct rig_t *rig)
 
 void rig_add_track(struct rig_t *rig, struct track_t *track)
 {
-    assert(rig->ntrack < MAX_TRACKS);
+    assert(rig->ntrack < sizeof rig->track);
 
     rig->track[rig->ntrack] = track;
     rig->ntrack++;
