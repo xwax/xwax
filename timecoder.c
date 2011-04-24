@@ -317,6 +317,7 @@ void timecoder_init(struct timecoder_t *tc, struct timecode_def_t *def,
 
 void timecoder_clear(struct timecoder_t *tc)
 {
+    assert(tc->mon == NULL);
 }
 
 /*
@@ -330,6 +331,7 @@ void timecoder_clear(struct timecoder_t *tc)
 
 int timecoder_monitor_init(struct timecoder_t *tc, int size)
 {
+    assert(tc->mon == NULL);
     tc->mon_size = size;
     tc->mon = malloc(SQ(tc->mon_size));
     if (tc->mon == NULL) {
@@ -349,6 +351,7 @@ void timecoder_monitor_clear(struct timecoder_t *tc)
 {
     assert(tc->mon != NULL);
     free(tc->mon);
+    tc->mon = NULL;
 }
 
 /*
