@@ -38,6 +38,9 @@ struct rt {
     size_t ndv;
     struct device *dv[3];
 
+    size_t nctl;
+    struct controller *ctl[3];
+
     size_t npt;
     struct pollfd pt[32];
 };
@@ -49,6 +52,7 @@ void rt_init(struct rt *rt);
 void rt_clear(struct rt *rt);
 
 int rt_add_device(struct rt *rt, struct device *dv);
+int rt_add_controller(struct rt *rt, struct controller *c);
 
 int rt_start(struct rt *rt);
 void rt_stop(struct rt *rt);

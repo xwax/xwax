@@ -17,37 +17,38 @@
  *
  */
 
-#ifndef DECK_H
-#define DECK_H
+#ifndef CONTROLLER_H
+#define CONTROLLER_H
 
-#include "cues.h"
-#include "device.h"
-#include "listing.h"
-#include "player.h"
-#include "realtime.h"
-#include "timecoder.h"
+#include <stdbool.h>
+#include <stdlib.h>
 
-struct deck {
-    struct device device;
-    struct timecoder timecoder;
-    const char *importer;
+struct deck;
 
-    struct player player;
-    const struct record *record;
-    struct cues cues;
+/*
+ * Base state of a 'controller', which is a MIDI controller or HID
+ * device used to control the program
+ */
 
-    /* A controller adds itself here */
-
-    size_t ncontrol;
-    struct controller *control[4];
+struct controller {
+    void *local;
+    struct controller_ops *ops;
 };
 
-int deck_init(struct deck *deck, struct rt *rt);
-void deck_clear(struct deck *deck);
+/*
+ * Functions which must be implemented for a controller
+ */
 
-void deck_load(struct deck *deck, struct record *record);
+struct controller_ops {
+    int (*add_deck)(struct controller *c, struct deck *deck);
+    int (*realtime)(struct controller *c);
+    void (*clear)(struct controller *c);
+};
 
-void deck_set_cue(struct deck *deck, unsigned int label);
-void deck_seek_to_cue(struct deck *deck, unsigned int label);
+void controller_init(struct controller *c, struct controller_ops *t);
+void controller_clear(struct controller *c);
+
+void controller_add_deck(struct controller *c, struct deck *d);
+void controller_handle(struct controller *c);
 
 #endif

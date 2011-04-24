@@ -19,6 +19,7 @@
 
 #include <assert.h>
 
+#include "controller.h"
 #include "cues.h"
 #include "deck.h"
 #include "rig.h"
@@ -51,6 +52,7 @@ int deck_init(struct deck *deck, struct rt *rt)
     if (rt_add_device(rt, &deck->device) == -1)
         return -1;
 
+    deck->ncontrol = 0;
     deck->record = &no_record;
     sample_rate = device_sample_rate(&deck->device);
     player_init(&deck->player, sample_rate, track_get_empty(),
