@@ -28,8 +28,6 @@
 #include "rig.h"
 #include "track.h"
 
-#define MAX_POLLFDS 3
-
 #define EVENT_WAKE 0
 #define EVENT_QUIT 1
 
@@ -98,9 +96,9 @@ int rig_main(struct rig_t *rig)
 {
     int r;
     size_t n;
-    struct pollfd pt[MAX_POLLFDS], *pe;
+    struct pollfd pt[4], *pe;
 
-    assert(rig->ntrack <= MAX_POLLFDS);
+    assert(sizeof pt >= rig->ntrack + 1);
 
     for (;;) { /* exit via EVENT_QUIT */
         pe = pt;
