@@ -41,7 +41,7 @@ DOCDIR = $(PREFIX)/share/doc
 
 # Core objects and libraries
 
-OBJS = cues.o deck.o import.o interface.o \
+OBJS = controller.o cues.o deck.o import.o interface.o \
 	library.o listing.o lut.o \
 	player.o realtime.o \
 	rig.o selector.o timecoder.o track.o xwax.o

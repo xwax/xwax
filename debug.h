@@ -17,35 +17,15 @@
  *
  */
 
-#ifndef DECK_H
-#define DECK_H
+#ifndef DEBUG_H
+#define DEBUG_H
 
-#include "cues.h"
-#include "device.h"
-#include "player.h"
-#include "rig.h"
-#include "realtime.h"
-#include "timecoder.h"
-#include "track.h"
+#include <stdio.h>
 
-struct deck_t {
-    struct device_t device;
-    struct timecoder_t timecoder;
-    struct track_t track;
-
-    struct cues_t cues;
-    struct player_t player;
-
-    /* A controller adds itself here */
-
-    size_t ncontrol;
-    struct controller_t *control[4];
-};
-
-int deck_init(struct deck_t *deck, struct rt_t *rt, struct rig_t *rig);
-void deck_clear(struct deck_t *deck);
-
-void deck_set_cue(struct deck_t *deck, unsigned int label);
-void deck_seek_to_cue(struct deck_t *deck, unsigned int label);
+#ifdef DEBUG
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#else
+#define debug(...)
+#endif
 
 #endif

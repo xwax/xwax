@@ -17,38 +17,38 @@
  *
  */
 
-#ifndef REALTIME_H
-#define REALTIME_H
+#ifndef CONTROLLER_H
+#define CONTROLLER_H
 
-#include <poll.h>
 #include <stdbool.h>
+#include <stdlib.h>
+
+struct deck_t;
 
 /*
- * State data for the realtime thread, maintained during rt_start and
- * rt_stop
+ * Base state of a 'controller', which is a MIDI controller or HID
+ * device used to control the program
  */
 
-struct rt_t {
-    pthread_t ph;
-    bool finished;
-
-    size_t ndv;
-    struct device_t *dv[3];
-
-    size_t nctl;
-    struct controller_t *ctl[3];
-
-    size_t npt;
-    struct pollfd pt[32];
+struct controller_t {
+    void *local;
+    struct controller_type_t *type;
 };
 
-void rt_init(struct rt_t *rt);
-void rt_clear(struct rt_t *rt);
+/*
+ * Functions which must be implemented for a controller
+ */
 
-int rt_add_device(struct rt_t *rt, struct device_t *dv);
-int rt_add_controller(struct rt_t *rt, struct controller_t *c);
+struct controller_type_t {
+    int (*add_deck)(struct controller_t *c, struct deck_t *deck);
+    int (*realtime)(struct controller_t *c);
+    void (*clear)(struct controller_t *c);
+};
 
-int rt_start(struct rt_t *rt);
-void rt_stop(struct rt_t *rt);
+void controller_init(struct controller_t *c, struct controller_type_t *t);
+void controller_clear(struct controller_t *c);
+
+void controller_add_deck(struct controller_t *c, struct deck_t *d);
+void controller_handle(struct controller_t *c);
 
 #endif

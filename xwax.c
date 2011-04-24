@@ -26,6 +26,7 @@
 #include <SDL.h> /* may override main() */
 
 #include "alsa.h"
+#include "controller.h"
 #include "deck.h"
 #include "device.h"
 #include "interface.h"
@@ -100,11 +101,14 @@ static void usage(FILE *fd)
 int main(int argc, char *argv[])
 {
     int r, n, decks, rate;
+    size_t nctl;
     char *endptr, *importer, *scanner;
     double speed;
     struct timecode_def_t *timecode;
 
     struct deck_t deck[3];
+    struct controller_t ctl[2];
+
     struct rig_t rig;
     struct rt_t rt;
     struct interface_t iface;
@@ -126,6 +130,7 @@ int main(int argc, char *argv[])
     library_init(&library);
 
     decks = 0;
+    nctl = 0;
     rate = DEFAULT_RATE;
     importer = DEFAULT_IMPORTER;
     scanner = DEFAULT_SCANNER;
@@ -313,6 +318,11 @@ int main(int argc, char *argv[])
             if (r == -1)
                 return -1;
 
+            /* Connect this deck to available controllers */
+
+            for (n = 0; n < nctl; n++)
+                controller_add_deck(&ctl[n], &deck[decks]);
+
             decks++;
 
             argv += 2;
@@ -420,6 +430,11 @@ int main(int argc, char *argv[])
         return -1;
     }
 
+    for (n = 0; n < nctl; n++) {
+        if (rt_add_controller(&rt, &ctl[n]) == -1)
+            return -1;
+    }
+
     if (interface_start(&iface, deck, decks, &library, &rig) == -1)
         return -1;
     if (rt_start(&rt) == -1)
@@ -435,6 +450,9 @@ int main(int argc, char *argv[])
 
     for (n = 0; n < decks; n++)
         deck_clear(&deck[n]);
+
+    for (n = 0; n < nctl; n++)
+        controller_clear(&ctl[n]);
 
     timecoder_free_lookup();
     library_clear(&library);

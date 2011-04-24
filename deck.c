@@ -17,6 +17,7 @@
  *
  */
 
+#include "controller.h"
 #include "cues.h"
 #include "deck.h"
 
@@ -31,6 +32,8 @@
 
 int deck_init(struct deck_t *deck, struct rt_t *rt, struct rig_t *rig)
 {
+    deck->ncontrol = 0;
+
     rig_add_track(rig, &deck->track);
     if (rt_add_device(rt, &deck->device) == -1)
         return -1;
