@@ -400,9 +400,9 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    if (rt_start(&rt) == -1)
-        return -1;
     if (interface_start(&iface, decks, player, timecoder, &library, &rig) == -1)
+        return -1;
+    if (rt_start(&rt) == -1)
         return -1;
 
     if (rig_main(&rig) == -1)
@@ -410,8 +410,8 @@ int main(int argc, char *argv[])
 
     fprintf(stderr, "Exiting cleanly...\n");
 
-    interface_stop(&iface);
     rt_stop(&rt);
+    interface_stop(&iface);
 
     for (n = 0; n < decks; n++) {
         track_clear(&track[n]);
