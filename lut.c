@@ -70,6 +70,7 @@ int lut_init(struct lut_t *lut, int nslots)
 void lut_clear(struct lut_t *lut)
 {
     free(lut->table);
+    free(lut->slot);
 }
 
 
