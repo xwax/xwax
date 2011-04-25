@@ -193,13 +193,13 @@ void rt_stop(struct rt_t *rt)
 
     rt->finished = true;
 
-    if (rt->npt > 0) {
-        if (pthread_join(rt->ph, NULL) != 0)
-            abort();
-    }
-
     /* Stop audio rolling on devices */
 
     for (n = 0; n < rt->ndv; n++)
         device_stop(rt->dv[n]);
+
+    if (rt->npt > 0) {
+        if (pthread_join(rt->ph, NULL) != 0)
+            abort();
+    }
 }
