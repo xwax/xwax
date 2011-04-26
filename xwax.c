@@ -88,9 +88,9 @@ static void usage(FILE *fd)
 #endif
 
     fprintf(fd,
-      "Device options, -t, RPM options and -i apply to subsequent devices.\n"
-      "Option -s applies to subsequent directories.\n"
-      "Decks and audio directories can be specified multiple times.\n\n"
+      "The ordering of options is important. Options apply to subsequent\n"
+      "music libraries or decks, which can be given multiple times. See the\n"
+      "manual for details.\n\n"
       "Available timecodes (for use with -t):\n"
       "  serato_2a (default), serato_2b, serato_cd,\n"
       "  traktor_a, traktor_b, mixvibes_v2, mixvibes_7inch\n\n"
