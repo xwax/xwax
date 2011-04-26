@@ -280,7 +280,7 @@ int main(int argc, char *argv[])
             if (r == -1)
                 return -1;
 
-	    sample_rate = device_sample_rate(device);
+	    sample_rate = device_sample_rate(&device[decks]);
 
             /* Default timecode decoder where none is specified */
 
@@ -409,9 +409,9 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    if (rt_start(&rt) == -1)
-        return -1;
     if (interface_start(&iface, decks, player, timecoder, &library, &rig) == -1)
+        return -1;
+    if (rt_start(&rt) == -1)
         return -1;
 
     if (rig_main(&rig) == -1)
@@ -419,8 +419,8 @@ int main(int argc, char *argv[])
 
     fprintf(stderr, "Exiting cleanly...\n");
 
-    interface_stop(&iface);
     rt_stop(&rt);
+    interface_stop(&iface);
 
     for (n = 0; n < decks; n++) {
         track_clear(&track[n]);
