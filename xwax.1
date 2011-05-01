@@ -157,7 +157,14 @@ Deck 0	Deck 1	Deck 2
 F1	F5	F9	Load currently selected track to this deck
 F2	F6	F10	Reset start of track to the current position
 F3	F7	F11	Toggle timecode control on/off
+C-F3	C-F7	C-F11	Cycle between available timecodes
 .TE
+
+.P
+The "available timecodes" are those which have been the subject of any
+.B \-t
+flag on the command line. "C-" means a keypress is combined with the
+\'Control\' key.
 
 Audio display controls:
 
@@ -193,6 +200,13 @@ As above, but with the second deck at 45 RPM:
 .sp
 .RS
 xwax \-l ~/music \-t serato_2a \-d hw:0 \-t mixvibes_v2 \-45 \-d hw:1
+.RE
+
+.P
+Default to the same timecode, but allow switching at runtime:
+.sp
+.RS
+xwax \-l ~/music \-t serato_2a \-t mixvibes_v2 \-d hw:0 \-d hw:1
 .RE
 
 .P
