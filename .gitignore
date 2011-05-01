@@ -6,3 +6,4 @@ test-track
 *.d
 .config
 .version
+dist
