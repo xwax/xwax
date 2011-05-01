@@ -1414,22 +1414,16 @@ static int interface_main(struct interface_t *in)
             if (!surface)
                 return -1;
 
-            if (library_update < UPDATE_REDRAW)
-                library_update = UPDATE_REDRAW;
-
-            if (decks_update < UPDATE_REDRAW)
-                decks_update = UPDATE_REDRAW;
-
-            if (status_update < UPDATE_REDRAW)
-                status_update = UPDATE_REDRAW;
+            library_update = UPDATE_REDRAW;
+            decks_update = UPDATE_REDRAW;
+            status_update = UPDATE_REDRAW;
 
             break;
 
         case SDL_USEREVENT:
             switch (event.user.code) {
             case EVENT_TICKER: /* request to poll the clocks */
-                if (decks_update < UPDATE_REDRAW)
-                    decks_update = UPDATE_REDRAW;
+                decks_update = UPDATE_REDRAW;
                 break;
 
             case EVENT_QUIT: /* internal request to finish this thread */
@@ -1470,7 +1464,7 @@ static int interface_main(struct interface_t *in)
         /* If there's been a change to the library search results,
          * check them over and display them. */
 
-        if (library_update >= UPDATE_REDRAW) {
+        if (library_update == UPDATE_REDRAW) {
 
             if (selector_current(&in->selector) != NULL)
                 status = selector_current(&in->selector)->pathname;
@@ -1487,7 +1481,7 @@ static int interface_main(struct interface_t *in)
 
         /* If there's been a change to status, redisplay it */
 
-        if (status_update >= UPDATE_REDRAW) {
+        if (status_update == UPDATE_REDRAW) {
             LOCK(surface);
             draw_status(surface, &rstatus, status);
             UNLOCK(surface);
@@ -1498,7 +1492,7 @@ static int interface_main(struct interface_t *in)
         /* If it's due, redraw the players. This is triggered by the
          * timer event. */
 
-        if (decks_update >= UPDATE_REDRAW) {
+        if (decks_update == UPDATE_REDRAW) {
             LOCK(surface);
             draw_decks(surface, &rplayers, in->deck, in->ndeck, meter_scale);
             UNLOCK(surface);
