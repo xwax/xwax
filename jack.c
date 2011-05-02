@@ -27,7 +27,6 @@
 #include "player.h"
 #include "timecoder.h"
 
-#define MAX_DECKS 4
 #define MAX_BLOCK 512 /* samples */
 #define SCALE 32768
 
@@ -42,7 +41,7 @@ static jack_client_t *client = NULL;
 static int rate,
     decks = 0,
     started = 0;
-static struct device_t *device[MAX_DECKS];
+static struct device_t *device[4];
 
 
 /* Interleave samples from a set of JACK buffers into a local buffer */
@@ -341,7 +340,7 @@ int jack_init(struct device_t *dv, const char *name)
     dv->local = jack;
     dv->type = &jack_type;
 
-    assert(decks < MAX_DECKS);
+    assert(decks < sizeof device);
     device[decks] = dv;
     decks++;
 
