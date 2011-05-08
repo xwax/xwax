@@ -1305,9 +1305,6 @@ static bool handle_key(struct interface_t *in, struct selector_t *sel,
                 if (func < in->ndeck)
                     player_set_timecoder(pl, &in->deck[func].timecoder);
 
-            } else if (mod & KMOD_CTRL) {
-                timecoder_cycle_definition(tc);
-
             } else switch(func) {
             case FUNC_LOAD:
                 re = selector_current(sel);
@@ -1320,7 +1317,11 @@ static bool handle_key(struct interface_t *in, struct selector_t *sel,
                 break;
 
             case FUNC_TIMECODE:
-                (void)player_toggle_timecode_control(pl);
+                if (mod & KMOD_CTRL) {
+                    timecoder_cycle_definition(tc);
+                } else {
+                    (void)player_toggle_timecode_control(pl);
+                }
                 break;
             }
         }
