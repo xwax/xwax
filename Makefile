@@ -125,10 +125,10 @@ test-timecoder:	test-timecoder.o lut.o timecoder.o
 test-track:	test-track.o import.o track.o
 
 clean:
-		rm -f xwax
-		rm -f test-library
-		rm -f test-timecoder
-		rm -f test-track
-		rm -f *.o *.d *~
+		rm -f xwax \
+			test-library \
+			test-timecoder \
+			test-track \
+			*.o *.d
 
 -include *.d
