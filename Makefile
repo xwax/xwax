@@ -52,7 +52,7 @@ DEVICE_LIBS =
 # Optional device types
 
 ifdef ALSA
-DEVICE_OBJS += alsa.o
+DEVICE_OBJS += alsa.o midi.o
 DEVICE_CPPFLAGS += -DWITH_ALSA
 DEVICE_LIBS += $(ALSA_LIBS)
 endif
@@ -123,6 +123,9 @@ test-cues:	test-cues.o cues.o
 
 test-library:	test-library.o external.o library.o listing.o
 
+test-midi:	test-midi.o midi.o
+test-midi:	LDLIBS += $(ALSA_LIBS)
+
 test-timecoder:	test-timecoder.o lut.o timecoder.o
 
 test-track:	test-track.o import.o track.o
@@ -131,6 +134,7 @@ clean:
 		rm -f xwax \
 			test-cues \
 			test-library \
+			test-midi \
 			test-timecoder \
 			test-track \
 			*.o *.d
