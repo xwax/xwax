@@ -329,7 +329,7 @@ int jack_init(struct device_t *dv, const char *name)
     }
 
     jack = malloc(sizeof(struct jack_t));
-    if (!jack) {
+    if (jack == NULL) {
         perror("malloc");
         return -1;
     }
