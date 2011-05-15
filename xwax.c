@@ -29,6 +29,7 @@
 #include "controller.h"
 #include "deck.h"
 #include "device.h"
+#include "dicer.h"
 #include "interface.h"
 #include "jack.h"
 #include "library.h"
@@ -86,6 +87,11 @@ static void usage(FILE *fd)
 #ifdef WITH_JACK
     fprintf(fd, "JACK device options:\n"
       "  -j <name>      Create a JACK deck with the given name\n\n");
+#endif
+
+#ifdef WITH_ALSA
+    fprintf(fd, "MIDI control:\n"
+      "  -dicer <dev>   Novation Dicer\n\n");
 #endif
 
     fprintf(fd,
@@ -422,6 +428,32 @@ int main(int argc, char *argv[])
 
             argv += 2;
             argc -= 2;
+
+#ifdef WITH_ALSA
+        } else if (!strcmp(argv[0], "-dicer")) {
+
+            struct controller *c;
+
+            if (nctl == sizeof ctl) {
+                fprintf(stderr, "Too many controllers; aborting.\n");
+                return -1;
+            }
+
+            c = &ctl[nctl];
+
+            if (argc < 2) {
+                fprintf(stderr, "Dicer requires an ALSA device name.\n");
+                return -1;
+            }
+
+            if (dicer_init(c, &rt, argv[1]) == -1)
+                return -1;
+
+            nctl++;
+
+            argv += 2;
+            argc -= 2;
+#endif
 
         } else {
             fprintf(stderr, "'%s' argument is unknown; try -h.\n", argv[0]);

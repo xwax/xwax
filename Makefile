@@ -52,7 +52,7 @@ DEVICE_LIBS =
 # Optional device types
 
 ifdef ALSA
-DEVICE_OBJS += alsa.o midi.o
+DEVICE_OBJS += alsa.o dicer.o midi.o
 DEVICE_CPPFLAGS += -DWITH_ALSA
 DEVICE_LIBS += $(ALSA_LIBS)
 endif
