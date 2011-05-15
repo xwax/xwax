@@ -85,6 +85,11 @@ static void event(struct dicer *d, unsigned char buf[3])
     unsigned char action, button;
     bool on, shift;
 
+    /* Ignore signal that the second controller is (un)plugged */
+
+    if (buf[0] == 0xba && buf[1] == 0x11 && (buf[2] == 0x0 || buf[2] == 0x08))
+        return;
+
     switch (buf[0]) {
     case 0x9a:
     case 0x9b:
