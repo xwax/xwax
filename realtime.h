@@ -20,6 +20,7 @@
 #ifndef REALTIME_H
 #define REALTIME_H
 
+#include <poll.h>
 #include <stdbool.h>
 
 /*
