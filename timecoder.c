@@ -482,14 +482,22 @@ static void process_sample(struct timecoder_t *tc,
     /* If an axis has been crossed, use the direction of the crossing
      * to work out the direction of the vinyl */
 
-    if (tc->primary.swapped) {
-	tc->forwards = (tc->primary.positive != tc->secondary.positive);
-	if (tc->def->flags & SWITCH_PHASE)
-	    tc->forwards = !tc->forwards;
-    } if (tc->secondary.swapped) {
-	tc->forwards = (tc->primary.positive == tc->secondary.positive);
-	if (tc->def->flags & SWITCH_PHASE)
-	    tc->forwards = !tc->forwards;
+    if (tc->primary.swapped || tc->secondary.swapped) {
+        bool forwards;
+
+        if (tc->primary.swapped) {
+            forwards = (tc->primary.positive != tc->secondary.positive);
+        } else {
+            forwards = (tc->primary.positive == tc->secondary.positive);
+        }
+
+        if (tc->def->flags & SWITCH_PHASE)
+	    forwards = !forwards;
+
+        if (forwards != tc->forwards) { /* direction has changed */
+            tc->forwards = forwards;
+            tc->valid_counter = 0;
+        }
     }
 
     /* If any axis has been crossed, register movement using the pitch
