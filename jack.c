@@ -40,8 +40,8 @@ struct jack_t {
 
 static jack_client_t *client = NULL;
 static int rate,
-    decks = 0,
-    started = 0;
+    ndeck = 0,
+    nstarted = 0;
 static struct device_t *device[4];
 
 
@@ -131,7 +131,7 @@ static int process_callback(jack_nframes_t nframes, void *local)
     int n;
     struct jack_t *jack;
 
-    for (n = 0; n < decks; n++) {
+    for (n = 0; n < ndeck; n++) {
         jack = (struct jack_t*)device[n]->local;
         if (jack->started)
             process_deck(device[n], nframes);
@@ -239,12 +239,12 @@ static void start(struct device_t *dv)
 
     /* On the first call to start, start audio rolling for all decks */
 
-    if (started == 0) {
+    if (nstarted == 0) {
         if (jack_activate(client) != 0)
             abort();
     }
 
-    started++;
+    nstarted++;
     jack->started = true;
 }
 
@@ -256,11 +256,11 @@ static void stop(struct device_t *dv)
     struct jack_t *jack = (struct jack_t*)dv->local;
 
     jack->started = false;
-    started--;
+    nstarted--;
 
     /* On the final stop call, stop JACK rolling */
 
-    if (started == 0) {
+    if (nstarted == 0) {
         if (jack_deactivate(client) != 0)
             abort();
     }
@@ -288,18 +288,18 @@ static void clear(struct device_t *dv)
     /* Remove this from the global list, so that potentially xwax could
      * continue to run even if a deck is removed */
 
-    for (n = 0; n < decks; n++) {
+    for (n = 0; n < ndeck; n++) {
         if (device[n] == dv)
             break;
     }
-    assert(n != decks);
+    assert(n != ndeck);
 
-    if (decks == 1) { /* this is the last remaining deck */
+    if (ndeck == 1) { /* this is the last remaining deck */
         stop_jack_client();
-        decks = 0;
+        ndeck = 0;
     } else {
-        device[n] = device[decks - 1]; /* compact the list */
-        decks--;
+        device[n] = device[ndeck - 1]; /* compact the list */
+        ndeck--;
     }
 }
 
@@ -341,9 +341,9 @@ int jack_init(struct device_t *dv, const char *name)
     dv->local = jack;
     dv->type = &jack_type;
 
-    assert(decks < sizeof device);
-    device[decks] = dv;
-    decks++;
+    assert(ndeck < sizeof device);
+    device[ndeck] = dv;
+    ndeck++;
 
     return 0;
 
