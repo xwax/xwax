@@ -18,6 +18,7 @@
  */
 
 #include <assert.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <jack/jack.h>
@@ -32,7 +33,7 @@
 
 
 struct jack_t {
-    int started;
+    bool started;
     jack_port_t *input_port[DEVICE_CHANNELS],
         *output_port[DEVICE_CHANNELS];
 };
@@ -244,7 +245,7 @@ static void start(struct device_t *dv)
     }
 
     started++;
-    jack->started = 1;
+    jack->started = true;
 }
 
 
@@ -254,7 +255,7 @@ static void stop(struct device_t *dv)
 {
     struct jack_t *jack = (struct jack_t*)dv->local;
 
-    jack->started = 0;
+    jack->started = false;
     started--;
 
     /* On the final stop call, stop JACK rolling */
@@ -333,7 +334,7 @@ int jack_init(struct device_t *dv, const char *name)
         return -1;
     }
 
-    jack->started = 0;
+    jack->started = false;
     if (register_ports(jack, name) == -1)
         goto fail;
 
