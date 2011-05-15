@@ -227,9 +227,10 @@ int main(int argc, char *argv[])
 		  !strcmp(argv[0], "-j"))
 	{
             unsigned int sample_rate;
-            struct device_t device;
-            struct track_t track;
-            struct timecoder_t timecoder;
+            struct deck_t *ld;
+            struct device_t *device;
+            struct track_t *track;
+            struct timecoder_t *timecoder;
 
             /* Create a deck */
 
@@ -246,6 +247,11 @@ int main(int argc, char *argv[])
 
             fprintf(stderr, "Initialising deck %d (%s)...\n", decks, argv[1]);
 
+            ld = &deck[decks];
+            device = &ld->device;
+            timecoder = &ld->timecoder;
+            track = &ld->track;
+
             /* Work out which device type we are using, and initialise
              * an appropriate device. */
 
@@ -253,17 +259,17 @@ int main(int argc, char *argv[])
 
 #ifdef WITH_OSS
             case 'd':
-                r = oss_init(&device, argv[1], rate, oss_buffers, oss_fragment);
+                r = oss_init(device, argv[1], rate, oss_buffers, oss_fragment);
                 break;
 #endif
 #ifdef WITH_ALSA
             case 'a':
-                r = alsa_init(&device, argv[1], rate, alsa_buffer);
+                r = alsa_init(device, argv[1], rate, alsa_buffer);
                 break;
 #endif
 #ifdef WITH_JACK
             case 'j':
-                r = jack_init(&device, argv[1]);
+                r = jack_init(device, argv[1]);
                 break;
 #endif
             default:
@@ -275,7 +281,7 @@ int main(int argc, char *argv[])
             if (r == -1)
                 return -1;
 
-	    sample_rate = device_sample_rate(&device);
+	    sample_rate = device_sample_rate(device);
 
             /* Default timecode decoder where none is specified */
 
@@ -284,12 +290,12 @@ int main(int argc, char *argv[])
                 assert(timecode != NULL);
             }
 
-            timecoder_init(&timecoder, timecode, speed, sample_rate);
-            track_init(&track, importer);
+            timecoder_init(timecoder, timecode, speed, sample_rate);
+            track_init(track, importer);
 
-            /* Combine these elements together into a operational deck */
+            /* Connect up the elements to make an operational deck */
 
-            r = deck_init(&deck[decks], &rt, &rig, &device, &timecoder, &track);
+            r = deck_init(ld, &rt, &rig);
             if (r == -1)
                 return -1;
 

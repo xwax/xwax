@@ -25,19 +25,11 @@
  * A deck is a logical grouping of the varius components which
  * reflects the user's view on a deck in the system.
  *
- * Hand over control on an existing device, timecoder and track to
- * this container.
+ * Pre: deck->device, deck->timecoder and deck->track are valid
  */
 
-int deck_init(struct deck_t *deck, struct rt_t *rt, struct rig_t *rig,
-              const struct device_t *device,
-              const struct timecoder_t *timecoder,
-              const struct track_t *track)
+int deck_init(struct deck_t *deck, struct rt_t *rt, struct rig_t *rig)
 {
-    deck->device = *device;
-    deck->timecoder = *timecoder;
-    deck->track = *track;
-
     rig_add_track(rig, &deck->track);
     if (rt_add_device(rt, &deck->device) == -1)
         return -1;

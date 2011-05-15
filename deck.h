@@ -35,10 +35,7 @@ struct deck_t {
     struct player_t player;
 };
 
-int deck_init(struct deck_t *deck, struct rt_t *rt, struct rig_t *rig,
-              const struct device_t *device,
-              const struct timecoder_t *timecoder,
-              const struct track_t *track);
+int deck_init(struct deck_t *deck, struct rt_t *rt, struct rig_t *rig);
 void deck_clear(struct deck_t *deck);
 
 #endif
