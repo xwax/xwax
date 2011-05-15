@@ -87,6 +87,9 @@ static void process_deck(struct device_t *dv, jack_nframes_t nframes)
     jack_nframes_t remain;
     struct jack_t *jack = (struct jack_t*)dv->local;
 
+    assert(dv->timecoder != NULL);
+    assert(dv->player != NULL);
+
     for (n = 0; n < DEVICE_CHANNELS; n++) {
         in[n] = jack_port_get_buffer(jack->input_port[n], nframes);
         assert(in[n] != NULL);
@@ -110,8 +113,7 @@ static void process_deck(struct device_t *dv, jack_nframes_t nframes)
         /* Timecode input */
 
         interleave(buf, in, block);
-        if (dv->timecoder)
-            timecoder_submit(dv->timecoder, buf, block);
+        timecoder_submit(dv->timecoder, buf, block);
 
         /* Audio output -- handle in the same loop for finer granularity */
 
@@ -236,6 +238,9 @@ static unsigned int sample_rate(struct device_t *dv)
 static void start(struct device_t *dv)
 {
     struct jack_t *jack = (struct jack_t*)dv->local;
+
+    assert(dv->timecoder != NULL);
+    assert(dv->player != NULL);
 
     /* On the first call to start, start audio rolling for all decks */
 
