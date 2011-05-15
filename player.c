@@ -259,10 +259,9 @@ static void calibrate_to_timecode_position(struct player_t *pl)
  * Cue to the zero position of the track
  */
 
-int player_recue(struct player_t *pl)
+void player_recue(struct player_t *pl)
 {
     pl->offset = pl->position;
-    return 0;
 }
 
 /*
