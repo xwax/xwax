@@ -99,7 +99,7 @@ static void usage(FILE *fd)
 
 int main(int argc, char *argv[])
 {
-    int r, n, decks, oss_fragment, oss_buffers, rate, alsa_buffer;
+    int r, n, decks, rate;
     char *endptr, *importer, *scanner;
     double speed;
     struct timecode_def_t *timecode;
@@ -110,6 +110,14 @@ int main(int argc, char *argv[])
     struct interface_t iface;
     struct library_t library;
 
+#ifdef WITH_OSS
+    int oss_buffers, oss_fragment;
+#endif
+
+#ifdef WITH_ALSA
+    int alsa_buffer;
+#endif
+
     fprintf(stderr, "%s\n\n" NOTICE "\n\n", banner);
 
     if (rig_init(&rig) == -1)
@@ -118,14 +126,20 @@ int main(int argc, char *argv[])
     library_init(&library);
 
     decks = 0;
-    oss_fragment = DEFAULT_OSS_FRAGMENT;
-    oss_buffers = DEFAULT_OSS_BUFFERS;
     rate = DEFAULT_RATE;
-    alsa_buffer = DEFAULT_ALSA_BUFFER;
     importer = DEFAULT_IMPORTER;
     scanner = DEFAULT_SCANNER;
     timecode = NULL;
     speed = 1.0;
+
+#ifdef WITH_ALSA
+    alsa_buffer = DEFAULT_ALSA_BUFFER;
+#endif
+
+#ifdef WITH_OSS
+    oss_fragment = DEFAULT_OSS_FRAGMENT;
+    oss_buffers = DEFAULT_OSS_BUFFERS;
+#endif
 
     /* Skip over command name */
 
