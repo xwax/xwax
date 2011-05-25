@@ -73,9 +73,9 @@ static void event_decoded(struct deck *d, unsigned char action,
         return;
 
     if (shift) {
-        deck_set_cue(d, button);
+        deck_unset_cue(d, button);
     } else {
-        deck_seek_to_cue(d, button);
+        deck_cue(d, button);
     }
 }
 

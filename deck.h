@@ -47,7 +47,7 @@ void deck_clear(struct deck *deck);
 
 void deck_load(struct deck *deck, struct record *record);
 
-void deck_set_cue(struct deck *deck, unsigned int label);
-void deck_seek_to_cue(struct deck *deck, unsigned int label);
+void deck_unset_cue(struct deck *deck, unsigned int label);
+void deck_cue(struct deck *deck, unsigned int label);
 
 #endif
