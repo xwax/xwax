@@ -44,6 +44,11 @@ int main(int argc, char *argv[])
 
             for (n = 0; n < z; n++)
                 printf(" %02hhx", buf[n]);
+
+            z = midi_write(&m, buf, z);
+            printf(" =%d", z);
+            if (z == -1)
+                return -1;
         }
         printf("\n");
 

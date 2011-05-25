@@ -16,5 +16,6 @@ void midi_close(struct midi_t *m);
 
 ssize_t midi_pollfds(struct midi_t *m, struct pollfd *pe, size_t len);
 ssize_t midi_read(struct midi_t *m, void *buf, size_t len);
+ssize_t midi_write(struct midi_t *m, const void *buf, size_t len);
 
 #endif
