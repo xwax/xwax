@@ -75,3 +75,18 @@ ssize_t midi_read(struct midi *m, void *buf, size_t len)
 
     return r;
 }
+
+ssize_t midi_write(struct midi *m, const void *buf, size_t len)
+{
+    int r;
+
+    r = snd_rawmidi_write(m->out, buf, len);
+    if (r < 0) {
+        if (r == -EAGAIN)
+            return 0;
+        alsa_error("rawmidi_write", r);
+        return -1;
+    }
+
+    return r;
+}
