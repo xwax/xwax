@@ -45,7 +45,7 @@ struct deck_t {
 int deck_init(struct deck_t *deck, struct rt_t *rt, struct rig_t *rig);
 void deck_clear(struct deck_t *deck);
 
-void deck_set_cue(struct deck_t *deck, unsigned int label);
-void deck_seek_to_cue(struct deck_t *deck, unsigned int label);
+void deck_unset_cue(struct deck_t *deck, unsigned int label);
+void deck_cue(struct deck_t *deck, unsigned int label);
 
 #endif

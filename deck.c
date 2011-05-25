@@ -60,23 +60,26 @@ void deck_clear(struct deck_t *deck)
 }
 
 /*
- * Set a cue point to the current playback position
+ * Clear the cue point, ready to be set again
  */
 
-void deck_set_cue(struct deck_t *d, unsigned int label)
+void deck_unset_cue(struct deck_t *d, unsigned int label)
 {
-    cues_set(&d->cues, label, player_position(&d->player));
+    cues_unset(&d->cues, label);
 }
 
 /*
- * Seek the current playback position to a cue point position
+ * Seek the current playback position to a cue point position,
+ * or set the cue point if unset
  */
 
-void deck_seek_to_cue(struct deck_t *d, unsigned int label)
+void deck_cue(struct deck_t *d, unsigned int label)
 {
     double p;
 
     p = cues_get(&d->cues, label);
-    if (p != CUE_UNSET)
+    if (p == CUE_UNSET)
+        cues_set(&d->cues, label, player_position(&d->player));
+    else
         player_seek_to(&d->player, p);
 }
