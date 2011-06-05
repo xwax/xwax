@@ -69,9 +69,6 @@ static void event_decoded(struct deck_t *d, unsigned char action,
     if (!on)
         return;
 
-    if (action != CUE)
-        return;
-
     if (shift) {
         deck_unset_cue(d, button);
     } else {
