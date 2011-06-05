@@ -17,6 +17,18 @@
  *
  */
 
+/*
+ * Specialised functions for the Novation Dicer controller
+ *
+ * The Dicer is a standard MIDI device, with buttons on input and the
+ * corresponding LEDs on output. A single MIDI device consists of two
+ * units, one for each turntable.
+ *
+ * Each unit has 5 buttons, but there are three 'pages' of buttons
+ * controlled in the firmware, and then a shift mode for each. So we
+ * see the full MIDI device as 60 possible buttons.
+ */
+
 #include <stdlib.h>
 
 #include "controller.h"
@@ -57,6 +69,8 @@ struct dicer_t {
 
 /*
  * Add a deck to the dicer or pair of dicer
+ *
+ * Return: -1 if the deck could not be added, otherwise zero
  */
 
 static int add_deck(struct controller_t *c, struct deck_t *k)
@@ -131,6 +145,9 @@ static ssize_t led_cmd(led_t led, char *buf, size_t len,
 
 /*
  * Push control code for a particular output LED
+ *
+ * Return: n, or -1 if not enough buffer space
+ * Post: if buf is large enough, LED is synced and n bytes are written
  */
 
 static ssize_t sync_one_led(led_t *led, char *buf, size_t len,
@@ -250,6 +267,8 @@ static void sync_all_leds(struct dicer_t *d)
 
 /*
  * Modify state flags of an LED
+ *
+ * Post: *led is updated with the new flags
  */
 
 static void set_led(led_t *led, unsigned char set, unsigned char clear)
@@ -280,6 +299,9 @@ static void event_decoded(struct deck_t *d, led_t led[NBUTTONS],
     if (!on)
         return;
 
+    /* FIXME: We assume that we are the only operator of the cue
+     * points; we should change the LEDs via a callback from deck */
+
     if (shift) {
         deck_unset_cue(d, button);
         set_led(&led[button], 0, ON);
@@ -288,6 +310,10 @@ static void event_decoded(struct deck_t *d, led_t led[NBUTTONS],
         set_led(&led[button], ON, 0);
     }
 }
+
+/*
+ * Process an event from the device, given the MIDI control codes
+ */
 
 static void event(struct dicer_t *d, unsigned char buf[3])
 {
@@ -366,6 +392,11 @@ static void event(struct dicer_t *d, unsigned char buf[3])
 
     event_decoded(deck, led, action, shift, button, on);
 }
+
+/*
+ * Handler in the realtime thread, which polls on both input
+ * and output
+ */
 
 static int realtime(struct controller_t *c)
 {
