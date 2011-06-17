@@ -76,7 +76,7 @@ static inline float cubic_interpolate(float y[4], float mu)
  * Post: buffer at pcm is filled with the given number of samples
  */
 
-static double build_pcm(signed short *pcm, int samples, int rate,
+static double build_pcm(signed short *pcm, int samples, double sample_dt,
                         struct track_t *tr, double position, float pitch,
                         float start_vol, float end_vol)
 {
@@ -85,7 +85,7 @@ static double build_pcm(signed short *pcm, int samples, int rate,
     float vol, gradient;
 
     sample = position * tr->rate;
-    step = (double)pitch * tr->rate / rate;
+    step = sample_dt * pitch * tr->rate;
 
     vol = start_vol;
     gradient = (end_vol - start_vol) / samples;
@@ -135,7 +135,7 @@ static double build_pcm(signed short *pcm, int samples, int rate,
         vol += gradient;
     }
 
-    return (double)pitch * samples / rate;
+    return sample_dt * pitch * samples;
 }
 
 /*
@@ -154,10 +154,12 @@ void player_set_timecoder(struct player_t *pl, struct timecoder_t *tc)
  * Post: player is initialised
  */
 
-void player_init(struct player_t *pl, struct track_t *track,
-                 struct timecoder_t *tc)
+void player_init(struct player_t *pl, unsigned int sample_rate,
+                 struct track_t *track, struct timecoder_t *tc)
 {
     assert(track != NULL);
+    assert(sample_rate != 0);
+    pl->sample_dt = 1.0 / sample_rate;
     pl->track = track;
     player_set_timecoder(pl, tc);
 
@@ -275,12 +277,12 @@ void player_recue(struct player_t *pl)
  */
 
 void player_collect(struct player_t *pl, signed short *pcm,
-                    int samples, int rate)
+                    int samples, int rate /* ignored */)
 {
     double diff;
     float dt, target_volume;
 
-    dt = (float)samples / rate;
+    dt = pl->sample_dt * samples;
 
     if (pl->timecode_control) {
         if (sync_to_timecode(pl) == -1)
@@ -333,7 +335,7 @@ void player_collect(struct player_t *pl, signed short *pcm,
 
     /* Sync pitch is applied post-filtering */
 
-    pl->position += build_pcm(pcm, samples, rate,
+    pl->position += build_pcm(pcm, samples, pl->sample_dt,
 			      pl->track,
                               pl->position - pl->offset,
                               pl->pitch * pl->sync_pitch,

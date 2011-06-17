@@ -27,6 +27,7 @@
 #define PLAYER_CHANNELS 2
 
 struct player_t {
+    double sample_dt;
     struct track_t *track;
 
     /* Current playback parameters */
@@ -48,8 +49,8 @@ struct player_t {
         recalibrate; /* re-sync offset at next opportunity */
 };
 
-void player_init(struct player_t *pl, struct track_t *track,
-                 struct timecoder_t *timecoder);
+void player_init(struct player_t *pl, unsigned int sample_rate,
+                 struct track_t *track, struct timecoder_t *timecoder);
 void player_clear(struct player_t *pl);
 
 void player_set_timecoder(struct player_t *pl, struct timecoder_t *tc);

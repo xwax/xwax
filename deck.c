@@ -30,11 +30,14 @@
 
 int deck_init(struct deck_t *deck, struct rt_t *rt, struct rig_t *rig)
 {
+    unsigned int sample_rate;
+
     rig_add_track(rig, &deck->track);
     if (rt_add_device(rt, &deck->device) == -1)
         return -1;
 
-    player_init(&deck->player, &deck->track, &deck->timecoder);
+    sample_rate = device_sample_rate(&deck->device);
+    player_init(&deck->player, sample_rate, &deck->track, &deck->timecoder);
 
     /* The timecoder and player are driven by requests from
      * the audio device */
