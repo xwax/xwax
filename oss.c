@@ -167,8 +167,6 @@ static struct device_ops oss_ops = {
     .pollfds = pollfds,
     .handle = handle,
     .sample_rate = sample_rate,
-    .start = NULL,
-    .stop = NULL,
     .clear = clear
 };
 

@@ -397,7 +397,6 @@ static struct device_ops alsa_ops = {
     .handle = handle,
     .sample_rate = sample_rate,
     .start = start,
-    .stop = NULL,
     .clear = clear
 };
 

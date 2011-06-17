@@ -310,8 +310,6 @@ static void clear(struct device_t *dv)
 
 
 static struct device_ops jack_ops = {
-    .pollfds = NULL,
-    .handle = NULL, /* done via JACK's own callbacks */
     .sample_rate = sample_rate,
     .start = start,
     .stop = stop,
