@@ -21,6 +21,8 @@
 #include <stddef.h>
 
 #include "device.h"
+#include "player.h"
+#include "timecoder.h"
 
 void device_connect_timecoder(struct device *dv, struct timecoder_t *tc)
 {
@@ -103,4 +105,28 @@ int device_handle(struct device *dv)
 {
     assert(dv->ops->handle != NULL);
     return dv->ops->handle(dv);
+}
+
+/*
+ * Send audio from a device for processing
+ *
+ * Pre: buffer pcm contains n stereo samples
+ */
+
+void device_submit(struct device *dv, signed short *pcm, size_t n)
+{
+    assert(dv->timecoder != NULL);
+    timecoder_submit(dv->timecoder, pcm, n);
+}
+
+/*
+ * Collect audio from the processing to send to a device
+ *
+ * Post: buffer pcm is filled with n stereo samples
+ */
+
+void device_collect(struct device *dv, signed short *pcm, size_t n)
+{
+    assert(dv->player != NULL);
+    player_collect(dv->player, pcm, n, 0 /* unused */);
 }

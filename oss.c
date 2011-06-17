@@ -27,8 +27,6 @@
 #include <sys/soundcard.h>
 
 #include "oss.h"
-#include "timecoder.h"
-#include "player.h"
 
 #define FRAME 32 /* maximum read size */
 
@@ -111,27 +109,14 @@ static int handle(struct device *dv)
         samples = pull(oss->fd, pcm, FRAME);
         if (samples == -1)
             return -1;
-        
-        if (dv->timecoder)
-            timecoder_submit(dv->timecoder, pcm, samples);
+        device_submit(dv, pcm, samples);
     }
 
     /* Check the output buffer for playback */
     
     if (oss->pe->revents & POLLOUT) {
-
-        /* Always push some audio to the soundcard, even if it means
-         * silence. This has shown itself to be much more reliable
-         * than starting and stopping -- which can affect other
-         * devices in the system. */
-        
-        if (dv->player)
-            player_collect(dv->player, pcm, FRAME, oss->rate);
-        else
-            memset(pcm, 0, FRAME * DEVICE_CHANNELS * sizeof(short));
-        
+        device_collect(dv, pcm, FRAME);
         samples = push(oss->fd, pcm, FRAME);
-        
         if (samples == -1)
             return -1;
     }

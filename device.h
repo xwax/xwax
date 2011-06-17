@@ -57,4 +57,7 @@ void device_clear(struct device *dv);
 ssize_t device_pollfds(struct device *dv, struct pollfd *pe, size_t z);
 int device_handle(struct device *dv);
 
+void device_submit(struct device *dv, signed short *pcm, size_t npcm);
+void device_collect(struct device *dv, signed short *pcm, size_t npcm);
+
 #endif

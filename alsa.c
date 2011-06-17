@@ -23,8 +23,6 @@
 #include <alsa/asoundlib.h>
 
 #include "alsa.h"
-#include "timecoder.h"
-#include "player.h"
 
 
 /* This structure doesn't have corresponding functions to be an
@@ -251,13 +249,7 @@ static int playback(struct device *dv)
     int r;
     struct alsa_t *alsa = (struct alsa_t*)dv->local;
 
-    if (dv->player) {
-        player_collect(dv->player, alsa->playback.buf,
-                       alsa->playback.period, alsa->playback.rate);
-    } else {
-        memset(alsa->playback.buf, 0,
-               alsa->playback.period * DEVICE_CHANNELS * sizeof(short));
-    }    
+    device_collect(dv, alsa->playback.buf, alsa->playback.period);
 
     r = snd_pcm_writei(alsa->playback.pcm, alsa->playback.buf,
                        alsa->playback.period);
@@ -290,9 +282,8 @@ static int capture(struct device *dv)
         fprintf(stderr, "alsa: capture underrun %d/%ld.\n",
                 r, alsa->capture.period);
     }
-    
-    if (dv->timecoder)
-        timecoder_submit(dv->timecoder, alsa->capture.buf, r);
+
+    device_submit(dv, alsa->capture.buf, r);
 
     return 0;
 }

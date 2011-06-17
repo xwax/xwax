@@ -25,8 +25,6 @@
 
 #include "device.h"
 #include "jack.h"
-#include "player.h"
-#include "timecoder.h"
 
 #define MAX_BLOCK 512 /* samples */
 #define SCALE 32768
@@ -113,11 +111,11 @@ static void process_deck(struct device *dv, jack_nframes_t nframes)
         /* Timecode input */
 
         interleave(buf, in, block);
-        timecoder_submit(dv->timecoder, buf, block);
+        device_submit(dv, buf, block);
 
         /* Audio output -- handle in the same loop for finer granularity */
 
-        player_collect(dv->player, buf, block, rate);
+        device_collect(dv, buf, block);
         uninterleave(out, buf, block);
 
 	remain -= block;
