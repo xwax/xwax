@@ -25,7 +25,7 @@
 
 #define DEVICE_CHANNELS 2
 
-struct device_t {
+struct device {
     void *local;
     struct device_ops *ops;
 
@@ -34,27 +34,27 @@ struct device_t {
 };
 
 struct device_ops {
-    ssize_t (*pollfds)(struct device_t *dv, struct pollfd *pe, size_t z);
-    int (*handle)(struct device_t *dv);
+    ssize_t (*pollfds)(struct device *dv, struct pollfd *pe, size_t z);
+    int (*handle)(struct device *dv);
 
-    unsigned int (*sample_rate)(struct device_t *dv);
-    void (*start)(struct device_t *dv);
-    void (*stop)(struct device_t *dv);
+    unsigned int (*sample_rate)(struct device *dv);
+    void (*start)(struct device *dv);
+    void (*stop)(struct device *dv);
 
-    void (*clear)(struct device_t *dv);
+    void (*clear)(struct device *dv);
 };
 
-void device_connect_timecoder(struct device_t *dv, struct timecoder_t *tc);
-void device_connect_player(struct device_t *dv, struct player_t *pl);
+void device_connect_timecoder(struct device *dv, struct timecoder_t *tc);
+void device_connect_player(struct device *dv, struct player_t *pl);
 
-unsigned int device_sample_rate(struct device_t *dv);
+unsigned int device_sample_rate(struct device *dv);
 
-void device_start(struct device_t *dv);
-void device_stop(struct device_t *dv);
+void device_start(struct device *dv);
+void device_stop(struct device *dv);
 
-void device_clear(struct device_t *dv);
+void device_clear(struct device *dv);
 
-ssize_t device_pollfds(struct device_t *dv, struct pollfd *pe, size_t z);
-int device_handle(struct device_t *dv);
+ssize_t device_pollfds(struct device *dv, struct pollfd *pe, size_t z);
+int device_handle(struct device *dv);
 
 #endif

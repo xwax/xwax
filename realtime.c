@@ -122,7 +122,7 @@ void rt_clear(struct rt_t *rt)
  * Post: if 0 is returned the device is added
  */
 
-int rt_add_device(struct rt_t *rt, struct device_t *dv)
+int rt_add_device(struct rt_t *rt, struct device *dv)
 {
     ssize_t z;
 

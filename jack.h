@@ -22,6 +22,6 @@
 
 #include "device.h"
 
-int jack_init(struct device_t *dv, const char *name);
+int jack_init(struct device *dv, const char *name);
 
 #endif

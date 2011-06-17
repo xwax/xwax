@@ -42,7 +42,7 @@ static jack_client_t *client = NULL;
 static int rate,
     ndeck = 0,
     nstarted = 0;
-static struct device_t *device[4];
+static struct device *device[4];
 
 
 /* Interleave samples from a set of JACK buffers into a local buffer */
@@ -80,7 +80,7 @@ static void uninterleave(jack_default_audio_sample_t *jbuf[],
 /* Process the given number of frames of audio on input and output
  * of the given JACK device */
 
-static void process_deck(struct device_t *dv, jack_nframes_t nframes)
+static void process_deck(struct device *dv, jack_nframes_t nframes)
 {
     int n;
     jack_default_audio_sample_t *in[DEVICE_CHANNELS], *out[DEVICE_CHANNELS];
@@ -227,7 +227,7 @@ static int register_ports(struct jack_t *jack, const char *name)
 
 /* Return the sample rate */
 
-static unsigned int sample_rate(struct device_t *dv)
+static unsigned int sample_rate(struct device *dv)
 {
     return rate; /* the same rate is used for all decks */
 }
@@ -235,7 +235,7 @@ static unsigned int sample_rate(struct device_t *dv)
 
 /* Start audio rolling on this deck */
 
-static void start(struct device_t *dv)
+static void start(struct device *dv)
 {
     struct jack_t *jack = (struct jack_t*)dv->local;
 
@@ -256,7 +256,7 @@ static void start(struct device_t *dv)
 
 /* Stop audio rolling on this deck */
 
-static void stop(struct device_t *dv)
+static void stop(struct device *dv)
 {
     struct jack_t *jack = (struct jack_t*)dv->local;
 
@@ -274,7 +274,7 @@ static void stop(struct device_t *dv)
 
 /* Close JACK deck and any allocations */
 
-static void clear(struct device_t *dv)
+static void clear(struct device *dv)
 {
     struct jack_t *jack = (struct jack_t*)dv->local;
     int n;
@@ -320,7 +320,7 @@ static struct device_ops jack_ops = {
 /* Initialise a new JACK deck, creating a new JACK client if required,
  * and the approporiate input and output ports */
 
-int jack_init(struct device_t *dv, const char *name)
+int jack_init(struct device *dv, const char *name)
 {
     struct jack_t *jack;
 

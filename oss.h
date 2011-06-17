@@ -22,7 +22,7 @@
 
 #include "device.h"
 
-int oss_init(struct device_t *dv, const char *filename, unsigned int rate,
+int oss_init(struct device *dv, const char *filename, unsigned int rate,
              unsigned short buffers, unsigned short fragment);
 
 #endif

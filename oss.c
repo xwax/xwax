@@ -40,7 +40,7 @@ struct oss_t {
 };
 
 
-static void clear(struct device_t *dv)
+static void clear(struct device *dv)
 {
     int r;
     struct oss_t *oss = (struct oss_t*)dv->local;
@@ -99,7 +99,7 @@ static int pull(int fd, signed short *pcm, int samples)
 }
 
 
-static int handle(struct device_t *dv)
+static int handle(struct device *dv)
 {
     signed short pcm[FRAME * DEVICE_CHANNELS];
     int samples;
@@ -140,7 +140,7 @@ static int handle(struct device_t *dv)
 }
 
 
-static ssize_t pollfds(struct device_t *dv, struct pollfd *pe, size_t z)
+static ssize_t pollfds(struct device *dv, struct pollfd *pe, size_t z)
 {
     struct oss_t *oss = (struct oss_t*)dv->local;
 
@@ -155,7 +155,7 @@ static ssize_t pollfds(struct device_t *dv, struct pollfd *pe, size_t z)
 }
 
 
-static unsigned int sample_rate(struct device_t *dv)
+static unsigned int sample_rate(struct device *dv)
 {
     struct oss_t *oss = (struct oss_t*)dv->local;
 
@@ -171,7 +171,7 @@ static struct device_ops oss_ops = {
 };
 
 
-int oss_init(struct device_t *dv, const char *filename, unsigned int rate,
+int oss_init(struct device *dv, const char *filename, unsigned int rate,
 	     unsigned short buffers, unsigned short fragment)
 {
     int p, fd;

@@ -22,12 +22,12 @@
 
 #include "device.h"
 
-void device_connect_timecoder(struct device_t *dv, struct timecoder_t *tc)
+void device_connect_timecoder(struct device *dv, struct timecoder_t *tc)
 {
     dv->timecoder = tc;
 }
 
-void device_connect_player(struct device_t *dv, struct player_t *pl)
+void device_connect_player(struct device *dv, struct player_t *pl)
 {
     dv->player = pl;
 }
@@ -36,7 +36,7 @@ void device_connect_player(struct device_t *dv, struct player_t *pl)
  * Return: the sample rate of the device in Hz
  */
 
-unsigned int device_sample_rate(struct device_t *dv)
+unsigned int device_sample_rate(struct device *dv)
 {
     assert(dv->ops->sample_rate != NULL);
     return dv->ops->sample_rate(dv);
@@ -46,7 +46,7 @@ unsigned int device_sample_rate(struct device_t *dv)
  * Start the device inputting and outputting audio
  */
 
-void device_start(struct device_t *dv)
+void device_start(struct device *dv)
 {
     if (dv->ops->start != NULL)
         dv->ops->start(dv);
@@ -56,7 +56,7 @@ void device_start(struct device_t *dv)
  * Stop the device
  */
 
-void device_stop(struct device_t *dv)
+void device_stop(struct device *dv)
 {
     if (dv->ops->stop != NULL)
         dv->ops->stop(dv);
@@ -67,7 +67,7 @@ void device_stop(struct device_t *dv)
  * specific to each particular audio system
  */
 
-void device_clear(struct device_t *dv)
+void device_clear(struct device *dv)
 {
     if (dv->ops->clear != NULL)
         dv->ops->clear(dv);
@@ -82,7 +82,7 @@ void device_clear(struct device_t *dv)
  * Return: the number of pollfd filled, or -1 on error
  */
 
-ssize_t device_pollfds(struct device_t *dv, struct pollfd *pe, size_t z)
+ssize_t device_pollfds(struct device *dv, struct pollfd *pe, size_t z)
 {
     if (dv->ops->pollfds != NULL)
         return dv->ops->pollfds(dv, pe, z);
@@ -99,7 +99,7 @@ ssize_t device_pollfds(struct device_t *dv, struct pollfd *pe, size_t z)
  * Return: 0 on success, or -1 if an error occured
  */
 
-int device_handle(struct device_t *dv)
+int device_handle(struct device *dv)
 {
     assert(dv->ops->handle != NULL);
     return dv->ops->handle(dv);

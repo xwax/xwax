@@ -242,7 +242,7 @@ int main(int argc, char *argv[])
 	{
             unsigned int sample_rate;
             struct deck_t *ld;
-            struct device_t *device;
+            struct device *device;
             struct track_t *track;
             struct timecoder_t *timecoder;
 

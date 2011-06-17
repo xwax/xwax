@@ -33,7 +33,7 @@ struct rt_t {
     bool finished;
 
     size_t ndv;
-    struct device_t *dv[3];
+    struct device *dv[3];
 
     size_t npt;
     struct pollfd pt[32];
@@ -42,7 +42,7 @@ struct rt_t {
 void rt_init(struct rt_t *rt);
 void rt_clear(struct rt_t *rt);
 
-int rt_add_device(struct rt_t *rt, struct device_t *dv);
+int rt_add_device(struct rt_t *rt, struct device *dv);
 
 int rt_start(struct rt_t *rt);
 void rt_stop(struct rt_t *rt);

@@ -206,7 +206,7 @@ static int pcm_revents(struct alsa_pcm_t *alsa, unsigned short *revents) {
 
 /* Start the audio device capture and playback */
 
-static void start(struct device_t *dv)
+static void start(struct device *dv)
 {
     struct alsa_t *alsa = (struct alsa_t*)dv->local;
 
@@ -218,7 +218,7 @@ static void start(struct device_t *dv)
 /* Register this device's interest in a set of pollfd file
  * descriptors */
 
-static ssize_t pollfds(struct device_t *dv, struct pollfd *pe, size_t z)
+static ssize_t pollfds(struct device *dv, struct pollfd *pe, size_t z)
 {
     int total, r;
     struct alsa_t *alsa = (struct alsa_t*)dv->local;
@@ -246,7 +246,7 @@ static ssize_t pollfds(struct device_t *dv, struct pollfd *pe, size_t z)
 /* Collect audio from the player and push it into the device's buffer,
  * for playback */
 
-static int playback(struct device_t *dv)
+static int playback(struct device *dv)
 {
     int r;
     struct alsa_t *alsa = (struct alsa_t*)dv->local;
@@ -276,7 +276,7 @@ static int playback(struct device_t *dv)
 /* Pull audio from the device's buffer for capture, and pass it
  * through to the timecoder */
 
-static int capture(struct device_t *dv)
+static int capture(struct device *dv)
 {
     int r;
     struct alsa_t *alsa = (struct alsa_t*)dv->local;
@@ -301,7 +301,7 @@ static int capture(struct device_t *dv)
 /* After poll() has returned, instruct a device to do all it can at
  * the present time. Return zero if success, otherwise -1 */
 
-static int handle(struct device_t *dv)
+static int handle(struct device *dv)
 {
     int r;
     unsigned short revents;
@@ -372,7 +372,7 @@ static int handle(struct device_t *dv)
 }
 
 
-static unsigned int sample_rate(struct device_t *dv)
+static unsigned int sample_rate(struct device *dv)
 {
     struct alsa_t *alsa = (struct alsa_t*)dv->local;
 
@@ -382,7 +382,7 @@ static unsigned int sample_rate(struct device_t *dv)
 
 /* Close ALSA device and clear any allocations */
 
-static void clear(struct device_t *dv)
+static void clear(struct device *dv)
 {
     struct alsa_t *alsa = (struct alsa_t*)dv->local;
 
@@ -403,7 +403,7 @@ static struct device_ops alsa_ops = {
 
 /* Open ALSA device. Do not operate on audio until device_start() */
 
-int alsa_init(struct device_t *dv, const char *device_name,
+int alsa_init(struct device *dv, const char *device_name,
               int rate, int buffer_time)
 {
     struct alsa_t *alsa;

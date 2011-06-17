@@ -28,7 +28,7 @@
 #include "track.h"
 
 struct deck_t {
-    struct device_t device;
+    struct device device;
     struct timecoder_t timecoder;
     struct track_t track;
 
