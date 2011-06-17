@@ -38,8 +38,6 @@ static int raise_priority()
     int max_pri;
     struct sched_param sp;
 
-    fprintf(stderr, "Setting scheduler priority...\n");
-
     if (sched_getparam(0, &sp)) {
         perror("sched_getparam");
         return -1;
