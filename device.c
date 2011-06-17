@@ -128,5 +128,5 @@ void device_submit(struct device *dv, signed short *pcm, size_t n)
 void device_collect(struct device *dv, signed short *pcm, size_t n)
 {
     assert(dv->player != NULL);
-    player_collect(dv->player, pcm, n, 0 /* unused */);
+    player_collect(dv->player, pcm, n);
 }

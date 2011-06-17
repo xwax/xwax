@@ -276,8 +276,7 @@ void player_recue(struct player_t *pl)
  * Post: buffer at pcm is filled with the given number of samples
  */
 
-void player_collect(struct player_t *pl, signed short *pcm,
-                    int samples, int rate /* ignored */)
+void player_collect(struct player_t *pl, signed short *pcm, unsigned samples)
 {
     double diff;
     float dt, target_volume;
