@@ -309,7 +309,7 @@ static void clear(struct device_t *dv)
 }
 
 
-static struct device_type_t jack_type = {
+static struct device_ops jack_ops = {
     .pollfds = NULL,
     .handle = NULL, /* done via JACK's own callbacks */
     .sample_rate = sample_rate,
@@ -344,7 +344,7 @@ int jack_init(struct device_t *dv, const char *name)
         goto fail;
 
     dv->local = jack;
-    dv->type = &jack_type;
+    dv->ops = &jack_ops;
 
     assert(ndeck < sizeof device);
     device[ndeck] = dv;

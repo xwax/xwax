@@ -38,7 +38,7 @@ void device_connect_player(struct device_t *dv, struct player_t *pl)
 
 unsigned int device_sample_rate(struct device_t *dv)
 {
-    return dv->type->sample_rate(dv);
+    return dv->ops->sample_rate(dv);
 }
 
 
@@ -46,8 +46,8 @@ unsigned int device_sample_rate(struct device_t *dv)
 
 void device_start(struct device_t *dv)
 {
-    if (dv->type->start != NULL)
-        dv->type->start(dv);
+    if (dv->ops->start != NULL)
+        dv->ops->start(dv);
 }
 
 
@@ -55,8 +55,8 @@ void device_start(struct device_t *dv)
 
 void device_stop(struct device_t *dv)
 {
-    if (dv->type->stop != NULL)
-        dv->type->stop(dv);
+    if (dv->ops->stop != NULL)
+        dv->ops->stop(dv);
 }
 
 
@@ -65,7 +65,7 @@ void device_stop(struct device_t *dv)
 
 void device_clear(struct device_t *dv)
 {
-    dv->type->clear(dv);
+    dv->ops->clear(dv);
 }
 
 
@@ -78,8 +78,8 @@ void device_clear(struct device_t *dv)
 
 ssize_t device_pollfds(struct device_t *dv, struct pollfd *pe, size_t z)
 {
-    if (dv->type->pollfds)
-        return dv->type->pollfds(dv, pe, z);
+    if (dv->ops->pollfds)
+        return dv->ops->pollfds(dv, pe, z);
     else
         return 0;
 }
@@ -91,5 +91,5 @@ ssize_t device_pollfds(struct device_t *dv, struct pollfd *pe, size_t z)
 
 int device_handle(struct device_t *dv)
 {
-    return dv->type->handle(dv);
+    return dv->ops->handle(dv);
 }

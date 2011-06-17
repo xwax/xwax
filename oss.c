@@ -163,7 +163,7 @@ static unsigned int sample_rate(struct device_t *dv)
 }
 
 
-static struct device_type_t oss_type = {
+static struct device_ops oss_ops = {
     .pollfds = pollfds,
     .handle = handle,
     .sample_rate = sample_rate,
@@ -239,7 +239,7 @@ int oss_init(struct device_t *dv, const char *filename, unsigned int rate,
     oss->pe = NULL;
     oss->rate = rate;
 
-    dv->type = &oss_type;
+    dv->ops = &oss_ops;
 
     return 0;
 

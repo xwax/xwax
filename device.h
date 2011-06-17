@@ -27,13 +27,13 @@
 
 struct device_t {
     void *local;
-    struct device_type_t *type;
+    struct device_ops *ops;
 
     struct timecoder_t *timecoder;
     struct player_t *player;
 };
 
-struct device_type_t {
+struct device_ops {
     ssize_t (*pollfds)(struct device_t *dv, struct pollfd *pe, size_t z);
     int (*handle)(struct device_t *dv);
 

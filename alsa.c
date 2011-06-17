@@ -392,7 +392,7 @@ static void clear(struct device_t *dv)
 }
 
 
-static struct device_type_t alsa_type = {
+static struct device_ops alsa_ops = {
     .pollfds = pollfds,
     .handle = handle,
     .sample_rate = sample_rate,
@@ -430,7 +430,7 @@ int alsa_init(struct device_t *dv, const char *device_name,
     }
 
     dv->local = alsa;
-    dv->type = &alsa_type;
+    dv->ops = &alsa_ops;
 
     return 0;
 
