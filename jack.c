@@ -37,7 +37,7 @@ struct jack_t {
 };
 
 static jack_client_t *client = NULL;
-static int rate,
+static unsigned rate,
     ndeck = 0,
     nstarted = 0;
 static struct device *device[4];
