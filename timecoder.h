@@ -55,7 +55,7 @@ struct timecoder_t {
 
     /* Precomputed values */
 
-    float dt, zero_alpha;
+    double dt, zero_alpha;
 
     /* Pitch information */
 
@@ -89,7 +89,7 @@ void timecoder_monitor_clear(struct timecoder_t *tc);
 
 void timecoder_cycle_definition(struct timecoder_t *tc);
 void timecoder_submit(struct timecoder_t *tc, signed short *pcm, size_t npcm);
-signed int timecoder_get_position(struct timecoder_t *tc, float *when);
+signed int timecoder_get_position(struct timecoder_t *tc, double *when);
 
 /*
  * The timecode definition currently in use by this decoder
@@ -104,7 +104,7 @@ static inline struct timecode_def_t* timecoder_get_definition(struct timecoder_t
  * Return the pitch relative to reference playback speed
  */
 
-static inline float timecoder_get_pitch(struct timecoder_t *tc)
+static inline double timecoder_get_pitch(struct timecoder_t *tc)
 {
     return pitch_current(&tc->pitch) / tc->speed;
 }

@@ -214,8 +214,7 @@ bool player_toggle_timecode_control(struct player_t *pl)
 
 static int sync_to_timecode(struct player_t *pl)
 {
-    float when;
-    double tcpos;
+    double when, tcpos;
     signed int timecode;
 
     timecode = timecoder_get_position(pl->timecoder, &when);

@@ -359,7 +359,7 @@ void timecoder_monitor_clear(struct timecoder_t *tc)
  */
 
 static void detect_zero_crossing(struct timecoder_channel_t *ch,
-                                 signed int v, float alpha)
+                                 signed int v, double alpha)
 {
     ch->crossing_ticker++;
 
@@ -384,7 +384,7 @@ static void detect_zero_crossing(struct timecoder_channel_t *ch,
 static void update_monitor(struct timecoder_t *tc, signed int x, signed int y)
 {
     int px, py, p;
-    float v, w;
+    double v, w;
 
     if (!tc->mon)
         return;
@@ -398,8 +398,8 @@ static void update_monitor(struct timecoder_t *tc, signed int x, signed int y)
         }
     }
 
-    v = (float)x / tc->ref_level / 2;
-    w = (float)y / tc->ref_level / 2;
+    v = (double)x / tc->ref_level / 2;
+    w = (double)y / tc->ref_level / 2;
 
     px = tc->mon_size / 2 + (v * tc->mon_size / 2);
     py = tc->mon_size / 2 + (w * tc->mon_size / 2);
@@ -506,7 +506,7 @@ static void process_sample(struct timecoder_t *tc,
     if (!tc->primary.swapped && !tc->secondary.swapped)
 	pitch_dt_observation(&tc->pitch, 0.0);
     else {
-	float dx;
+	double dx;
 
 	dx = 1.0 / tc->def->resolution / 4;
 	if (!tc->forwards)
@@ -594,7 +594,7 @@ void timecoder_submit(struct timecoder_t *tc, signed short *pcm, size_t npcm)
  * Post: if when != -1, *when contains the elapsed time in seconds
  */
 
-signed int timecoder_get_position(struct timecoder_t *tc, float *when)
+signed int timecoder_get_position(struct timecoder_t *tc, double *when)
 {
     signed int r;
 
