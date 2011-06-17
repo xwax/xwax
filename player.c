@@ -76,7 +76,7 @@ static inline float cubic_interpolate(float y[4], float mu)
  * Post: buffer at pcm is filled with the given number of samples
  */
 
-static double build_pcm(signed short *pcm, int samples, double sample_dt,
+static double build_pcm(signed short *pcm, unsigned samples, double sample_dt,
                         struct track_t *tr, double position, float pitch,
                         float start_vol, float end_vol)
 {
