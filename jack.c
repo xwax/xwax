@@ -128,7 +128,7 @@ static void process_deck(struct device *dv, jack_nframes_t nframes)
 
 static int process_callback(jack_nframes_t nframes, void *local)
 {
-    int n;
+    size_t n;
     struct jack_t *jack;
 
     for (n = 0; n < ndeck; n++) {
@@ -197,7 +197,7 @@ static int stop_jack_client(void)
 
 static int register_ports(struct jack_t *jack, const char *name)
 {
-    int n;
+    size_t n;
     static const char channel[] = { 'L', 'R' };
     char port_name[32];
 
