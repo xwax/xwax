@@ -53,9 +53,9 @@
  * Return: the cubic interpolation of the sample at position 2 + mu
  */
 
-static inline float cubic_interpolate(float y[4], float mu)
+static inline double cubic_interpolate(double y[4], double mu)
 {
-    float a0, a1, a2, a3, mu2;
+    double a0, a1, a2, a3, mu2;
 
     mu2 = SQ(mu);
     a0 = y[3] - y[2] - y[0] + y[1];
@@ -92,7 +92,7 @@ static double build_pcm(signed short *pcm, unsigned samples, double sample_dt,
 
     for (s = 0; s < samples; s++) {
         int c, sa, q;
-        float f, i[PLAYER_CHANNELS][4];
+        double f, i[PLAYER_CHANNELS][4];
 
         /* 4-sample window for interpolation */
 
@@ -112,15 +112,15 @@ static double build_pcm(signed short *pcm, unsigned samples, double sample_dt,
 
                 ts = track_get_sample(tr, sa);
                 for (c = 0; c < PLAYER_CHANNELS; c++)
-                    i[c][q] = (float)ts[c];
+                    i[c][q] = (double)ts[c];
             }
         }
 
         for (c = 0; c < PLAYER_CHANNELS; c++) {
-            float v;
+            double v;
 
             v = vol * cubic_interpolate(i[c], f)
-                + (float)(rand() % 32768) / 32768 - 0.5; /* dither */
+                + (double)(rand() % 32768) / 32768 - 0.5; /* dither */
 
             if (v > SHRT_MAX) {
                 *pcm++ = SHRT_MAX;
