@@ -22,20 +22,19 @@
 
 #include "device.h"
 
-
 void device_connect_timecoder(struct device_t *dv, struct timecoder_t *tc)
 {
     dv->timecoder = tc;
 }
-
 
 void device_connect_player(struct device_t *dv, struct player_t *pl)
 {
     dv->player = pl;
 }
 
-
-/* Return the sample rate of the device in Hz */
+/*
+ * Return: the sample rate of the device in Hz
+ */
 
 unsigned int device_sample_rate(struct device_t *dv)
 {
@@ -43,8 +42,9 @@ unsigned int device_sample_rate(struct device_t *dv)
     return dv->ops->sample_rate(dv);
 }
 
-
-/* Start the device inputting and outputting audio */
+/*
+ * Start the device inputting and outputting audio
+ */
 
 void device_start(struct device_t *dv)
 {
@@ -52,8 +52,9 @@ void device_start(struct device_t *dv)
         dv->ops->start(dv);
 }
 
-
-/* Stop the device */
+/*
+ * Stop the device
+ */
 
 void device_stop(struct device_t *dv)
 {
@@ -61,9 +62,10 @@ void device_stop(struct device_t *dv)
         dv->ops->stop(dv);
 }
 
-
-/* Clear (destruct) the device. The corresponding constructor is
- * specific to each particular audio system. */
+/*
+ * Clear (destruct) the device. The corresponding constructor is
+ * specific to each particular audio system
+ */
 
 void device_clear(struct device_t *dv)
 {
@@ -71,13 +73,14 @@ void device_clear(struct device_t *dv)
         dv->ops->clear(dv);
 }
 
-
-/* Return file descriptors which should be watched for this device.
- * Do not return anything for callback-based audio systems. If this
- * function returns any file descriptors, there must be a handle()
- * function available.
+/*
+ * Get file descriptors which should be polled for this device
  *
- * Returns the number of pollfd filled, or -1 on error. */
+ * Do not return anything for callback-based audio systems. If the
+ * return value is > 0, there must be a handle() function available.
+ *
+ * Return: the number of pollfd filled, or -1 on error
+ */
 
 ssize_t device_pollfds(struct device_t *dv, struct pollfd *pe, size_t z)
 {
@@ -87,10 +90,14 @@ ssize_t device_pollfds(struct device_t *dv, struct pollfd *pe, size_t z)
         return 0;
 }
 
-
-/* Handle any available input or output on the device. This function
- * is called when there is activity on any fd given by pollfds() for
- * any devices in the system. */
+/*
+ * Handle any available input or output on the device
+ *
+ * This function can be called when there is activity on any file
+ * descriptor, not specifically one returned by this device.
+ *
+ * Return: 0 on success, or -1 if an error occured
+ */
 
 int device_handle(struct device_t *dv)
 {
