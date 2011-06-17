@@ -59,7 +59,7 @@ struct timecoder_t {
 
     /* Pitch information */
 
-    int forwards;
+    bool forwards;
     struct timecoder_channel_t primary, secondary;
     struct pitch_t pitch;
 
