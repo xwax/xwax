@@ -17,6 +17,7 @@
  *
  */
 
+#include <assert.h>
 #include <stddef.h>
 
 #include "device.h"
@@ -38,6 +39,7 @@ void device_connect_player(struct device_t *dv, struct player_t *pl)
 
 unsigned int device_sample_rate(struct device_t *dv)
 {
+    assert(dv->ops->sample_rate != NULL);
     return dv->ops->sample_rate(dv);
 }
 
@@ -65,7 +67,8 @@ void device_stop(struct device_t *dv)
 
 void device_clear(struct device_t *dv)
 {
-    dv->ops->clear(dv);
+    if (dv->ops->clear != NULL)
+        dv->ops->clear(dv);
 }
 
 
@@ -78,7 +81,7 @@ void device_clear(struct device_t *dv)
 
 ssize_t device_pollfds(struct device_t *dv, struct pollfd *pe, size_t z)
 {
-    if (dv->ops->pollfds)
+    if (dv->ops->pollfds != NULL)
         return dv->ops->pollfds(dv, pe, z);
     else
         return 0;
@@ -91,5 +94,6 @@ ssize_t device_pollfds(struct device_t *dv, struct pollfd *pe, size_t z)
 
 int device_handle(struct device_t *dv)
 {
+    assert(dv->ops->handle != NULL);
     return dv->ops->handle(dv);
 }
