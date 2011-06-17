@@ -183,10 +183,10 @@ int rt_start(struct rt_t *rt)
 
         if (sem_wait(&rt->sem) == -1)
             abort();
+        if (sem_destroy(&rt->sem) == -1)
+            abort();
 
         if (rt->finished) {
-            if (sem_destroy(&rt->sem) == -1)
-                abort();
             if (pthread_join(rt->ph, NULL) != 0)
                 abort();
             return -1;
