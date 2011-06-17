@@ -21,6 +21,7 @@
 #define REALTIME_H
 
 #include <poll.h>
+#include <pthread.h>
 #include <semaphore.h>
 #include <stdbool.h>
 
