@@ -55,8 +55,8 @@ static int raise_priority()
 
     if (sched_setscheduler(0, SCHED_FIFO, &sp)) {
         perror("sched_setscheduler");
-        fprintf(stderr, "Failed to set scheduler. Run as root otherwise you "
-                "may get wow and skips!\n");
+        fprintf(stderr, "Failed to get realtime priorities\n");
+        return -1;
     }
 
     return 0;
@@ -71,7 +71,16 @@ static void rt_main(struct rt_t *rt)
     int r;
     size_t n;
 
-    if (raise_priority() == -1)
+    if (raise_priority() == -1) {
+        rt->failed = true;
+    } else {
+        rt->failed = false;
+    }
+
+    if (sem_post(&rt->sem) == -1)
+        abort(); /* under our control; see sem_post(3) */
+
+    if (rt->failed)
         return;
 
     while (!rt->finished) {
@@ -167,14 +176,31 @@ int rt_start(struct rt_t *rt)
     if (rt->npt > 0) {
         fprintf(stderr, "Launching realtime thread to handle devices...\n");
 
+        if (sem_init(&rt->sem, 0, 0) == -1) {
+            perror("sem_init");
+            return -1;
+        }
+
         if (pthread_create(&rt->ph, NULL, launch, (void*)rt)) {
             perror("pthread_create");
+            if (sem_destroy(&rt->sem) == -1)
+                abort();
+            return -1;
+        }
+
+        /* Wait for the realtime thread to declare it is initialised */
+
+        if (sem_wait(&rt->sem) == -1)
+            abort();
+
+        if (rt->failed) {
+            if (sem_destroy(&rt->sem) == -1)
+                abort();
+            if (pthread_join(rt->ph, NULL) != 0)
+                abort();
             return -1;
         }
     }
-
-    /* FIXME: To avoid audio drop on startup, devices should be
-     * started after synchronising with the realtime thread */
 
     for (n = 0; n < rt->ndv; n++)
         device_start(rt->dv[n]);

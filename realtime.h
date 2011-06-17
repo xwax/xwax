@@ -21,6 +21,7 @@
 #define REALTIME_H
 
 #include <poll.h>
+#include <semaphore.h>
 #include <stdbool.h>
 
 /*
@@ -30,7 +31,8 @@
 
 struct rt_t {
     pthread_t ph;
-    bool finished;
+    sem_t sem;
+    bool failed, finished;
 
     size_t ndv;
     struct device *dv[3];
