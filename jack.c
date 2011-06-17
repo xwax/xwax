@@ -198,7 +198,7 @@ static int stop_jack_client(void)
 static int register_ports(struct jack_t *jack, const char *name)
 {
     int n;
-    const char channel[] = { 'L', 'R' };
+    static const char channel[] = { 'L', 'R' };
     char port_name[32];
 
     assert(DEVICE_CHANNELS == 2);
