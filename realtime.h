@@ -32,7 +32,7 @@
 struct rt_t {
     pthread_t ph;
     sem_t sem;
-    bool failed, finished;
+    bool finished;
 
     size_t ndv;
     struct device *dv[3];

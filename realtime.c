@@ -69,17 +69,11 @@ static void rt_main(struct rt_t *rt)
     int r;
     size_t n;
 
-    if (raise_priority() == -1) {
-        rt->failed = true;
-    } else {
-        rt->failed = false;
-    }
+    if (raise_priority() == -1)
+        rt->finished = true;
 
     if (sem_post(&rt->sem) == -1)
         abort(); /* under our control; see sem_post(3) */
-
-    if (rt->failed)
-        return;
 
     while (!rt->finished) {
         r = poll(rt->pt, rt->npt, -1);
@@ -191,7 +185,7 @@ int rt_start(struct rt_t *rt)
         if (sem_wait(&rt->sem) == -1)
             abort();
 
-        if (rt->failed) {
+        if (rt->finished) {
             if (sem_destroy(&rt->sem) == -1)
                 abort();
             if (pthread_join(rt->ph, NULL) != 0)
