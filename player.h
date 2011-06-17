@@ -35,8 +35,8 @@ struct player_t {
     double position, /* seconds */
         target_position, /* seconds */
         offset, /* track start point in timecode */
-        last_difference; /* last known position minus target_position */
-    float pitch, /* from timecoder */
+        last_difference, /* last known position minus target_position */
+        pitch, /* from timecoder */
         sync_pitch, /* pitch required to sync to timecode signal */
         volume;
 

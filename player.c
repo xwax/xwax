@@ -77,12 +77,11 @@ static inline double cubic_interpolate(double y[4], double mu)
  */
 
 static double build_pcm(signed short *pcm, unsigned samples, double sample_dt,
-                        struct track_t *tr, double position, float pitch,
-                        float start_vol, float end_vol)
+                        struct track_t *tr, double position, double pitch,
+                        double start_vol, double end_vol)
 {
     int s;
-    double sample, step;
-    float vol, gradient;
+    double sample, step, vol, gradient;
 
     sample = position * tr->rate;
     step = sample_dt * pitch * tr->rate;
