@@ -46,7 +46,7 @@ void controller_add_deck(struct controller *c, struct deck *d)
     if (c->ops->add_deck(c, d) == 0) {
         debug("controller: one added\n");
 
-        assert(d->ncontrol < sizeof d->control);
+        assert(d->ncontrol < sizeof d->control); /* FIXME */
         d->control[d->ncontrol++] = c; /* for callbacks */
     }
 }
