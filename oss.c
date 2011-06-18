@@ -210,18 +210,17 @@ int oss_init(struct device *dv, const char *filename, unsigned int rate,
         return -1;
     }
 
-    dv->local = malloc(sizeof(struct oss_t));
-    if (!dv->local) {
+    oss = malloc(sizeof(struct oss_t));
+    if (oss == NULL) {
         perror("malloc");
         goto fail;
     }
-
-    oss = (struct oss_t*)dv->local;
 
     oss->fd = fd;
     oss->pe = NULL;
     oss->rate = rate;
 
+    dv->local = oss;
     dv->ops = &oss_ops;
 
     return 0;
