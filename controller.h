@@ -31,6 +31,7 @@ struct deck;
  */
 
 struct controller {
+    bool fault;
     void *local;
     struct controller_ops *ops;
 };

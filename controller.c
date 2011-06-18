@@ -26,6 +26,7 @@
 void controller_init(struct controller *c, struct controller_ops *ops)
 {
     debug("controller: init\n");
+    c->fault = false;
     c->ops = ops;
 }
 
@@ -53,6 +54,11 @@ void controller_add_deck(struct controller *c, struct deck *d)
 
 void controller_handle(struct controller *c)
 {
-    if (c->ops->realtime(c) != 0)
-        abort();
+    if (c->fault)
+        return;
+
+    if (c->ops->realtime(c) != 0) {
+        c->fault = true;
+        fputs("Error handling hardware controller; disabling it\n", stderr);
+    }
 }
