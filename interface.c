@@ -742,9 +742,9 @@ static void draw_overview(SDL_Surface *surface, const struct rect_t *rect,
 static void draw_closeup(SDL_Surface *surface, const struct rect_t *rect,
                          struct track_t *tr, int position, int scale)
 {
-    int x, y, w, h, r, c, sp, fade, bytes_per_pixel, pitch, height;
-    Uint8 *pixels, *p;
-    SDL_Color col;
+    int x, y, w, h, c;
+    size_t bytes_per_pixel, pitch;
+    Uint8 *pixels;
 
     x = rect->x;
     y = rect->y;
@@ -756,6 +756,9 @@ static void draw_closeup(SDL_Surface *surface, const struct rect_t *rect,
     pitch = surface->pitch;
 
     for (c = 0; c < w; c++) {
+        int r, sp, height, fade;
+        Uint8 *p;
+        SDL_Color col;
 
         /* Work out the meter height in pixels for this column */
 
