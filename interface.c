@@ -755,6 +755,9 @@ static void draw_closeup(SDL_Surface *surface, const struct rect_t *rect,
     bytes_per_pixel = surface->format->BytesPerPixel;
     pitch = surface->pitch;
 
+    /* Draw in columns. This may seem like a performance hit,
+     * but oprofile shows it makes no difference */
+
     for (c = 0; c < w; c++) {
         int r, sp, height, fade;
         Uint8 *p;
