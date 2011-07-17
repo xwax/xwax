@@ -1291,21 +1291,25 @@ static bool handle_key(struct interface_t *in, struct selector_t *sel,
         fprintf(stderr, "Meter scale increased to %d\n", *meter_scale);
 
     } else if (key >= SDLK_F1 && key <= SDLK_F12) {
-        int func, deck;
+        size_t d;
 
         /* Handle the function key press in groups of four --
 	 * F1-F4 (deck 0), F5-F8 (deck 1) etc. */
 
-        func = (key - SDLK_F1) % 4;
-        deck = (key - SDLK_F1) / 4;
+        d = (key - SDLK_F1) / 4;
 
-        if (deck < in->ndeck) {
+        if (d < in->ndeck) {
+            int func;
+            struct deck_t *deck;
             struct player_t *pl;
             struct record_t *re;
             struct timecoder_t *tc;
 
-            pl = &in->deck[deck].player;
-            tc = &in->deck[deck].timecoder;
+            func = (key - SDLK_F1) % 4;
+
+            deck = &in->deck[d];
+            pl = &deck->player;
+            tc = &deck->timecoder;
 
             if (mod & KMOD_SHIFT) {
                 if (func < in->ndeck)
@@ -1315,7 +1319,7 @@ static bool handle_key(struct interface_t *in, struct selector_t *sel,
             case FUNC_LOAD:
                 re = selector_current(sel);
                 if (re != NULL)
-                    do_loading(in, pl->track, re);
+                    do_loading(in, &deck->track, re);
                 break;
 
             case FUNC_RECUE:
