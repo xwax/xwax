@@ -44,11 +44,13 @@
 #define LOOP 1
 #define ROLL 2
 
+#ifdef DEBUG
 static const char *actions[] = {
     "CUE",
     "LOOP",
     "ROLL"
 };
+#endif
 
 /* LED states */
 
