@@ -275,7 +275,7 @@ static void set_led(led_t *led, unsigned char set, unsigned char clear)
 {
     led_t n;
 
-    n = *led & ~clear | set;
+    n = (*led & ~clear) | set;
     if (n != *led)
         *led = n & ~SYNCED;
 }
