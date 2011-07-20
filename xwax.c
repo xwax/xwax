@@ -99,8 +99,8 @@ static void usage(FILE *fd)
 
 int main(int argc, char *argv[])
 {
-    int r, n, decks, rate;
-    char *endptr, *importer, *scanner;
+    int r, n, decks;
+    char *importer, *scanner;
     double speed;
     struct timecode_def_t *timecode;
 
@@ -109,6 +109,11 @@ int main(int argc, char *argv[])
     struct rt_t rt;
     struct interface_t iface;
     struct library_t library;
+
+#if defined WITH_OSS || WITH_ALSA
+    char *endptr;
+    int rate;
+#endif
 
 #ifdef WITH_OSS
     int oss_buffers, oss_fragment;
@@ -126,11 +131,14 @@ int main(int argc, char *argv[])
     library_init(&library);
 
     decks = 0;
-    rate = DEFAULT_RATE;
     importer = DEFAULT_IMPORTER;
     scanner = DEFAULT_SCANNER;
     timecode = NULL;
     speed = 1.0;
+
+#if defined WITH_OSS || WITH_ALSA
+    rate = DEFAULT_RATE;
+#endif
 
 #ifdef WITH_ALSA
     alsa_buffer = DEFAULT_ALSA_BUFFER;
@@ -199,6 +207,7 @@ int main(int argc, char *argv[])
             argc -= 2;
 #endif
 
+#if defined WITH_OSS || WITH_ALSA
         } else if (!strcmp(argv[0], "-r")) {
 
             /* Set sample rate for subsequence devices */
@@ -216,6 +225,7 @@ int main(int argc, char *argv[])
 
             argv += 2;
             argc -= 2;
+#endif
 
 #ifdef WITH_ALSA
         } else if (!strcmp(argv[0], "-m")) {
