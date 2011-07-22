@@ -2,6 +2,10 @@ v0.10 (work in progress)
 ------------------------
 
 * Changing of timecode at runtime
+* Improved parsing of vinyl track numbers
+* Bug fix: affecting multiple decks with different sample rates
+* Optimise timecode error checking during scratching
+* Internal restructuring
 
 Acknowledgements: Robert Flechtner, Daniel Holbach, Lukas Fleischer
 
