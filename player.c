@@ -280,6 +280,38 @@ void player_recue(struct player_t *pl)
     pl->offset = pl->position;
 }
 
+void retarget(struct player_t *pl)
+{
+    double diff;
+
+    if (pl->recalibrate) {
+        calibrate_to_timecode_position(pl);
+        pl->recalibrate = false;
+    }
+
+    /* Calculate the pitch compensation required to get us back on
+     * track with the absolute timecode position */
+
+    diff = pl->position - pl->target_position;
+    pl->last_difference = diff; /* to print in user interface */
+
+    if (fabs(diff) > SKIP_THRESHOLD) {
+
+        /* Jump the track to the time */
+
+        pl->position = pl->target_position;
+        fprintf(stderr, "Seek to new position %.2lfs.\n", pl->position);
+
+    } else if (fabs(pl->pitch) > SYNC_PITCH) {
+
+        /* Re-calculate the drift between the timecoder pitch from
+         * the sine wave and the timecode values */
+
+        pl->sync_pitch = pl->pitch / (diff / SYNC_TIME + pl->pitch);
+
+    }
+}
+
 /*
  * Get a block of PCM audio data to send to the soundcard
  *
@@ -301,46 +333,20 @@ void player_collect(struct player_t *pl, signed short *pcm, unsigned samples)
             pl->timecode_control = false;
     }
 
-    if (!pl->target_valid) {
+    if (pl->target_valid) {
 
-        /* Without timecode sync, tend sync_pitch towards 1.0, to
+        /* Bias the pitch towards a known target, and acknowledge that
+         * we did so */
+
+        retarget(pl);
+        pl->target_valid = false;
+
+    } else {
+
+        /* Without a known target, tend sync_pitch towards 1.0, to
          * avoid using outlier values from scratching for too long */
 
         pl->sync_pitch += dt / (SYNC_RC + dt) * (1.0 - pl->sync_pitch);
-
-    } else {
-        double diff;
-
-        if (pl->recalibrate) {
-            calibrate_to_timecode_position(pl);
-            pl->recalibrate = false;
-        }
-
-        /* Calculate the pitch compensation required to get us back on
-         * track with the absolute timecode position */
-
-        diff = pl->position - pl->target_position;
-        pl->last_difference = diff; /* to print in user interface */
-        
-        if (fabs(diff) > SKIP_THRESHOLD) {
-
-            /* Jump the track to the time */
-            
-            pl->position = pl->target_position;
-            fprintf(stderr, "Seek to new position %.2lfs.\n", pl->position);
-
-        } else if (fabs(pl->pitch) > SYNC_PITCH) {
-
-            /* Re-calculate the drift between the timecoder pitch from
-             * the sine wave and the timecode values */
-
-            pl->sync_pitch = pl->pitch / (diff / SYNC_TIME + pl->pitch);
-
-        }
-
-        /* Acknowledge that we've accounted for the target position */
-        
-        pl->target_valid = false;
     }
 
     target_volume = fabs(pl->pitch) * VOLUME;
