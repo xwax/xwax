@@ -22,6 +22,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 
 #include "device.h"
@@ -139,6 +140,21 @@ static double build_pcm(signed short *pcm, unsigned samples, double sample_dt,
 }
 
 /*
+ * Equivalent to build_pcm, but for use when the track is
+ * not available
+ *
+ * Return: number of seconds advanced in the audio track
+ * Post: buffer at pcm is filled with silence
+ */
+
+static double build_silence(signed short *pcm, unsigned samples,
+                            double sample_dt, double pitch)
+{
+    memset(pcm, '\0', sizeof(*pcm) * PLAYER_CHANNELS * samples);
+    return sample_dt * pitch * samples;
+}
+
+/*
  * Change the timecoder used by this playback
  */
 
@@ -159,6 +175,9 @@ void player_init(struct player_t *pl, unsigned int sample_rate,
 {
     assert(track != NULL);
     assert(sample_rate != 0);
+
+    spin_init(&pl->lock);
+
     pl->sample_dt = 1.0 / sample_rate;
     pl->track = track;
     player_set_timecoder(pl, tc);
@@ -180,6 +199,7 @@ void player_init(struct player_t *pl, unsigned int sample_rate,
 
 void player_clear(struct player_t *pl)
 {
+    spin_clear(&pl->lock);
 }
 
 /*
@@ -230,6 +250,17 @@ double player_get_remain(struct player_t *pl)
 void player_recue(struct player_t *pl)
 {
     pl->offset = pl->position;
+}
+
+/*
+ * Set the track used for the playback
+ */
+
+void player_set_track(struct player_t *pl, struct track_t *track)
+{
+    spin_lock(&pl->lock); /* Synchronise with the playback thread */
+    pl->track = track;
+    spin_unlock(&pl->lock);
 }
 
 /*
@@ -323,6 +354,7 @@ void retarget(struct player_t *pl)
 
 void player_collect(struct player_t *pl, signed short *pcm, unsigned samples)
 {
+    double r, pitch;
     float dt, target_volume;
 
     dt = pl->sample_dt * samples;
@@ -354,11 +386,17 @@ void player_collect(struct player_t *pl, signed short *pcm, unsigned samples)
 
     /* Sync pitch is applied post-filtering */
 
-    pl->position += build_pcm(pcm, samples, pl->sample_dt,
-			      pl->track,
-                              pl->position - pl->offset,
-                              pl->pitch * pl->sync_pitch,
-                              pl->volume, target_volume);
-    
+    pitch = pl->pitch * pl->sync_pitch;
+
+    if (!spin_try_lock(&pl->lock)) {
+        r = build_silence(pcm, samples, pl->sample_dt, pitch);
+    } else {
+        r = build_pcm(pcm, samples, pl->sample_dt, pl->track,
+                      pl->position - pl->offset, pitch,
+                      pl->volume, target_volume);
+        spin_unlock(&pl->lock);
+    }
+
+    pl->position += r;
     pl->volume = target_volume;
 }
