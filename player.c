@@ -206,6 +206,31 @@ bool player_toggle_timecode_control(struct player_t *pl)
     return pl->timecode_control;
 }
 
+double player_get_position(struct player_t *pl)
+{
+    return pl->position;
+}
+
+double player_get_elapsed(struct player_t *pl)
+{
+    return pl->position - pl->offset;
+}
+
+double player_get_remain(struct player_t *pl)
+{
+    return (double)pl->track->length / pl->track->rate
+        + pl->offset - pl->position;
+}
+
+/*
+ * Cue to the zero position of the track
+ */
+
+void player_recue(struct player_t *pl)
+{
+    pl->offset = pl->position;
+}
+
 /*
  * Synchronise to the position and speed given by the timecoder
  *
@@ -230,7 +255,7 @@ static int sync_to_timecode(struct player_t *pl)
     pl->pitch = timecoder_get_pitch(pl->timecoder);
 
     /* If we can read an absolute time from the timecode, then use it */
-    
+
     if (timecode == -1)
 	pl->target_valid = false;
 
@@ -253,31 +278,6 @@ static void calibrate_to_timecode_position(struct player_t *pl)
     assert(pl->target_valid);
     pl->offset += pl->target_position - pl->position;
     pl->position = pl->target_position;
-}
-
-double player_get_position(struct player_t *pl)
-{
-    return pl->position;
-}
-
-double player_get_elapsed(struct player_t *pl)
-{
-    return pl->position - pl->offset;
-}
-
-double player_get_remain(struct player_t *pl)
-{
-    return (double)pl->track->length / pl->track->rate
-        + pl->offset - pl->position;
-}
-
-/*
- * Cue to the zero position of the track
- */
-
-void player_recue(struct player_t *pl)
-{
-    pl->offset = pl->position;
 }
 
 void retarget(struct player_t *pl)
