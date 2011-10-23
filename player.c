@@ -276,7 +276,6 @@ void player_recue(struct player_t *pl)
 
 void player_collect(struct player_t *pl, signed short *pcm, unsigned samples)
 {
-    double diff;
     float dt, target_volume;
 
     dt = pl->sample_dt * samples;
@@ -294,6 +293,8 @@ void player_collect(struct player_t *pl, signed short *pcm, unsigned samples)
         pl->sync_pitch += dt / (SYNC_RC + dt) * (1.0 - pl->sync_pitch);
 
     } else {
+        double diff;
+
         if (pl->recalibrate) {
             calibrate_to_timecode_position(pl);
             pl->recalibrate = false;
