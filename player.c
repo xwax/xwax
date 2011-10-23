@@ -267,7 +267,8 @@ double player_get_elapsed(struct player_t *pl)
 
 double player_get_remain(struct player_t *pl)
 {
-    return pl->position - pl->offset - pl->track->length / pl->track->rate;
+    return (double)pl->track->length / pl->track->rate
+        + pl->offset - pl->position;
 }
 
 /*
