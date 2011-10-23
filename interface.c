@@ -621,7 +621,7 @@ static void draw_deck_clocks(SDL_Surface *surface, const struct rect_t *rect,
     pos = pl->position - pl->offset;
 
     elapse = pos * 1000;
-    remain = (pos - pl->track->length / pl->track->rate) * 1000;
+    remain = (pos - (double)pl->track->length / pl->track->rate) * 1000;
 
     if (elapse < 0)
         col = warn_col;
