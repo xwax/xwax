@@ -341,6 +341,9 @@ void player_collect(struct player_t *pl, signed short *pcm, unsigned samples)
         retarget(pl);
         pl->target_valid = false;
 
+        /* FIXME: we broke the bias by resetting target_valid;
+         * it needs to be valid until the next target */
+
     } else {
 
         /* Without a known target, tend sync_pitch towards 1.0, to
