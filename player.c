@@ -256,10 +256,9 @@ static int sync_to_timecode(struct player_t *pl)
 
     /* If we can read an absolute time from the timecode, then use it */
 
-    if (timecode == -1)
+    if (timecode == -1) {
 	pl->target_valid = false;
-
-    else {
+    } else {
         tcpos = (double)timecode / timecoder_get_resolution(pl->timecoder);
         pl->target_position = tcpos + pl->pitch * when;
 	pl->target_valid = true;
