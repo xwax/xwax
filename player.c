@@ -48,6 +48,7 @@
 #define VOLUME (7.0/8)
 
 #define SQ(x) ((x)*(x))
+#define TARGET_UNKNOWN INFINITY
 
 /*
  * Return: the cubic interpolation of the sample at position 2 + mu
@@ -164,7 +165,7 @@ void player_init(struct player_t *pl, unsigned int sample_rate,
 
     pl->position = 0.0;
     pl->offset = 0.0;
-    pl->target_valid = false;
+    pl->target_position = TARGET_UNKNOWN;
     pl->last_difference = 0.0;
 
     pl->pitch = 0.0;
@@ -257,11 +258,10 @@ static int sync_to_timecode(struct player_t *pl)
     /* If we can read an absolute time from the timecode, then use it */
 
     if (timecode == -1) {
-	pl->target_valid = false;
+	pl->target_position = TARGET_UNKNOWN;
     } else {
         tcpos = (double)timecode / timecoder_get_resolution(pl->timecoder);
         pl->target_position = tcpos + pl->pitch * when;
-	pl->target_valid = true;
     }
 
     return 0;
@@ -274,7 +274,7 @@ static int sync_to_timecode(struct player_t *pl)
 
 static void calibrate_to_timecode_position(struct player_t *pl)
 {
-    assert(pl->target_valid);
+    assert(pl->target_position != TARGET_UNKNOWN);
     pl->offset += pl->target_position - pl->position;
     pl->position = pl->target_position;
 }
@@ -332,13 +332,13 @@ void player_collect(struct player_t *pl, signed short *pcm, unsigned samples)
             pl->timecode_control = false;
     }
 
-    if (pl->target_valid) {
+    if (pl->target_position != TARGET_UNKNOWN) {
 
         /* Bias the pitch towards a known target, and acknowledge that
          * we did so */
 
         retarget(pl);
-        pl->target_valid = false;
+        pl->target_position = TARGET_UNKNOWN;
 
     } else {
 

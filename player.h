@@ -33,14 +33,12 @@ struct player_t {
     /* Current playback parameters */
 
     double position, /* seconds */
-        target_position, /* seconds */
+        target_position, /* seconds, or TARGET_UNKNOWN */
         offset, /* track start point in timecode */
         last_difference, /* last known position minus target_position */
         pitch, /* from timecoder */
         sync_pitch, /* pitch required to sync to timecode signal */
         volume;
-
-    bool target_valid;
 
     /* Timecode control */
 
