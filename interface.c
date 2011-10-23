@@ -558,18 +558,18 @@ static void draw_spinner(SDL_Surface *surface, const struct rect_t *rect,
                          struct player_t *pl)
 {
     int x, y, r, c, rangle, pangle;
-    double position, rps;
+    double elapsed, rps;
     Uint8 *rp, *p;
     SDL_Color col;
 
     x = rect->x;
     y = rect->y;
 
-    position = pl->position - pl->offset;
+    elapsed = player_get_elapsed(pl);
     rps = timecoder_revs_per_sec(pl->timecoder);
-    rangle = (int)(pl->position * 1024 * rps) % 1024;
+    rangle = (int)(player_get_position(pl) * 1024 * rps) % 1024;
 
-    if (position < 0 || position >= (double)pl->track->length / pl->track->rate)
+    if (elapsed < 0 || elapsed >= (double)pl->track->length / pl->track->rate)
         col = warn_col;
     else
         col = ok_col;
@@ -612,16 +612,13 @@ static void draw_deck_clocks(SDL_Surface *surface, const struct rect_t *rect,
                              struct player_t *pl)
 {
     int elapse, remain;
-    float pos;
     struct rect_t upper, lower;
     SDL_Color col;
 
     split_top(rect, &upper, &lower, CLOCK_FONT_SIZE, 0);
 
-    pos = pl->position - pl->offset;
-
-    elapse = pos * 1000;
-    remain = (pos - (double)pl->track->length / pl->track->rate) * 1000;
+    elapse = player_get_position(pl) * 1000;
+    remain = player_get_remain(pl) * 1000;
 
     if (elapse < 0)
         col = warn_col;
@@ -906,7 +903,7 @@ static void draw_deck(SDL_Surface *surface, const struct rect_t *rect,
 
     pl = &deck->player;
 
-    position = (pl->position - pl->offset) * pl->track->rate;
+    position = player_get_elapsed(pl) * pl->track->rate;
 
     split_top(rect, &track, &rest, FONT_SPACE * 2, 0);
     if (rest.h < 160)

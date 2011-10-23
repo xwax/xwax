@@ -255,6 +255,21 @@ static void calibrate_to_timecode_position(struct player_t *pl)
     pl->position = pl->target_position;
 }
 
+double player_get_position(struct player_t *pl)
+{
+    return pl->position;
+}
+
+double player_get_elapsed(struct player_t *pl)
+{
+    return pl->position - pl->offset;
+}
+
+double player_get_remain(struct player_t *pl)
+{
+    return pl->position - pl->offset - pl->track->length / pl->track->rate;
+}
+
 /*
  * Cue to the zero position of the track
  */
