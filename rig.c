@@ -96,10 +96,9 @@ void rig_add_track(struct track_t *t)
 
 int rig_main()
 {
-    int r;
-    struct pollfd pt[4], *pe;
-
     for (;;) { /* exit via EVENT_QUIT */
+        int r;
+        struct pollfd pt[4], *pe;
         struct track_t *track;
 
         pe = pt;
