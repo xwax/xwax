@@ -165,6 +165,8 @@ int rt_start(struct rt_t *rt)
      * poll() then launch the realtime thread to handle them */
 
     if (rt->npt > 0) {
+        int r;
+
         fprintf(stderr, "Launching realtime thread to handle devices...\n");
 
         if (sem_init(&rt->sem, 0, 0) == -1) {
@@ -172,7 +174,9 @@ int rt_start(struct rt_t *rt)
             return -1;
         }
 
-        if (pthread_create(&rt->ph, NULL, launch, (void*)rt)) {
+        r = pthread_create(&rt->ph, NULL, launch, (void*)rt);
+        if (r != 0) {
+            errno = r;
             perror("pthread_create");
             if (sem_destroy(&rt->sem) == -1)
                 abort();
