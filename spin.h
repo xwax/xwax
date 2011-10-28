@@ -30,6 +30,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "realtime.h"
+
 typedef pthread_spinlock_t spin;
 
 static inline void spin_init(spin *s)
@@ -49,11 +51,14 @@ static inline void spin_clear(spin *s)
  *
  * Pre: lock is initialised
  * Pre: lock is not held by the current thread
+ * Pre: current thread is not realtime
  * Post: lock is held by the current thread
  */
 
 static inline void spin_lock(spin *s)
 {
+    rt_not_allowed();
+
     if (pthread_spin_lock(s) != 0)
         abort();
 }
