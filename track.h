@@ -42,12 +42,14 @@ struct track_block_t {
 };
 
 struct track_t {
+    struct list tracks;
     unsigned int refcount;
     int rate;
 
     /* pointers to external data */
    
-    const char *artist, *title;
+    const char *artist, *title,
+        *importer, *path;
     
     size_t bytes; /* loaded in */
     int length, /* track length in samples */

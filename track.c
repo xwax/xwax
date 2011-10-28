@@ -22,12 +22,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "list.h"
 #include "realtime.h"
 #include "rig.h"
 #include "track.h"
 
 #define SAMPLE (sizeof(signed short) * TRACK_CHANNELS) /* bytes per sample */
 #define TRACK_BLOCK_PCM_BYTES (TRACK_BLOCK_SAMPLES * SAMPLE)
+
+struct list tracks = LIST_INIT(tracks);
 
 /*
  * An empty track is used rarely, and is easier than
@@ -203,9 +206,13 @@ static int track_init(struct track_t *t, const char *importer,
     t->importing = true;
     t->has_poll = false;
 
+    t->importer = importer;
+    t->path = path;
+
     if (import_start(&t->import, t, importer, path) == -1)
         return -1;
 
+    list_add(&t->tracks, &tracks);
     rig_post_track(t);
 
     return 0;
@@ -228,6 +235,28 @@ static void track_clear(struct track_t *tr)
 
     for (n = 0; n < tr->blocks; n++)
         free(tr->block[n]);
+
+    list_del(&tr->tracks);
+}
+
+/*
+ * Get a pointer to a track object already in memory
+ *
+ * Return: pointer, or NULL if no such track exists
+ */
+
+static struct track_t* track_get_again(const char *importer, const char *path)
+{
+    struct track_t *t;
+
+    list_for_each(t, &tracks, tracks) {
+        if (t->importer == importer && t->path == path) {
+            track_get(t);
+            return t;
+        }
+    }
+
+    return NULL;
 }
 
 /*
@@ -240,6 +269,10 @@ struct track_t* track_get_by_import(const char *importer, const char *path)
 {
     struct track_t *t;
 
+    t = track_get_again(importer, path);
+    if (t != NULL)
+        return t;
+
     t = malloc(sizeof *t);
     if (t == NULL) {
         perror("malloc");
@@ -251,7 +284,7 @@ struct track_t* track_get_by_import(const char *importer, const char *path)
         return NULL;
     }
 
-    t->refcount++;
+    track_get(t);
 
     return t;
 }
