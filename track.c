@@ -22,6 +22,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "realtime.h"
 #include "rig.h"
 #include "track.h"
 
@@ -40,6 +41,8 @@
 static int more_space(struct track_t *tr)
 {
     struct track_block_t *block;
+
+    rt_not_allowed();
 
     if (tr->blocks >= TRACK_MAX_BLOCKS) {
         fprintf(stderr, "Maximum track length reached.\n");
