@@ -28,7 +28,6 @@
 
 #include "list.h"
 #include "rig.h"
-#include "track.h"
 
 #define EVENT_WAKE 0
 #define EVENT_QUIT 1
