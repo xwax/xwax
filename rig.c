@@ -110,9 +110,14 @@ int rig_main()
         /* Fetch file descriptors to monitor from each track */
 
         list_for_each(track, &tracks, rig) {
-            assert(pe < pt + ARRAY_SIZE(pt));
             track_pollfd(track, pe);
             pe++;
+
+            /* If we ran out of file descriptors, ignore the
+             * oldest until we have space in the poll table */
+
+            if (pe >= pt + ARRAY_SIZE(pt))
+                break;
         }
 
         mutex_unlock(&lock);
