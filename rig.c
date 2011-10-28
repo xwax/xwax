@@ -94,21 +94,22 @@ void rig_add_track(struct track_t *t)
 
 int rig_main()
 {
+    struct pollfd pt[4];
+
+    /* ppoll() is not widely available, so use a pipe between this
+     * thread and the outside. A single byte wakes up poll() to
+     * inform us that new file descriptors need to be polled */
+
+    pt[0].fd = event[0];
+    pt[0].revents = 0;
+    pt[0].events = POLLIN;
+
     for (;;) { /* exit via EVENT_QUIT */
         int r;
-        struct pollfd pt[4], *pe;
+        struct pollfd *pe;
         struct track_t *track;
 
-        pe = pt;
-
-        /* ppoll() is not widely available, so use a pipe between this
-         * thread and the outside. A single byte wakes up poll() to
-         * inform us that new file descriptors need to be polled */
-
-        pe->fd = event[0];
-        pe->revents = 0;
-        pe->events = POLLIN;
-        pe++;
+        pe = &pt[1];
 
         /* Fetch file descriptors to monitor from each track */
 
