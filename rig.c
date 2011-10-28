@@ -20,6 +20,7 @@
 #include <assert.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -31,34 +32,38 @@
 #define EVENT_WAKE 0
 #define EVENT_QUIT 1
 
-int rig_init(struct rig_t *rig)
+static int event[2]; /* pipe to wake up service thread */
+static size_t ntrack;
+struct track_t *track[3];
+
+int rig_init()
 {
     /* Create a pipe which will be used to wake us from other threads */
 
-    if (pipe(rig->event) == -1) {
+    if (pipe(event) == -1) {
         perror("pipe");
         return -1;
     }
 
-    if (fcntl(rig->event[0], F_SETFL, O_NONBLOCK) == -1) {
+    if (fcntl(event[0], F_SETFL, O_NONBLOCK) == -1) {
         perror("fcntl");
-        if (close(rig->event[1]) == -1)
+        if (close(event[1]) == -1)
             abort();
-        if (close(rig->event[0]) == -1)
+        if (close(event[0]) == -1)
             abort();
         return -1;
     }
 
-    rig->ntrack = 0;
+    ntrack = 0;
 
     return 0;
 }
 
-void rig_clear(struct rig_t *rig)
+void rig_clear()
 {
-    if (close(rig->event[0]) == -1)
+    if (close(event[0]) == -1)
         abort();
-    if (close(rig->event[1]) == -1)
+    if (close(event[1]) == -1)
         abort();
 }
 
@@ -71,12 +76,12 @@ void rig_clear(struct rig_t *rig)
  * Pre: less than MAX_TRACKS tracks already added to this rig
  */
 
-void rig_add_track(struct rig_t *rig, struct track_t *track)
+void rig_add_track(struct track_t *t)
 {
-    assert(rig->ntrack < sizeof rig->track);
+    assert(ntrack < sizeof track);
 
-    rig->track[rig->ntrack] = track;
-    rig->ntrack++;
+    track[ntrack] = t;
+    ntrack++;
 }
 
 /*
@@ -92,13 +97,13 @@ void rig_add_track(struct rig_t *rig, struct track_t *track)
  * I/O), the rig will also be responsible for them.
  */
 
-int rig_main(struct rig_t *rig)
+int rig_main()
 {
     int r;
     size_t n;
     struct pollfd pt[4], *pe;
 
-    assert(sizeof pt >= rig->ntrack + 1);
+    assert(sizeof pt >= ntrack + 1);
 
     for (;;) { /* exit via EVENT_QUIT */
         pe = pt;
@@ -107,15 +112,15 @@ int rig_main(struct rig_t *rig)
          * thread and the outside. A single byte wakes up poll() to
          * inform us that new file descriptors need to be polled */
 
-        pe->fd = rig->event[0];
+        pe->fd = event[0];
         pe->revents = 0;
         pe->events = POLLIN;
         pe++;
 
         /* Fetch file descriptors to monitor from each track */
 
-        for (n = 0; n < rig->ntrack; n++)
-            pe += track_pollfd(rig->track[n], pe);
+        for (n = 0; n < ntrack; n++)
+            pe += track_pollfd(track[n], pe);
 
         r = poll(pt, pe - pt, -1);
         if (r == -1) {
@@ -131,10 +136,10 @@ int rig_main(struct rig_t *rig)
 
         if (pt[0].revents != 0) {
             for (;;) {
-                char event;
+                char e;
                 size_t z;
 
-                z = read(rig->event[0], &event, 1);
+                z = read(event[0], &e, 1);
                 if (z == -1) {
                     if (errno == EAGAIN) {
                         break;
@@ -144,7 +149,7 @@ int rig_main(struct rig_t *rig)
                     }
                 }
 
-                switch (event) {
+                switch (e) {
                 case EVENT_WAKE:
                     break;
 
@@ -159,8 +164,8 @@ int rig_main(struct rig_t *rig)
 
         /* Do any reading and writing on all tracks */
 
-        for (n = 0; n < rig->ntrack; n++)
-            track_handle(rig->track[n]);
+        for (n = 0; n < ntrack; n++)
+            track_handle(track[n]);
     }
  finish:
 
@@ -171,9 +176,9 @@ int rig_main(struct rig_t *rig)
  * Post a simple event into the rig event loop
  */
 
-static int post_event(struct rig_t *rig, char event)
+static int post_event(char e)
 {
-    if (write(rig->event[1], &event, 1) == -1) {
+    if (write(event[1], &e, 1) == -1) {
         perror("write");
         return -1;
     }
@@ -184,16 +189,16 @@ static int post_event(struct rig_t *rig, char event)
  * Wake up the rig to inform it that the poll table has changed
  */
 
-int rig_awaken(struct rig_t *rig)
+int rig_awaken()
 {
-    return post_event(rig, EVENT_WAKE);
+    return post_event(EVENT_WAKE);
 }
 
 /*
  * Ask the rig to exit from another thread or signal handler
  */
 
-int rig_quit(struct rig_t *rig)
+int rig_quit()
 {
-    return post_event(rig, EVENT_QUIT);
+    return post_event(EVENT_QUIT);
 }

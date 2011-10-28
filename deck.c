@@ -18,6 +18,7 @@
  */
 
 #include "deck.h"
+#include "rig.h"
 
 /*
  * Initialise a deck
@@ -28,11 +29,11 @@
  * Pre: deck->device, deck->timecoder and deck->track are valid
  */
 
-int deck_init(struct deck_t *deck, struct rt_t *rt, struct rig_t *rig)
+int deck_init(struct deck_t *deck, struct rt_t *rt)
 {
     unsigned int sample_rate;
 
-    rig_add_track(rig, &deck->track);
+    rig_add_track(&deck->track);
     if (rt_add_device(rt, &deck->device) == -1)
         return -1;
 

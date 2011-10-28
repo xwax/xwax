@@ -105,7 +105,6 @@ int main(int argc, char *argv[])
     struct timecode_def_t *timecode;
 
     struct deck_t deck[3];
-    struct rig_t rig;
     struct rt_t rt;
     struct interface_t iface;
     struct library_t library;
@@ -125,7 +124,7 @@ int main(int argc, char *argv[])
 
     fprintf(stderr, "%s\n\n" NOTICE "\n\n", banner);
 
-    if (rig_init(&rig) == -1)
+    if (rig_init() == -1)
         return -1;
     rt_init(&rt);
     library_init(&library);
@@ -319,7 +318,7 @@ int main(int argc, char *argv[])
 
             /* Connect up the elements to make an operational deck */
 
-            r = deck_init(ld, &rt, &rig);
+            r = deck_init(ld, &rt);
             if (r == -1)
                 return -1;
 
@@ -430,12 +429,12 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    if (interface_start(&iface, deck, decks, &library, &rig) == -1)
+    if (interface_start(&iface, deck, decks, &library) == -1)
         return -1;
     if (rt_start(&rt) == -1)
         return -1;
 
-    if (rig_main(&rig) == -1)
+    if (rig_main() == -1)
         return -1;
 
     fprintf(stderr, "Exiting cleanly...\n");
@@ -449,7 +448,7 @@ int main(int argc, char *argv[])
     timecoder_free_lookup();
     library_clear(&library);
     rt_clear(&rt);
-    rig_clear(&rig);
+    rig_clear();
 
     fprintf(stderr, "Done.\n");
 

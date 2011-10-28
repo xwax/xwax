@@ -22,7 +22,6 @@
 
 #include "device.h"
 #include "player.h"
-#include "rig.h"
 #include "realtime.h"
 #include "timecoder.h"
 #include "track.h"
@@ -35,7 +34,7 @@ struct deck_t {
     struct player_t player;
 };
 
-int deck_init(struct deck_t *deck, struct rt_t *rt, struct rig_t *rig);
+int deck_init(struct deck_t *deck, struct rt_t *rt);
 void deck_clear(struct deck_t *deck);
 
 #endif

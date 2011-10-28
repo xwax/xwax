@@ -1205,7 +1205,7 @@ static void do_loading(struct interface_t *interface,
     track->artist = record->artist;
     track->title = record->title;
 
-    (void)rig_awaken(interface->rig);
+    (void)rig_awaken();
 }
 
 /*
@@ -1414,7 +1414,7 @@ static int interface_main(struct interface_t *in)
 
         switch(event.type) {
         case SDL_QUIT: /* user request to quit application; eg. window close */
-            if (rig_quit(in->rig) == -1)
+            if (rig_quit() == -1)
                 return -1;
             break;
 
@@ -1531,7 +1531,7 @@ static void* launch(void *p)
  */
 
 int interface_start(struct interface_t *in, struct deck_t deck[], size_t ndeck,
-                    struct library_t *lib, struct rig_t *rig)
+                    struct library_t *lib)
 {
     size_t n;
 
@@ -1543,7 +1543,6 @@ int interface_start(struct interface_t *in, struct deck_t deck[], size_t ndeck,
     in->deck = deck;
     in->ndeck = ndeck;
 
-    in->rig = rig;
     selector_init(&in->selector, lib);
     calculate_spinner_lookup(spinner_angle, NULL, SPINNER_SIZE);
 
