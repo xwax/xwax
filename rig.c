@@ -27,6 +27,7 @@
 #include <sys/poll.h>
 
 #include "list.h"
+#include "realtime.h"
 #include "rig.h"
 
 #define EVENT_WAKE 0
@@ -172,10 +173,13 @@ int rig_main()
 
 static int post_event(char e)
 {
+    rt_not_allowed();
+
     if (write(event[1], &e, 1) == -1) {
         perror("write");
         return -1;
     }
+
     return 0;
 }
 
