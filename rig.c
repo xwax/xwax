@@ -27,6 +27,7 @@
 #include <sys/poll.h>
 
 #include "list.h"
+#include "mutex.h"
 #include "realtime.h"
 #include "rig.h"
 
@@ -37,6 +38,7 @@
 
 static int event[2]; /* pipe to wake up service thread */
 static struct list tracks = LIST_INIT(tracks);
+mutex lock;
 
 int rig_init()
 {
@@ -56,11 +58,15 @@ int rig_init()
         return -1;
     }
 
+    mutex_init(&lock);
+
     return 0;
 }
 
 void rig_clear()
 {
+    mutex_clear(&lock);
+
     if (close(event[0]) == -1)
         abort();
     if (close(event[1]) == -1)
@@ -69,14 +75,13 @@ void rig_clear()
 
 /*
  * Add a track to be monitored
- *
- * This function is not thread or signal safe to rig_main() as
- * is only used as part of initialisation.
  */
 
 void rig_add_track(struct track_t *t)
 {
+    mutex_lock(&lock);
     list_add(&t->rig, &tracks);
+    mutex_unlock(&lock);
 }
 
 /*
@@ -104,6 +109,8 @@ int rig_main()
     pt[0].revents = 0;
     pt[0].events = POLLIN;
 
+    mutex_lock(&lock);
+
     for (;;) { /* exit via EVENT_QUIT */
         int r;
         struct pollfd *pe;
@@ -117,6 +124,8 @@ int rig_main()
             assert(pe < pt + ARRAY_SIZE(pt));
             pe += track_pollfd(track, pe);
         }
+
+        mutex_unlock(&lock);
 
         r = poll(pt, pe - pt, -1);
         if (r == -1) {
@@ -157,6 +166,8 @@ int rig_main()
                 }
             }
         }
+
+        mutex_lock(&lock);
 
         /* Do any reading and writing on all tracks */
 
