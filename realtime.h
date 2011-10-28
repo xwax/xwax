@@ -42,6 +42,9 @@ struct rt_t {
     struct pollfd pt[32];
 };
 
+int rt_global_init();
+void rt_not_allowed();
+
 void rt_init(struct rt_t *rt);
 void rt_clear(struct rt_t *rt);
 
