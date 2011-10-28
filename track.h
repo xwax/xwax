@@ -26,6 +26,7 @@
 #include <sys/types.h>
 
 #include "import.h"
+#include "list.h"
 
 #define TRACK_CHANNELS 2
 #define TRACK_RATE 44100
@@ -57,6 +58,7 @@ struct track_t {
 
     /* State of audio import */
 
+    struct list rig;
     bool importing, has_poll;
     struct import_t import;
 

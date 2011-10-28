@@ -26,15 +26,17 @@
 #include <unistd.h>
 #include <sys/poll.h>
 
+#include "list.h"
 #include "rig.h"
 #include "track.h"
 
 #define EVENT_WAKE 0
 #define EVENT_QUIT 1
 
+#define ARRAY_SIZE(x) (sizeof(x) / sizeof(*x))
+
 static int event[2]; /* pipe to wake up service thread */
-static size_t ntrack;
-struct track_t *track[3];
+static struct list tracks = LIST_INIT(tracks);
 
 int rig_init()
 {
@@ -53,8 +55,6 @@ int rig_init()
             abort();
         return -1;
     }
-
-    ntrack = 0;
 
     return 0;
 }
@@ -78,10 +78,7 @@ void rig_clear()
 
 void rig_add_track(struct track_t *t)
 {
-    assert(ntrack < sizeof track);
-
-    track[ntrack] = t;
-    ntrack++;
+    list_add(&t->rig, &tracks);
 }
 
 /*
@@ -100,12 +97,11 @@ void rig_add_track(struct track_t *t)
 int rig_main()
 {
     int r;
-    size_t n;
     struct pollfd pt[4], *pe;
 
-    assert(sizeof pt >= ntrack + 1);
-
     for (;;) { /* exit via EVENT_QUIT */
+        struct track_t *track;
+
         pe = pt;
 
         /* ppoll() is not widely available, so use a pipe between this
@@ -119,8 +115,10 @@ int rig_main()
 
         /* Fetch file descriptors to monitor from each track */
 
-        for (n = 0; n < ntrack; n++)
-            pe += track_pollfd(track[n], pe);
+        list_for_each(track, &tracks, rig) {
+            assert(pe < pt + ARRAY_SIZE(pt));
+            pe += track_pollfd(track, pe);
+        }
 
         r = poll(pt, pe - pt, -1);
         if (r == -1) {
@@ -164,8 +162,8 @@ int rig_main()
 
         /* Do any reading and writing on all tracks */
 
-        for (n = 0; n < ntrack; n++)
-            track_handle(track[n]);
+        list_for_each(track, &tracks, rig)
+            track_handle(track);
     }
  finish:
 
