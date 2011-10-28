@@ -26,19 +26,20 @@
  * A deck is a logical grouping of the varius components which
  * reflects the user's view on a deck in the system.
  *
- * Pre: deck->device, deck->timecoder and deck->track are valid
+ * Pre: deck->device and deck->timecoder are valid
  */
 
 int deck_init(struct deck_t *deck, struct rt_t *rt)
 {
     unsigned int sample_rate;
 
-    rig_add_track(&deck->track);
     if (rt_add_device(rt, &deck->device) == -1)
         return -1;
 
+    deck->track = track_get_empty();
+
     sample_rate = device_sample_rate(&deck->device);
-    player_init(&deck->player, sample_rate, &deck->track, &deck->timecoder);
+    player_init(&deck->player, sample_rate, deck->track, &deck->timecoder);
 
     /* The timecoder and player are driven by requests from
      * the audio device */
@@ -53,7 +54,7 @@ void deck_clear(struct deck_t *deck)
 {
     /* FIXME: remove from rig and rt */
     player_clear(&deck->player);
-    track_clear(&deck->track);
     timecoder_clear(&deck->timecoder);
     device_clear(&deck->device);
+    track_put(deck->track);
 }

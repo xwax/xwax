@@ -99,9 +99,6 @@ int import_start(struct import_t *im, struct track_t *track,
     im->fd = pstdout[0];
     im->track = track;
 
-    track_empty(track);
-    track->importing = true;
-
     return 0;
 
 }
@@ -130,8 +127,6 @@ void import_stop(const struct import_t *im)
     } else {
         fputs("Track import did not complete successfully.\n", stderr);
     }
-
-    im->track->importing = false;
 }
 
 /*

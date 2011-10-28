@@ -74,17 +74,6 @@ void rig_clear()
 }
 
 /*
- * Add a track to be monitored
- */
-
-void rig_add_track(struct track_t *t)
-{
-    mutex_lock(&lock);
-    list_add(&t->rig, &tracks);
-    mutex_unlock(&lock);
-}
-
-/*
  * Main thread which handles input and output
  *
  * The rig is the main thread of execution. It is responsible for all
@@ -122,7 +111,8 @@ int rig_main()
 
         list_for_each(track, &tracks, rig) {
             assert(pe < pt + ARRAY_SIZE(pt));
-            pe += track_pollfd(track, pe);
+            track_pollfd(track, pe);
+            pe++;
         }
 
         mutex_unlock(&lock);
@@ -171,8 +161,12 @@ int rig_main()
 
         /* Do any reading and writing on all tracks */
 
-        list_for_each(track, &tracks, rig)
-            track_handle(track);
+        list_for_each(track, &tracks, rig) {
+            if (track_handle(track)) {
+                list_del(&track->rig);
+                track_put(track);
+            }
+        }
     }
  finish:
 
@@ -196,19 +190,25 @@ static int post_event(char e)
 }
 
 /*
- * Wake up the rig to inform it that the poll table has changed
- */
-
-int rig_awaken()
-{
-    return post_event(EVENT_WAKE);
-}
-
-/*
  * Ask the rig to exit from another thread or signal handler
  */
 
 int rig_quit()
 {
     return post_event(EVENT_QUIT);
+}
+
+/*
+ * Add a track to be handled until import has completed
+ */
+
+void rig_post_track(struct track_t *t)
+{
+    track_get(t);
+
+    mutex_lock(&lock);
+    list_add(&t->rig, &tracks);
+    mutex_unlock(&lock);
+
+    post_event(EVENT_WAKE);
 }

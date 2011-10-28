@@ -611,7 +611,7 @@ static void draw_spinner(SDL_Surface *surface, const struct rect_t *rect,
  */
 
 static void draw_deck_clocks(SDL_Surface *surface, const struct rect_t *rect,
-                             struct player_t *pl)
+                             struct player_t *pl, struct track_t *track)
 {
     int elapse, remain;
     struct rect_t upper, lower;
@@ -636,7 +636,7 @@ static void draw_deck_clocks(SDL_Surface *surface, const struct rect_t *rect,
     else
         col = text_col;
 
-    if (track_is_importing(pl->track)) {
+    if (track_is_importing(track)) {
         col.r >>= 2;
         col.g >>= 2;
         col.b >>= 2;
@@ -829,7 +829,7 @@ static void draw_meters(SDL_Surface *surface, const struct rect_t *rect,
  */
 
 static void draw_deck_top(SDL_Surface *surface, const struct rect_t *rect,
-                          struct player_t *pl)
+                          struct player_t *pl, struct track_t *track)
 {
     struct rect_t clocks, left, right, spinner, scope;
 
@@ -839,11 +839,11 @@ static void draw_deck_top(SDL_Surface *surface, const struct rect_t *rect,
      * available space, just draw clocks which span the overall space */
 
     if (!pl->timecode_control || right.w < 0) {
-        draw_deck_clocks(surface, rect, pl);
+        draw_deck_clocks(surface, rect, pl, track);
         return;
     }
 
-    draw_deck_clocks(surface, &clocks, pl);
+    draw_deck_clocks(surface, &clocks, pl, track);
 
     split_right(&right, &left, &spinner, SPINNER_SIZE, SPACER);
     if (left.w < 0)
@@ -902,22 +902,24 @@ static void draw_deck(SDL_Surface *surface, const struct rect_t *rect,
     int position;
     struct rect_t track, top, meters, status, rest, lower;
     struct player_t *pl;
+    struct track_t *t;
 
     pl = &deck->player;
+    t = pl->track;
 
-    position = player_get_elapsed(pl) * pl->track->rate;
+    position = player_get_elapsed(pl) * t->rate;
 
     split_top(rect, &track, &rest, FONT_SPACE * 2, 0);
     if (rest.h < 160)
         rest = *rect;
     else
-        draw_track_summary(surface, &track, pl->track);
+        draw_track_summary(surface, &track, t);
 
     split_top(&rest, &top, &lower, CLOCK_FONT_SIZE * 2, SPACER);
     if (lower.h < 64)
         lower = rest;
     else
-        draw_deck_top(surface, &top, pl);
+        draw_deck_top(surface, &top, pl, t);
 
     split_bottom(&lower, &meters, &status, FONT_SPACE, SPACER);
     if (meters.h < 64)
@@ -925,7 +927,7 @@ static void draw_deck(SDL_Surface *surface, const struct rect_t *rect,
     else
         draw_deck_status(surface, &status, pl);
 
-    draw_meters(surface, &meters, pl->track, position, meter_scale);
+    draw_meters(surface, &meters, t, position, meter_scale);
 }
 
 /*
@@ -1195,17 +1197,22 @@ static void draw_library(SDL_Surface *surface, const struct rect_t *rect,
  */
 
 static void do_loading(struct interface_t *interface,
-                       struct track_t *track, struct record_t *record)
+                       struct player_t *player, struct record_t *record)
 {
+    struct track_t *t;
+
     fprintf(stderr, "Loading '%s'.\n", record->pathname);
 
-    if (track_import(track, record->pathname) == -1)
+    t = track_get_by_import("/usr/libexec/xwax-import", record->pathname);
+    if (t == NULL)
         return;
 
-    track->artist = record->artist;
-    track->title = record->title;
+    /* FIXME: thread safety and general tidy-ness */
+    t->artist = record->artist;
+    t->title = record->title;
 
-    (void)rig_awaken();
+    player_set_track(player, t);
+    track_put(t);
 }
 
 /*
@@ -1318,7 +1325,7 @@ static bool handle_key(struct interface_t *in, struct selector_t *sel,
             case FUNC_LOAD:
                 re = selector_current(sel);
                 if (re != NULL)
-                    do_loading(in, &deck->track, re);
+                    do_loading(in, pl, re);
                 break;
 
             case FUNC_RECUE:

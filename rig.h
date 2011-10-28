@@ -25,11 +25,9 @@
 int rig_init();
 void rig_clear();
 
-void rig_add_track(struct track_t *t);
-
 int rig_main();
 
-int rig_awaken();
 int rig_quit();
+void rig_post_track(struct track_t *t);
 
 #endif

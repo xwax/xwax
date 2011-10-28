@@ -258,9 +258,18 @@ void player_recue(struct player_t *pl)
 
 void player_set_track(struct player_t *pl, struct track_t *track)
 {
+    struct track_t *x;
+
+    assert(track != NULL);
+
+    track_get(track);
+
     spin_lock(&pl->lock); /* Synchronise with the playback thread */
+    x = pl->track;
     pl->track = track;
     spin_unlock(&pl->lock);
+
+    track_put(x); /* discard the old track */
 }
 
 /*

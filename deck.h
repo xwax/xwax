@@ -29,9 +29,9 @@
 struct deck_t {
     struct device device;
     struct timecoder_t timecoder;
-    struct track_t track;
 
     struct player_t player;
+    struct track_t *track;
 };
 
 int deck_init(struct deck_t *deck, struct rt_t *rt);

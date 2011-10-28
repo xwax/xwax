@@ -20,7 +20,6 @@
 #ifndef TRACK_H
 #define TRACK_H
 
-#include <pthread.h>
 #include <stdbool.h>
 #include <sys/poll.h>
 #include <sys/types.h>
@@ -43,13 +42,12 @@ struct track_block_t {
 };
 
 struct track_t {
+    unsigned int refcount;
     int rate;
-    pthread_mutex_t mx;
 
     /* pointers to external data */
    
-    const char *importer, /* path to import script */
-        *artist, *title;
+    const char *artist, *title;
     
     size_t bytes; /* loaded in */
     int length, /* track length in samples */
@@ -68,20 +66,22 @@ struct track_t {
     unsigned int overview;
 };
 
-void track_init(struct track_t *tr, const char *importer);
-void track_clear(struct track_t *tr);
+/* Tracks are dynamically allocated and reference counted */
+
+struct track_t* track_get_by_import(const char *importer, const char *path);
+struct track_t* track_get_empty(void);
+void track_get(struct track_t *t);
+void track_put(struct track_t *t);
 
 /* Functions used by the import operation */
 
-void track_empty(struct track_t *tr);
 void* track_access_pcm(struct track_t *tr, size_t *len);
 void track_commit(struct track_t *tr, size_t len);
 
 /* Functions used by the rig and main thread */
 
-size_t track_pollfd(struct track_t *tr, struct pollfd *pe);
-void track_handle(struct track_t *tr);
-int track_import(struct track_t *tr, const char *path);
+void track_pollfd(struct track_t *tr, struct pollfd *pe);
+bool track_handle(struct track_t *tr);
 
 /* Return true if the track importer is running, otherwise false */
 

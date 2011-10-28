@@ -255,7 +255,6 @@ int main(int argc, char *argv[])
             unsigned int sample_rate;
             struct deck_t *ld;
             struct device *device;
-            struct track_t *track;
             struct timecoder_t *timecoder;
 
             /* Create a deck */
@@ -276,7 +275,6 @@ int main(int argc, char *argv[])
             ld = &deck[decks];
             device = &ld->device;
             timecoder = &ld->timecoder;
-            track = &ld->track;
 
             /* Work out which device type we are using, and initialise
              * an appropriate device. */
@@ -317,7 +315,6 @@ int main(int argc, char *argv[])
             }
 
             timecoder_init(timecoder, timecode, speed, sample_rate);
-            track_init(track, importer);
 
             /* Connect up the elements to make an operational deck */
 
