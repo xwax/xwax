@@ -314,9 +314,15 @@ void track_put(struct track_t *t)
 {
     t->refcount--;
 
-    if (t->refcount == 0) {
-        if (t == &empty)
-            return;
+    /* When importing, a reference is held. If it's the
+     * only one remaining terminate it to save resources */
+
+    if (t->refcount == 1 && t->importing) {
+        import_terminate(&t->import);
+        return;
+    }
+
+    if (t->refcount == 0 && t != &empty) {
         assert(!t->importing);
         track_clear(t);
         free(t);
