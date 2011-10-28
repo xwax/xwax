@@ -24,6 +24,8 @@
 #ifndef MUTEX_H
 #define MUTEX_H
 
+#include "realtime.h"
+
 typedef pthread_mutex_t mutex;
 
 static inline void mutex_init(mutex *m)
@@ -48,6 +50,8 @@ static inline void mutex_clear(mutex *m)
 
 static inline void mutex_lock(mutex *m)
 {
+    rt_not_allowed();
+
     if (pthread_mutex_lock(m) != 0)
         abort();
 }
