@@ -34,10 +34,20 @@ static inline void mutex_init(mutex *m)
         abort();
 }
 
+/*
+ * Pre: lock is not held
+ */
+
 static inline void mutex_clear(mutex *m)
 {
-    if (pthread_mutex_destroy(m) != 0)
+    int r;
+
+    r = pthread_mutex_destroy(m);
+    if (r != 0) {
+        errno = r;
+        perror("pthread_mutex_destroy");
         abort();
+    }
 }
 
 /*
