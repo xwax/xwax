@@ -72,8 +72,6 @@ void rig_clear()
  *
  * This function is not thread or signal safe to rig_main() as
  * is only used as part of initialisation.
- *
- * Pre: less than MAX_TRACKS tracks already added to this rig
  */
 
 void rig_add_track(struct track_t *t)
