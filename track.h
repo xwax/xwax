@@ -52,7 +52,7 @@ struct track_t {
         *importer, *path;
     
     size_t bytes; /* loaded in */
-    int length, /* track length in samples */
+    unsigned int length, /* track length in samples */
         blocks; /* number of blocks allocated */
     struct track_block_t *block[TRACK_MAX_BLOCKS];
 
