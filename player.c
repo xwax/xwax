@@ -200,6 +200,7 @@ void player_init(struct player_t *pl, unsigned int sample_rate,
 void player_clear(struct player_t *pl)
 {
     spin_clear(&pl->lock);
+    track_put(pl->track);
 }
 
 /*
