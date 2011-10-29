@@ -22,6 +22,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "debug.h"
 #include "list.h"
 #include "realtime.h"
 #include "rig.h"
@@ -76,8 +77,8 @@ static int more_space(struct track_t *tr)
 
     tr->block[tr->blocks++] = block;
 
-    fprintf(stderr, "Allocated new track block (%d blocks, %zu bytes).\n",
-            tr->blocks, tr->blocks * TRACK_BLOCK_SAMPLES * SAMPLE);
+    debug("Allocated new track block (%d blocks, %zu bytes).\n",
+          tr->blocks, tr->blocks * TRACK_BLOCK_SAMPLES * SAMPLE);
 
     return 0;
 }
