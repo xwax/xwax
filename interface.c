@@ -1211,8 +1211,7 @@ static void do_loading(struct interface_t *interface,
     t->artist = record->artist;
     t->title = record->title;
 
-    player_set_track(player, t);
-    track_put(t);
+    player_set_track(player, t); /* passes reference */
 }
 
 /*

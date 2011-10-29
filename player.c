@@ -255,6 +255,9 @@ void player_recue(struct player_t *pl)
 
 /*
  * Set the track used for the playback
+ *
+ * Pre: caller holds reference on track
+ * Post: caller does not hold reference on track
  */
 
 void player_set_track(struct player_t *pl, struct track_t *track)
@@ -262,8 +265,7 @@ void player_set_track(struct player_t *pl, struct track_t *track)
     struct track_t *x;
 
     assert(track != NULL);
-
-    track_get(track);
+    assert(track->refcount > 0);
 
     spin_lock(&pl->lock); /* Synchronise with the playback thread */
     x = pl->track;
