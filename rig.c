@@ -125,6 +125,7 @@ int rig_main()
         r = poll(pt, pe - pt, -1);
         if (r == -1) {
             if (errno == EINTR) {
+                mutex_lock(&lock);
                 continue;
             } else {
                 perror("poll");
