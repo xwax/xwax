@@ -118,7 +118,7 @@ void* track_access_pcm(struct track_t *tr, size_t *len)
 
 static void commit_pcm_samples(struct track_t *tr, unsigned int samples)
 {
-    unsigned int fill;
+    unsigned int fill, n;
     signed short *pcm;
     struct track_block_t *block;
 
@@ -127,11 +127,10 @@ static void commit_pcm_samples(struct track_t *tr, unsigned int samples)
     pcm = block->pcm + TRACK_CHANNELS * fill;
 
     assert(samples <= TRACK_BLOCK_SAMPLES - fill);
-    tr->length += samples;
 
     /* Meter the new audio */
 
-    while (samples > 0) {
+    for (n = samples; n > 0; n--) {
         unsigned short v;
         unsigned int w;
 
@@ -160,8 +159,9 @@ static void commit_pcm_samples(struct track_t *tr, unsigned int samples)
 
         fill++;
         pcm += TRACK_CHANNELS;
-        samples--;
     }
+
+    tr->length += samples; /* FIXME: atomic */
 }
 
 /*
