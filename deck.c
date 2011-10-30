@@ -36,10 +36,9 @@ int deck_init(struct deck_t *deck, struct rt_t *rt)
     if (rt_add_device(rt, &deck->device) == -1)
         return -1;
 
-    deck->track = track_get_empty();
-
     sample_rate = device_sample_rate(&deck->device);
-    player_init(&deck->player, sample_rate, deck->track, &deck->timecoder);
+    player_init(&deck->player, sample_rate, track_get_empty(),
+                &deck->timecoder);
 
     /* The timecoder and player are driven by requests from
      * the audio device */
@@ -56,7 +55,6 @@ void deck_clear(struct deck_t *deck)
     player_clear(&deck->player);
     timecoder_clear(&deck->timecoder);
     device_clear(&deck->device);
-    track_put(deck->track);
 }
 
 /*
