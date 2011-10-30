@@ -90,9 +90,7 @@ int rig_main()
 {
     struct pollfd pt[4];
 
-    /* ppoll() is not widely available, so use a pipe between this
-     * thread and the outside. A single byte wakes up poll() to
-     * inform us that new file descriptors need to be polled */
+    /* Monitor event pipe from external threads */
 
     pt[0].fd = event[0];
     pt[0].revents = 0;
