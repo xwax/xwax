@@ -23,6 +23,16 @@
 #include "rig.h"
 
 /*
+ * An empty record, is used briefly until a record is loaded
+ * to a deck
+ */
+
+static const struct record_t no_record = {
+    .artist = "",
+    .title = ""
+};
+
+/*
  * Initialise a deck
  *
  * A deck is a logical grouping of the varius components which
@@ -40,6 +50,7 @@ int deck_init(struct deck_t *deck, struct rt_t *rt)
     if (rt_add_device(rt, &deck->device) == -1)
         return -1;
 
+    deck->record = &no_record;
     sample_rate = device_sample_rate(&deck->device);
     player_init(&deck->player, sample_rate, track_get_empty(),
                 &deck->timecoder);
@@ -75,9 +86,6 @@ void deck_load(struct deck_t *deck, struct record_t *record)
     if (t == NULL)
         return;
 
-    /* FIXME: thread safety and general tidy-ness */
-    t->artist = record->artist;
-    t->title = record->title;
-
+    deck->record = record;
     player_set_track(&deck->player, t); /* passes reference */
 }

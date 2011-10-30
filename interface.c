@@ -475,19 +475,19 @@ static int draw_font_rect(SDL_Surface *surface, const struct rect_t *rect,
 }
 
 /*
- * Draw the display of artist name and track name
+ * Draw the record information in the deck
  */
 
-static void draw_track_summary(SDL_Surface *surface, const struct rect_t *rect,
-                               struct track_t *track)
+static void draw_record(SDL_Surface *surface, const struct rect_t *rect,
+                        const struct record_t *record)
 {
     struct rect_t top, bottom;
 
     split_top(rect, &top, &bottom, FONT_SPACE, 0);
 
-    draw_font_rect(surface, &top, track->artist,
+    draw_font_rect(surface, &top, record->artist,
                    font, text_col, background_col);
-    draw_font_rect(surface, &bottom, track->title,
+    draw_font_rect(surface, &bottom, record->title,
                    em_font, text_col, background_col);
 }
 
@@ -913,7 +913,7 @@ static void draw_deck(SDL_Surface *surface, const struct rect_t *rect,
     if (rest.h < 160)
         rest = *rect;
     else
-        draw_track_summary(surface, &track, t);
+        draw_record(surface, &track, deck->record);
 
     split_top(&rest, &top, &lower, CLOCK_FONT_SIZE * 2, SPACER);
     if (lower.h < 64)

@@ -32,6 +32,7 @@ struct deck_t {
     const char *importer;
 
     struct player_t player;
+    const struct record_t *record;
 };
 
 int deck_init(struct deck_t *deck, struct rt_t *rt);

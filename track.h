@@ -48,8 +48,7 @@ struct track_t {
 
     /* pointers to external data */
    
-    const char *artist, *title,
-        *importer, *path;
+    const char *importer, *path;
     
     size_t bytes; /* loaded in */
     unsigned int length, /* track length in samples */

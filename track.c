@@ -42,9 +42,6 @@ static struct track_t empty = {
     .refcount = 1,
 
     .rate = TRACK_RATE,
-    .artist = "Empty",
-    .title = "Empty",
-
     .bytes = 0,
     .length = 0,
     .blocks = 0,
@@ -192,9 +189,6 @@ static int track_init(struct track_t *t, const char *importer,
                        const char *path)
 {
     t->refcount = 0;
-
-    t->artist = NULL;
-    t->title = NULL;
 
     t->blocks = 0;
     t->rate = TRACK_RATE;
