@@ -80,8 +80,6 @@ void deck_load(struct deck_t *deck, struct record_t *record)
 {
     struct track_t *t;
 
-    fprintf(stderr, "Loading '%s'.\n", record->pathname);
-
     t = track_get_by_import(deck->importer, record->pathname);
     if (t == NULL)
         return;

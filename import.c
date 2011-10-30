@@ -44,6 +44,8 @@ int import_start(struct import_t *im, struct track_t *track,
     char rate[16];
     pid_t pid;
 
+    fprintf(stderr, "Importing '%s'...\n", path);
+
     sprintf(rate, "%d", track->rate);
 
     if (pipe(pstdout) == -1) {
