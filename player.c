@@ -69,6 +69,24 @@ static inline double cubic_interpolate(double y[4], double mu)
 }
 
 /*
+ * Return: Random dither, between -0.5 and 0.5
+ */
+
+double dither(void)
+{
+    short bit;
+    static short x = 0xbabe;
+
+    /* Use a 16-bit maximal-length LFSR as our random number.
+     * This is faster than rand() */
+
+    bit = (x ^ (x >> 2) ^ (x >> 3) ^ (x >> 5)) & 1;
+    x = x >> 1 | (bit << 15);
+
+    return (double)x / 65536 - 0.5; /* not quite whole range */
+}
+
+/*
  * Build a block of PCM audio, resampled from the track
  *
  * This is just a basic resampler which has a small amount of aliasing
@@ -120,8 +138,7 @@ static double build_pcm(signed short *pcm, unsigned samples, double sample_dt,
         for (c = 0; c < PLAYER_CHANNELS; c++) {
             double v;
 
-            v = vol * cubic_interpolate(i[c], f)
-                + (double)(rand() % 32768) / 32768 - 0.5; /* dither */
+            v = vol * cubic_interpolate(i[c], f) + dither();
 
             if (v > SHRT_MAX) {
                 *pcm++ = SHRT_MAX;
