@@ -383,8 +383,7 @@ void retarget(struct player_t *pl)
 
 void player_collect(struct player_t *pl, signed short *pcm, unsigned samples)
 {
-    double r, pitch;
-    float dt, target_volume;
+    double r, pitch, dt, target_volume;
 
     dt = pl->sample_dt * samples;
 
