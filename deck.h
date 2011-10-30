@@ -21,6 +21,7 @@
 #define DECK_H
 
 #include "device.h"
+#include "listing.h"
 #include "player.h"
 #include "realtime.h"
 #include "timecoder.h"
@@ -36,5 +37,7 @@ struct deck_t {
 
 int deck_init(struct deck_t *deck, struct rt_t *rt);
 void deck_clear(struct deck_t *deck);
+
+void deck_load(struct deck_t *deck, struct record_t *record);
 
 #endif

@@ -1192,29 +1192,6 @@ static void draw_library(SDL_Surface *surface, const struct rect_t *rect,
 }
 
 /*
- * Initiate the process of loading a record from the library into a
- * track in memory
- */
-
-static void do_loading(struct interface_t *interface,
-                       struct player_t *player, struct record_t *record)
-{
-    struct track_t *t;
-
-    fprintf(stderr, "Loading '%s'.\n", record->pathname);
-
-    t = track_get_by_import("/usr/libexec/xwax-import", record->pathname);
-    if (t == NULL)
-        return;
-
-    /* FIXME: thread safety and general tidy-ness */
-    t->artist = record->artist;
-    t->title = record->title;
-
-    player_set_track(player, t); /* passes reference */
-}
-
-/*
  * Handle a single key event
  *
  * Return: true if the selector needs to be redrawn, otherwise false
@@ -1324,7 +1301,7 @@ static bool handle_key(struct interface_t *in, struct selector_t *sel,
             case FUNC_LOAD:
                 re = selector_current(sel);
                 if (re != NULL)
-                    do_loading(in, pl, re);
+                    deck_load(deck, re);
                 break;
 
             case FUNC_RECUE:

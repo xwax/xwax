@@ -58,3 +58,24 @@ void deck_clear(struct deck_t *deck)
     device_clear(&deck->device);
     track_put(deck->track);
 }
+
+/*
+ * Load a record from the library to a deck
+ */
+
+void deck_load(struct deck_t *deck, struct record_t *record)
+{
+    struct track_t *t;
+
+    fprintf(stderr, "Loading '%s'.\n", record->pathname);
+
+    t = track_get_by_import("/usr/libexec/xwax-import", record->pathname);
+    if (t == NULL)
+        return;
+
+    /* FIXME: thread safety and general tidy-ness */
+    t->artist = record->artist;
+    t->title = record->title;
+
+    player_set_track(&deck->player, t); /* passes reference */
+}
