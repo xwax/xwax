@@ -100,7 +100,7 @@ static void usage(FILE *fd)
 int main(int argc, char *argv[])
 {
     int r, n, decks;
-    char *importer, *scanner;
+    const char *importer, *scanner;
     double speed;
     struct timecode_def_t *timecode;
 
