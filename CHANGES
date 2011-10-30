@@ -2,6 +2,7 @@ v1.1 (work in progress)
 -----------------------
 
 * Bug fix: incorrect display of track time remaining
+* Instant loading of duplicate tracks
 
 v1.0 (2011-08-01)
 -----------------
