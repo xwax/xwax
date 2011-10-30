@@ -275,6 +275,7 @@ int main(int argc, char *argv[])
             ld = &deck[decks];
             device = &ld->device;
             timecoder = &ld->timecoder;
+            ld->importer = importer;
 
             /* Work out which device type we are using, and initialise
              * an appropriate device. */

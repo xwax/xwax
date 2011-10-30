@@ -29,6 +29,7 @@
 struct deck_t {
     struct device device;
     struct timecoder_t timecoder;
+    const char *importer;
 
     struct player_t player;
 };

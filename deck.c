@@ -17,6 +17,8 @@
  *
  */
 
+#include <assert.h>
+
 #include "deck.h"
 #include "rig.h"
 
@@ -26,12 +28,14 @@
  * A deck is a logical grouping of the varius components which
  * reflects the user's view on a deck in the system.
  *
- * Pre: deck->device and deck->timecoder are valid
+ * Pre: deck->device, deck->timecoder, deck->importer are valid
  */
 
 int deck_init(struct deck_t *deck, struct rt_t *rt)
 {
     unsigned int sample_rate;
+
+    assert(deck->importer != NULL);
 
     if (rt_add_device(rt, &deck->device) == -1)
         return -1;
@@ -67,7 +71,7 @@ void deck_load(struct deck_t *deck, struct record_t *record)
 
     fprintf(stderr, "Loading '%s'.\n", record->pathname);
 
-    t = track_get_by_import("/usr/libexec/xwax-import", record->pathname);
+    t = track_get_by_import(deck->importer, record->pathname);
     if (t == NULL)
         return;
 
