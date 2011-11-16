@@ -29,7 +29,7 @@
  * abstraction of the ALSA calls; it is merely a container for these
  * variables. */
 
-struct alsa_pcm_t {
+struct alsa_pcm {
     snd_pcm_t *pcm;
 
     struct pollfd *pe;
@@ -42,7 +42,7 @@ struct alsa_pcm_t {
 
 
 struct alsa {
-    struct alsa_pcm_t capture, playback;
+    struct alsa_pcm capture, playback;
 };
 
 
@@ -52,7 +52,7 @@ static void alsa_error(const char *msg, int r)
 }
 
 
-static int pcm_open(struct alsa_pcm_t *alsa, const char *device_name,
+static int pcm_open(struct alsa_pcm *alsa, const char *device_name,
                     snd_pcm_stream_t stream, int rate, int buffer_time)
 {
     int r, dir;
@@ -154,7 +154,7 @@ static int pcm_open(struct alsa_pcm_t *alsa, const char *device_name,
 }
 
 
-static void pcm_close(struct alsa_pcm_t *alsa)
+static void pcm_close(struct alsa_pcm *alsa)
 {
     if (snd_pcm_close(alsa->pcm) < 0)
         abort();
@@ -162,7 +162,7 @@ static void pcm_close(struct alsa_pcm_t *alsa)
 }
 
 
-static ssize_t pcm_pollfds(struct alsa_pcm_t *alsa, struct pollfd *pe,
+static ssize_t pcm_pollfds(struct alsa_pcm *alsa, struct pollfd *pe,
 			   size_t z)
 {
     int r, count;
@@ -187,7 +187,7 @@ static ssize_t pcm_pollfds(struct alsa_pcm_t *alsa, struct pollfd *pe,
 }
 
 
-static int pcm_revents(struct alsa_pcm_t *alsa, unsigned short *revents) {
+static int pcm_revents(struct alsa_pcm *alsa, unsigned short *revents) {
     int r;
 
     r = snd_pcm_poll_descriptors_revents(alsa->pcm, alsa->pe, alsa->pe_count,
