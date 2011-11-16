@@ -27,7 +27,7 @@
 
 /* A single crate of records */
 
-struct crate_t {
+struct crate {
     bool is_fixed;
     char *name;
     struct listing listing;
@@ -36,7 +36,7 @@ struct crate_t {
 /* The complete music library, which consists of multiple crates */
 
 struct library {
-    struct crate_t all, **crate;
+    struct crate all, **crate;
     size_t crates;
 };
 

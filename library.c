@@ -41,7 +41,7 @@
  * Return: 0 on success or -1 on memory allocation failure
  */
 
-static int crate_init(struct crate_t *c, const char *name, bool is_fixed)
+static int crate_init(struct crate *c, const char *name, bool is_fixed)
 {
     c->name = strdup(name);
     if (c->name == NULL) {
@@ -62,7 +62,7 @@ static int crate_init(struct crate_t *c, const char *name, bool is_fixed)
  * in it, so we don't free them here.
  */
 
-static void crate_clear(struct crate_t *c)
+static void crate_clear(struct crate *c)
 {
     listing_clear(&c->listing);
     free(c->name);
@@ -72,7 +72,7 @@ static void crate_clear(struct crate_t *c)
  * Comparison function for two crates
  */
 
-static int crate_cmp(const struct crate_t *a, const struct crate_t *b)
+static int crate_cmp(const struct crate *a, const struct crate *b)
 {
     if (a->is_fixed && !b->is_fixed)
         return -1;
@@ -88,7 +88,7 @@ static int crate_cmp(const struct crate_t *a, const struct crate_t *b)
 
 static int qcompar(const void *a, const void *b)
 {
-    return crate_cmp(*(struct crate_t**)a, *(struct crate_t**)b);
+    return crate_cmp(*(struct crate**)a, *(struct crate**)b);
 }
 
 /*
@@ -97,7 +97,7 @@ static int qcompar(const void *a, const void *b)
 
 static void sort_crates(struct library *lib)
 {
-    qsort(lib->crate, lib->crates, sizeof(struct crate_t*), qcompar);
+    qsort(lib->crate, lib->crates, sizeof(struct crate*), qcompar);
 }
 
 /*
@@ -106,11 +106,11 @@ static void sort_crates(struct library *lib)
  * Return: 0 on success or -1 on memory allocation failure
  */
 
-static int add_crate(struct library *lib, struct crate_t *c)
+static int add_crate(struct library *lib, struct crate *c)
 {
-    struct crate_t **cn;
+    struct crate **cn;
 
-    cn = realloc(lib->crate, sizeof(struct crate_t*) * (lib->crates + 1));
+    cn = realloc(lib->crate, sizeof(struct crate*) * (lib->crates + 1));
     if (cn == NULL) {
         perror("realloc");
         return -1;
@@ -133,7 +133,7 @@ static int add_crate(struct library *lib, struct crate_t *c)
  * Return: pointer to crate, or NULL if no crate has the given name
  */
 
-struct crate_t* get_crate(struct library *lib, const char *name)
+struct crate* get_crate(struct library *lib, const char *name)
 {
     int n;
 
@@ -151,9 +151,9 @@ struct crate_t* get_crate(struct library *lib, const char *name)
  * Return: pointer to crate, or NULL on memory allocation failure
  */
 
-struct crate_t* use_crate(struct library *lib, char *name, bool is_fixed)
+struct crate* use_crate(struct library *lib, char *name, bool is_fixed)
 {
-    struct crate_t *new_crate;
+    struct crate *new_crate;
 
     /* does this crate already exist? then return existing crate */
     new_crate = get_crate(lib, name);
@@ -163,7 +163,7 @@ struct crate_t* use_crate(struct library *lib, char *name, bool is_fixed)
     }
 
     /* allocate and fill space for new crate */
-    new_crate = malloc(sizeof(struct crate_t));
+    new_crate = malloc(sizeof(struct crate));
     if (new_crate == NULL) {
         perror("malloc");
         return NULL;
@@ -236,7 +236,7 @@ void library_clear(struct library *li)
     /* Clear crates */
 
     for (n = 1; n < li->crates; n++) { /* skip the 'all' crate */
-        struct crate_t *crate;
+        struct crate *crate;
 
         crate = li->crate[n];
         crate_clear(crate);
@@ -290,7 +290,7 @@ int library_import(struct library *li, bool sort,
     char *cratename, *pathname;
     pid_t pid;
     FILE *fp;
-    struct crate_t *crate, *all_crate;
+    struct crate *crate, *all_crate;
 
     fprintf(stderr, "Scanning '%s'...\n", path);
 
