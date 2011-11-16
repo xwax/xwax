@@ -165,13 +165,13 @@ static int scroll_current(struct scroll_t *s)
 /* Return the listing which acts as the starting point before
  * string matching, based on the current crate */
 
-static struct listing_t* initial(struct selector_t *sel)
+static struct listing_t* initial(struct selector *sel)
 {
     return &sel->library->crate[sel->crates.selected]->listing;
 }
 
 
-void selector_init(struct selector_t *sel, struct library_t *lib)
+void selector_init(struct selector *sel, struct library_t *lib)
 {
     sel->library = lib;
 
@@ -194,57 +194,57 @@ void selector_init(struct selector_t *sel, struct library_t *lib)
 }
 
 
-void selector_clear(struct selector_t *sel)
+void selector_clear(struct selector *sel)
 {
     listing_clear(&sel->listing_a);
     listing_clear(&sel->listing_b);
 }
 
 
-void selector_set_lines(struct selector_t *sel, unsigned int lines)
+void selector_set_lines(struct selector *sel, unsigned int lines)
 {
     scroll_set_lines(&sel->crates, lines);
     scroll_set_lines(&sel->records, lines);
 }
 
 
-void selector_up(struct selector_t *sel)
+void selector_up(struct selector *sel)
 {
     scroll_up(&sel->records, 1);
 }
 
 
-void selector_down(struct selector_t *sel)
+void selector_down(struct selector *sel)
 {
     scroll_down(&sel->records, 1);
 }
 
 
-void selector_page_up(struct selector_t *sel)
+void selector_page_up(struct selector *sel)
 {
     scroll_up(&sel->records, sel->records.lines);
 }
 
 
-void selector_page_down(struct selector_t *sel)
+void selector_page_down(struct selector *sel)
 {
     scroll_down(&sel->records, sel->records.lines);
 }
 
 
-void selector_top(struct selector_t *sel)
+void selectorop(struct selector *sel)
 {
     scroll_first(&sel->records);
 }
 
 
-void selector_bottom(struct selector_t *sel)
+void selector_bottom(struct selector *sel)
 {
     scroll_last(&sel->records);
 }
 
 
-struct record_t* selector_current(struct selector_t *sel)
+struct record_t* selector_current(struct selector *sel)
 {
     int i;
 
@@ -260,14 +260,14 @@ struct record_t* selector_current(struct selector_t *sel)
 /* When the crate has changed, update the current listing to reflect
  * the crate and the search criteria */
 
-static void crate_has_changed(struct selector_t *sel)
+static void crate_has_changed(struct selector *sel)
 {
     (void)listing_match(initial(sel), sel->view_listing, sel->search);
     scroll_set_entries(&sel->records, sel->view_listing->entries);
 }
 
 
-void selector_prev(struct selector_t *sel)
+void selector_prev(struct selector *sel)
 {
     scroll_up(&sel->crates, 1);
     sel->toggled = false;
@@ -275,7 +275,7 @@ void selector_prev(struct selector_t *sel)
 }
 
 
-void selector_next(struct selector_t *sel)
+void selector_next(struct selector *sel)
 {
     scroll_down(&sel->crates, 1);
     sel->toggled = false;
@@ -285,7 +285,7 @@ void selector_next(struct selector_t *sel)
 
 /* Toggle between the current crate and the 'all' crate */
 
-void selector_toggle(struct selector_t *sel)
+void selectoroggle(struct selector *sel)
 {
     if (!sel->toggled) {
         sel->toggle_back = scroll_current(&sel->crates);
@@ -302,7 +302,7 @@ void selector_toggle(struct selector_t *sel)
 /* Expand the search. Do not disrupt the running process on memory
  * allocation failure, leave the view listing incomplete */
 
-void selector_search_expand(struct selector_t *sel)
+void selector_search_expand(struct selector *sel)
 {
     if (sel->search_len == 0)
         return;
@@ -317,7 +317,7 @@ void selector_search_expand(struct selector_t *sel)
 /* Refine the search. Do not distrupt the running process on memory
  * allocation failure, leave the view listing incomplete */
 
-void selector_search_refine(struct selector_t *sel, char key)
+void selector_search_refine(struct selector *sel, char key)
 {
     struct listing_t *tmp;
 

@@ -34,7 +34,7 @@ struct scroll_t {
     int lines, offset, entries, selected;
 };
 
-struct selector_t {
+struct selector {
     struct library_t *library;
     struct listing_t
         *view_listing, /* base_listing + search filter applied */
@@ -49,25 +49,25 @@ struct selector_t {
     char search[256];
 };
 
-void selector_init(struct selector_t *sel, struct library_t *lib);
-void selector_clear(struct selector_t *sel);
+void selector_init(struct selector *sel, struct library_t *lib);
+void selector_clear(struct selector *sel);
 
-void selector_set_lines(struct selector_t *sel, unsigned int lines);
+void selector_set_lines(struct selector *sel, unsigned int lines);
 
-void selector_up(struct selector_t *sel);
-void selector_down(struct selector_t *sel);
-void selector_page_up(struct selector_t *sel);
-void selector_page_down(struct selector_t *sel);
-void selector_top(struct selector_t *sel);
-void selector_bottom(struct selector_t *sel);
+void selector_up(struct selector *sel);
+void selector_down(struct selector *sel);
+void selector_page_up(struct selector *sel);
+void selector_page_down(struct selector *sel);
+void selectorop(struct selector *sel);
+void selector_bottom(struct selector *sel);
 
-struct record_t* selector_current(struct selector_t *sel);
+struct record_t* selector_current(struct selector *sel);
 
-void selector_prev(struct selector_t *sel);
-void selector_next(struct selector_t *sel);
-void selector_toggle(struct selector_t *sel);
+void selector_prev(struct selector *sel);
+void selector_next(struct selector *sel);
+void selectoroggle(struct selector *sel);
 
-void selector_search_expand(struct selector_t *sel);
-void selector_search_refine(struct selector_t *sel, char key);
+void selector_search_expand(struct selector *sel);
+void selector_search_refine(struct selector *sel, char key);
 
 #endif

@@ -966,7 +966,7 @@ static void draw_status(SDL_Surface *sf, const struct rect_t *rect,
  */
 
 static void draw_search(SDL_Surface *surface, const struct rect_t *rect,
-                        struct selector_t *sel)
+                        struct selector *sel)
 {
     int s;
     const char *buf;
@@ -1041,7 +1041,7 @@ static void draw_scroll_bar(SDL_Surface *surface, const struct rect_t *rect,
  */
 
 static void draw_crates(SDL_Surface *surface, const struct rect_t *rect,
-                        struct selector_t *sel)
+                        struct selector *sel)
 {
     int x, y, w, h, r, ox, n;
     struct rect_t rs;
@@ -1103,7 +1103,7 @@ static void draw_crates(SDL_Surface *surface, const struct rect_t *rect,
  */
 
 static void draw_records(SDL_Surface *surface, const struct rect_t *rect,
-                         struct selector_t *sel)
+                         struct selector *sel)
 {
     int x, y, w, h, n, r, ox;
     struct rect_t rs;
@@ -1171,7 +1171,7 @@ static void draw_records(SDL_Surface *surface, const struct rect_t *rect,
  */
 
 static void draw_library(SDL_Surface *surface, const struct rect_t *rect,
-                         struct selector_t *sel)
+                         struct selector *sel)
 {
     unsigned int lines;
     struct rect_t rsearch, rlists, rcrates, rrecords;
@@ -1197,7 +1197,7 @@ static void draw_library(SDL_Surface *surface, const struct rect_t *rect,
  * Return: true if the selector needs to be redrawn, otherwise false
  */
 
-static bool handle_key(struct interface_t *in, struct selector_t *sel,
+static bool handle_key(struct interface_t *in, struct selector *sel,
                        int *meter_scale, SDLKey key, SDLMod mod)
 {
     if (key >= SDLK_a && key <= SDLK_z) {
@@ -1221,7 +1221,7 @@ static bool handle_key(struct interface_t *in, struct selector_t *sel,
         return true;
 
     } else if (key == SDLK_HOME) {
-        selector_top(sel);
+        selectorop(sel);
         return true;
 
     } else if (key == SDLK_END) {
@@ -1253,7 +1253,7 @@ static bool handle_key(struct interface_t *in, struct selector_t *sel,
         return true;
 
     } else if (key == SDLK_TAB) {
-        selector_toggle(sel);
+        selectoroggle(sel);
         return true;
 
     } else if ((key == SDLK_EQUALS) || (key == SDLK_PLUS)) {

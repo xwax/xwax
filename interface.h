@@ -32,7 +32,7 @@ struct interface_t {
     size_t ndeck;
     struct deck_t *deck;
 
-    struct selector_t selector;
+    struct selector selector;
 };
 
 int interface_start(struct interface_t *in, struct deck_t deck[], size_t ndeck,
