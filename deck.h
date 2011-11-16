@@ -32,12 +32,12 @@ struct deck_t {
     const char *importer;
 
     struct player player;
-    const struct record_t *record;
+    const struct record *record;
 };
 
 int deck_init(struct deck_t *deck, struct rt_t *rt);
 void deck_clear(struct deck_t *deck);
 
-void deck_load(struct deck_t *deck, struct record_t *record);
+void deck_load(struct deck_t *deck, struct record *record);
 
 #endif

@@ -27,7 +27,7 @@
  * to a deck
  */
 
-static const struct record_t no_record = {
+static const struct record no_record = {
     .artist = "",
     .title = ""
 };
@@ -76,7 +76,7 @@ void deck_clear(struct deck_t *deck)
  * Load a record from the library to a deck
  */
 
-void deck_load(struct deck_t *deck, struct record_t *record)
+void deck_load(struct deck_t *deck, struct record *record)
 {
     struct track *t;
 

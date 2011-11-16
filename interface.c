@@ -479,7 +479,7 @@ static int draw_font_rect(SDL_Surface *surface, const struct rect_t *rect,
  */
 
 static void draw_record(SDL_Surface *surface, const struct rect_t *rect,
-                        const struct record_t *record)
+                        const struct record *record)
 {
     struct rect_t top, bottom;
 
@@ -1107,7 +1107,7 @@ static void draw_records(SDL_Surface *surface, const struct rect_t *rect,
 {
     int x, y, w, h, n, r, ox;
     struct rect_t rs;
-    struct record_t *re;
+    struct record *re;
     SDL_Rect box;
     SDL_Color col;
 
@@ -1284,7 +1284,7 @@ static bool handle_key(struct interface_t *in, struct selector *sel,
             int func;
             struct deck_t *deck;
             struct player *pl;
-            struct record_t *re;
+            struct record *re;
             struct timecoder *tc;
 
             func = (key - SDLK_F1) % 4;

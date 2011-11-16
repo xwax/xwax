@@ -208,7 +208,7 @@ int library_init(struct library *li)
  * Free resources associated with a record
  */
 
-static void record_clear(struct record_t *re)
+static void record_clear(struct record *re)
 {
     free(re->pathname);
     free(re->artist);
@@ -226,7 +226,7 @@ void library_clear(struct library *li)
     /* This object is responsible for all the record pointers */
 
     for (n = 0; n < li->all.listing.entries; n++) {
-        struct record_t *re;
+        struct record *re;
 
         re = li->all.listing.record[n];
         record_clear(re);
@@ -353,13 +353,13 @@ int library_import(struct library *li, bool sort,
     }
 
     for (;;) {
-        struct record_t *d, *x;
+        struct record *d, *x;
         char *pathname;
 
         if (get_field(fp, '\t', &pathname) != 0)
             break;
 
-        d = malloc(sizeof(struct record_t));
+        d = malloc(sizeof(struct record));
         if (d == NULL) {
             perror("malloc");
             return -1;

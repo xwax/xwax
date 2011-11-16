@@ -22,25 +22,25 @@
 
 #include <stddef.h>
 
-struct record_t {
+struct record {
     char *pathname, *artist, *title;
 };
 
 /* Listing points to records, but does not manage those pointers */
 
 struct listing {
-    struct record_t **record;
+    struct record **record;
     size_t size, entries;
 };
 
 void listing_init(struct listing *ls);
 void listing_clear(struct listing *ls);
 void listing_blank(struct listing *ls);
-int listing_add(struct listing *li, struct record_t *lr);
+int listing_add(struct listing *li, struct record *lr);
 int listing_copy(const struct listing *src, struct listing *dest);
 int listing_match(struct listing *src, struct listing *dest,
 		  const char *match);
-struct record_t* listing_insert(struct listing *ls, struct record_t *item);
+struct record* listing_insert(struct listing *ls, struct record *item);
 void listing_debug(struct listing *ls);
 void listing_sort(struct listing *ls);
 

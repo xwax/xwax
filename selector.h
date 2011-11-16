@@ -61,7 +61,7 @@ void selector_page_down(struct selector *sel);
 void selectorop(struct selector *sel);
 void selector_bottom(struct selector *sel);
 
-struct record_t* selector_current(struct selector *sel);
+struct record* selector_current(struct selector *sel);
 
 void selector_prev(struct selector *sel);
 void selector_next(struct selector *sel);

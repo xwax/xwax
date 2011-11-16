@@ -77,14 +77,14 @@ void listing_blank(struct listing *ls)
 static int enlarge(struct listing *ls, size_t target)
 {
     size_t p;
-    struct record_t **ln;
+    struct record **ln;
 
     if (target <= ls->size)
         return 0;
 
     p = target + BLOCK - 1; /* pre-allocate additional entries */
 
-    ln = realloc(ls->record, sizeof(struct record_t*) * p);
+    ln = realloc(ls->record, sizeof(struct record*) * p);
     if (ln == NULL) {
         perror("realloc");
         return -1;
@@ -101,7 +101,7 @@ static int enlarge(struct listing *ls, size_t target)
  * Return: 0 on success or -1 on memory allocation failure
  */
 
-int listing_add(struct listing *ls, struct record_t *lr)
+int listing_add(struct listing *ls, struct record *lr)
 {
     if (enlarge(ls, ls->entries + 1) == -1)
         return -1;
@@ -114,7 +114,7 @@ int listing_add(struct listing *ls, struct record_t *lr)
  * Standard comparison function between two records
  */
 
-static int record_cmp(const struct record_t *a, const struct record_t *b)
+static int record_cmp(const struct record *a, const struct record *b)
 {
     int r;
 
@@ -139,7 +139,7 @@ static int record_cmp(const struct record_t *a, const struct record_t *b)
 
 static int qcompar(const void *a, const void *b)
 {
-    return record_cmp(*(struct record_t **)a, *(struct record_t **)b);
+    return record_cmp(*(struct record **)a, *(struct record **)b);
 }
 
 /*
@@ -148,7 +148,7 @@ static int qcompar(const void *a, const void *b)
 
 void listing_sort(struct listing *ls)
 {
-    qsort(ls->record, ls->entries, sizeof(struct record_t*), qcompar);
+    qsort(ls->record, ls->entries, sizeof(struct record*), qcompar);
 }
 
 /*
@@ -158,7 +158,7 @@ void listing_sort(struct listing *ls)
  * Return: true if this is a match, otherwise false
  */
 
-static bool record_match(struct record_t *re, const char *match)
+static bool record_match(struct record *re, const char *match)
 {
     if (strcasestr(re->artist, match) != NULL)
         return true;
@@ -174,7 +174,7 @@ static bool record_match(struct record_t *re, const char *match)
  * Return: true if the given record matches, otherwise false
  */
 
-static bool record_match_all(struct record_t *re, char **matches)
+static bool record_match_all(struct record *re, char **matches)
 {
     while (*matches != NULL) {
         if (!record_match(re, *matches))
@@ -221,7 +221,7 @@ int listing_match(struct listing *src, struct listing *dest,
 {
     int n;
     char *buf, *words[MAX_WORDS];
-    struct record_t *re;
+    struct record *re;
 
     fprintf(stderr, "Matching '%s'\n", match);
 
@@ -272,8 +272,8 @@ int listing_match(struct listing *src, struct listing *dest,
  * Post: on exact match, *found is true
  */
 
-static size_t bin_search(struct record_t **base, size_t n,
-                         struct record_t *item, bool *found)
+static size_t bin_search(struct record **base, size_t n,
+                         struct record *item, bool *found)
 {
     int r;
     size_t mid;
@@ -305,7 +305,7 @@ static size_t bin_search(struct record_t **base, size_t n,
  * Post: listing is sorted and contains item or a matching item
  */
 
-struct record_t* listing_insert(struct listing *ls, struct record_t *item)
+struct record* listing_insert(struct listing *ls, struct record *item)
 {
     bool found;
     size_t z;
@@ -320,7 +320,7 @@ struct record_t* listing_insert(struct listing *ls, struct record_t *item)
         return NULL;
 
     memmove(ls->record + z + 1, ls->record + z,
-            sizeof(struct record_t*) * (ls->entries - z));
+            sizeof(struct record*) * (ls->entries - z));
     ls->record[z] = item;
     ls->entries++;
 
