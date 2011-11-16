@@ -59,7 +59,7 @@ struct track {
 
     struct list rig;
     bool importing, has_poll;
-    struct import_t import;
+    struct import import;
 
     /* Current value of audio meters when loading */
     

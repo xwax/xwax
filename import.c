@@ -37,7 +37,7 @@
  * Post: import is valid until import_stop()
  */
 
-int import_start(struct import_t *im, struct track *track,
+int import_start(struct import *im, struct track *track,
                  const char *cmd, const char *path)
 {
     int pstdout[2];
@@ -112,7 +112,7 @@ int import_start(struct import_t *im, struct track *track,
  * Post: import is invalid
  */
 
-void import_stop(const struct import_t *im)
+void import_stop(const struct import *im)
 {
     int status;
 
@@ -138,7 +138,7 @@ void import_stop(const struct import_t *im)
  * Post: pe contains the poll table entry
  */
 
-void import_pollfd(struct import_t *im, struct pollfd *pe)
+void import_pollfd(struct import *im, struct pollfd *pe)
 {
     assert(im->pid != 0);
 
@@ -191,7 +191,7 @@ static int read_from_pipe(int fd, struct track *tr)
  * Return: -1 on completion, otherwise zero
  */
 
-int import_handle(struct import_t *im)
+int import_handle(struct import *im)
 {
     assert(im->pid != 0);
     assert(im->pe != NULL);
@@ -206,7 +206,7 @@ int import_handle(struct import_t *im)
  * Request premature termination of an import operation
  */
 
-void import_terminate(struct import_t *im)
+void import_terminate(struct import *im)
 {
     assert(im->pid != 0);
 

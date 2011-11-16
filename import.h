@@ -27,18 +27,18 @@
  * an external process into a track
  */
 
-struct import_t {
+struct import {
     int fd;
     pid_t pid;
     struct pollfd *pe;
     struct track *track;
 };
 
-int import_start(struct import_t *im, struct track *track,
+int import_start(struct import *im, struct track *track,
                  const char *cmd, const char *path);
-void import_pollfd(struct import_t *im, struct pollfd *pe);
-int import_handle(struct import_t *im);
-void import_terminate(struct import_t *im);
-void import_stop(const struct import_t *im);
+void import_pollfd(struct import *im, struct pollfd *pe);
+int import_handle(struct import *im);
+void import_terminate(struct import *im);
+void import_stop(const struct import *im);
 
 #endif
