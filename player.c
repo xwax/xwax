@@ -97,7 +97,7 @@ double dither(void)
  */
 
 static double build_pcm(signed short *pcm, unsigned samples, double sample_dt,
-                        struct track_t *tr, double position, double pitch,
+                        struct track *tr, double position, double pitch,
                         double start_vol, double end_vol)
 {
     int s;
@@ -188,7 +188,7 @@ void player_set_timecoder(struct player *pl, struct timecoder *tc)
  */
 
 void player_init(struct player *pl, unsigned int sample_rate,
-                 struct track_t *track, struct timecoder *tc)
+                 struct track *track, struct timecoder *tc)
 {
     assert(track != NULL);
     assert(sample_rate != 0);
@@ -277,9 +277,9 @@ void player_recue(struct player *pl)
  * Post: caller does not hold reference on track
  */
 
-void player_set_track(struct player *pl, struct track_t *track)
+void player_set_track(struct player *pl, struct track *track)
 {
-    struct track_t *x;
+    struct track *x;
 
     assert(track != NULL);
     assert(track->refcount > 0);

@@ -101,7 +101,7 @@ int rig_main()
     for (;;) { /* exit via EVENT_QUIT */
         int r;
         struct pollfd *pe;
-        struct track_t *track;
+        struct track *track;
 
         pe = &pt[1];
 
@@ -206,7 +206,7 @@ int rig_quit()
  * Add a track to be handled until import has completed
  */
 
-void rig_post_track(struct track_t *t)
+void rig_post_track(struct track *t)
 {
     track_get(t);
 

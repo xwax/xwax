@@ -611,7 +611,7 @@ static void draw_spinner(SDL_Surface *surface, const struct rect_t *rect,
  */
 
 static void draw_deck_clocks(SDL_Surface *surface, const struct rect_t *rect,
-                             struct player *pl, struct track_t *track)
+                             struct player *pl, struct track *track)
 {
     int elapse, remain;
     struct rect_t upper, lower;
@@ -651,7 +651,7 @@ static void draw_deck_clocks(SDL_Surface *surface, const struct rect_t *rect,
  */
 
 static void draw_overview(SDL_Surface *surface, const struct rect_t *rect,
-                          struct track_t *tr, int position)
+                          struct track *tr, int position)
 {
     int x, y, w, h, r, c, sp, fade, bytes_per_pixel, pitch, height,
         current_position;
@@ -739,7 +739,7 @@ static void draw_overview(SDL_Surface *surface, const struct rect_t *rect,
  */
 
 static void draw_closeup(SDL_Surface *surface, const struct rect_t *rect,
-                         struct track_t *tr, int position, int scale)
+                         struct track *tr, int position, int scale)
 {
     int x, y, w, h, c;
     size_t bytes_per_pixel, pitch;
@@ -810,7 +810,7 @@ static void draw_closeup(SDL_Surface *surface, const struct rect_t *rect,
  */
 
 static void draw_meters(SDL_Surface *surface, const struct rect_t *rect,
-                        struct track_t *tr, int position, int scale)
+                        struct track *tr, int position, int scale)
 {
     struct rect_t overview, closeup;
 
@@ -829,7 +829,7 @@ static void draw_meters(SDL_Surface *surface, const struct rect_t *rect,
  */
 
 static void draw_deck_top(SDL_Surface *surface, const struct rect_t *rect,
-                          struct player *pl, struct track_t *track)
+                          struct player *pl, struct track *track)
 {
     struct rect_t clocks, left, right, spinner, scope;
 
@@ -902,7 +902,7 @@ static void draw_deck(SDL_Surface *surface, const struct rect_t *rect,
     int position;
     struct rect_t track, top, meters, status, rest, lower;
     struct player *pl;
-    struct track_t *t;
+    struct track *t;
 
     pl = &deck->player;
     t = pl->track;

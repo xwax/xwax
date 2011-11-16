@@ -37,7 +37,7 @@
  * Post: import is valid until import_stop()
  */
 
-int import_start(struct import_t *im, struct track_t *track,
+int import_start(struct import_t *im, struct track *track,
                  const char *cmd, const char *path)
 {
     int pstdout[2];
@@ -155,7 +155,7 @@ void import_pollfd(struct import_t *im, struct pollfd *pe)
  * Return: -1 on completion, otherwise zero
  */
 
-static int read_from_pipe(int fd, struct track_t *tr)
+static int read_from_pipe(int fd, struct track *tr)
 {
     for (;;) {
         void *pcm;

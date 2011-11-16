@@ -29,7 +29,7 @@
 int main(int argc, char *argv[])
 {
     struct pollfd pe;
-    struct track_t track;
+    struct track track;
 
     if (argc != 3) {
         fprintf(stderr, "usage: %s <command> <path>\n", argv[0]);

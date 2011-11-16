@@ -38,7 +38,7 @@ struct list tracks = LIST_INIT(tracks);
  * continuous checks for NULL throughout the code
  */
 
-static struct track_t empty = {
+static struct track empty = {
     .refcount = 1,
 
     .rate = TRACK_RATE,
@@ -55,7 +55,7 @@ static struct track_t empty = {
  * Return: -1 if memory could not be allocated, otherwize 0
  */
 
-static int more_space(struct track_t *tr)
+static int more_space(struct track *tr)
 {
     struct track_block_t *block;
 
@@ -87,7 +87,7 @@ static int more_space(struct track_t *tr)
  * Post: len contains the length of the buffer, in bytes
  */
 
-void* track_access_pcm(struct track_t *tr, size_t *len)
+void* track_access_pcm(struct track *tr, size_t *len)
 {
     unsigned int block;
     size_t fill;
@@ -114,7 +114,7 @@ void* track_access_pcm(struct track_t *tr, size_t *len)
  * given by track_access_pcm()
  */
 
-static void commit_pcm_samples(struct track_t *tr, unsigned int samples)
+static void commit_pcm_samples(struct track *tr, unsigned int samples)
 {
     unsigned int fill, n;
     signed short *pcm;
@@ -172,7 +172,7 @@ static void commit_pcm_samples(struct track_t *tr, unsigned int samples)
  * from track_access_pcm()
  */
 
-void track_commit(struct track_t *tr, size_t len)
+void track_commit(struct track *tr, size_t len)
 {
     tr->bytes += len;
     commit_pcm_samples(tr, tr->bytes / SAMPLE - tr->length);
@@ -185,7 +185,7 @@ void track_commit(struct track_t *tr, size_t len)
  * Post: track is initialised
  */
 
-static int track_init(struct track_t *t, const char *importer,
+static int track_init(struct track *t, const char *importer,
                        const char *path)
 {
     t->refcount = 0;
@@ -222,7 +222,7 @@ static int track_init(struct track_t *t, const char *importer,
  * Pre: track is initialised
  */
 
-static void track_clear(struct track_t *tr)
+static void track_clear(struct track *tr)
 {
     int n;
 
@@ -240,9 +240,9 @@ static void track_clear(struct track_t *tr)
  * Return: pointer, or NULL if no such track exists
  */
 
-static struct track_t* track_get_again(const char *importer, const char *path)
+static struct track* track_get_again(const char *importer, const char *path)
 {
-    struct track_t *t;
+    struct track *t;
 
     list_for_each(t, &tracks, tracks) {
         if (t->importer == importer && t->path == path) {
@@ -260,9 +260,9 @@ static struct track_t* track_get_again(const char *importer, const char *path)
  * Return: pointer, or NULL if not enough resources
  */
 
-struct track_t* track_get_by_import(const char *importer, const char *path)
+struct track* track_get_by_import(const char *importer, const char *path)
 {
-    struct track_t *t;
+    struct track *t;
 
     t = track_get_again(importer, path);
     if (t != NULL)
@@ -290,13 +290,13 @@ struct track_t* track_get_by_import(const char *importer, const char *path)
  * Return: pointer
  */
 
-struct track_t* track_get_empty(void)
+struct track* track_get_empty(void)
 {
     empty.refcount++;
     return &empty;
 }
 
-void track_get(struct track_t *t)
+void track_get(struct track *t)
 {
     t->refcount++;
 }
@@ -305,7 +305,7 @@ void track_get(struct track_t *t)
  * Finish use of a track object
  */
 
-void track_put(struct track_t *t)
+void track_put(struct track *t)
 {
     t->refcount--;
 
@@ -331,7 +331,7 @@ void track_put(struct track_t *t)
  * Post: *pe contains 0 or 1 file descriptors
  */
 
-void track_pollfd(struct track_t *t, struct pollfd *pe)
+void track_pollfd(struct track *t, struct pollfd *pe)
 {
     assert(t->importing);
 
@@ -345,7 +345,7 @@ void track_pollfd(struct track_t *t, struct pollfd *pe)
  * Return: true if import has completed, otherwise false
  */
 
-bool track_handle(struct track_t *tr)
+bool track_handle(struct track *tr)
 {
     /* A track may be added while poll() was waiting,
      * in which case it has no return data from poll */

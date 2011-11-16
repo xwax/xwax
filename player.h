@@ -31,7 +31,7 @@ struct player {
     double sample_dt;
 
     spin lock;
-    struct track_t *track;
+    struct track *track;
 
     /* Current playback parameters */
 
@@ -51,14 +51,14 @@ struct player {
 };
 
 void player_init(struct player *pl, unsigned int sample_rate,
-                 struct track_t *track, struct timecoder *timecoder);
+                 struct track *track, struct timecoder *timecoder);
 void player_clear(struct player *pl);
 
 void player_set_timecoder(struct player *pl, struct timecoder *tc);
 void player_set_timecode_control(struct player *pl, bool on);
 bool player_toggle_timecode_control(struct player *pl);
 
-void player_set_track(struct player *pl, struct track_t *track);
+void player_set_track(struct player *pl, struct track *track);
 
 double player_get_position(struct player *pl);
 double player_get_elapsed(struct player *pl);

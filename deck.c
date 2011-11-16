@@ -78,7 +78,7 @@ void deck_clear(struct deck_t *deck)
 
 void deck_load(struct deck_t *deck, struct record_t *record)
 {
-    struct track_t *t;
+    struct track *t;
 
     t = track_get_by_import(deck->importer, record->pathname);
     if (t == NULL)

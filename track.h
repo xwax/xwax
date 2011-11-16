@@ -41,7 +41,7 @@ struct track_block_t {
         overview[TRACK_BLOCK_SAMPLES / TRACK_OVERVIEW_RES];
 };
 
-struct track_t {
+struct track {
     struct list tracks;
     unsigned int refcount;
     int rate;
@@ -69,31 +69,31 @@ struct track_t {
 
 /* Tracks are dynamically allocated and reference counted */
 
-struct track_t* track_get_by_import(const char *importer, const char *path);
-struct track_t* track_get_empty(void);
-void track_get(struct track_t *t);
-void track_put(struct track_t *t);
+struct track* track_get_by_import(const char *importer, const char *path);
+struct track* track_get_empty(void);
+void track_get(struct track *t);
+void track_put(struct track *t);
 
 /* Functions used by the import operation */
 
-void* track_access_pcm(struct track_t *tr, size_t *len);
-void track_commit(struct track_t *tr, size_t len);
+void* track_access_pcm(struct track *tr, size_t *len);
+void track_commit(struct track *tr, size_t len);
 
 /* Functions used by the rig and main thread */
 
-void track_pollfd(struct track_t *tr, struct pollfd *pe);
-bool track_handle(struct track_t *tr);
+void track_pollfd(struct track *tr, struct pollfd *pe);
+bool track_handle(struct track *tr);
 
 /* Return true if the track importer is running, otherwise false */
 
-static inline bool track_is_importing(struct track_t *tr)
+static inline bool track_is_importing(struct track *tr)
 {
     return tr->importing;
 }
 
 /* Return the pseudo-PPM meter value for the given sample */
 
-static inline unsigned char track_get_ppm(struct track_t *tr, int s)
+static inline unsigned char track_get_ppm(struct track *tr, int s)
 {
     struct track_block_t *b;
     b = tr->block[s / TRACK_BLOCK_SAMPLES];
@@ -102,7 +102,7 @@ static inline unsigned char track_get_ppm(struct track_t *tr, int s)
 
 /* Return the overview meter value for the given sample */
 
-static inline unsigned char track_get_overview(struct track_t *tr, int s)
+static inline unsigned char track_get_overview(struct track *tr, int s)
 {
     struct track_block_t *b;
     b = tr->block[s / TRACK_BLOCK_SAMPLES];
@@ -111,7 +111,7 @@ static inline unsigned char track_get_overview(struct track_t *tr, int s)
 
 /* Return a pointer to (not value of) the sample data for each channel */
 
-static inline signed short* track_get_sample(struct track_t *tr, int s)
+static inline signed short* track_get_sample(struct track *tr, int s)
 {
     struct track_block_t *b;
     b = tr->block[s / TRACK_BLOCK_SAMPLES];

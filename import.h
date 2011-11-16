@@ -31,10 +31,10 @@ struct import_t {
     int fd;
     pid_t pid;
     struct pollfd *pe;
-    struct track_t *track;
+    struct track *track;
 };
 
-int import_start(struct import_t *im, struct track_t *track,
+int import_start(struct import_t *im, struct track *track,
                  const char *cmd, const char *path);
 void import_pollfd(struct import_t *im, struct pollfd *pe);
 int import_handle(struct import_t *im);
