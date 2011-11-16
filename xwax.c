@@ -104,7 +104,7 @@ int main(int argc, char *argv[])
     double speed;
     struct timecode_def *timecode;
 
-    struct deck_t deck[3];
+    struct deck deck[3];
     struct rt_t rt;
     struct interface_t iface;
     struct library library;
@@ -253,7 +253,7 @@ int main(int argc, char *argv[])
 		  !strcmp(argv[0], "-j"))
 	{
             unsigned int sample_rate;
-            struct deck_t *ld;
+            struct deck *ld;
             struct device *device;
             struct timecoder *timecoder;
 

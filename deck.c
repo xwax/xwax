@@ -41,7 +41,7 @@ static const struct record no_record = {
  * Pre: deck->device, deck->timecoder, deck->importer are valid
  */
 
-int deck_init(struct deck_t *deck, struct rt_t *rt)
+int deck_init(struct deck *deck, struct rt_t *rt)
 {
     unsigned int sample_rate;
 
@@ -64,7 +64,7 @@ int deck_init(struct deck_t *deck, struct rt_t *rt)
     return 0;
 }
 
-void deck_clear(struct deck_t *deck)
+void deck_clear(struct deck *deck)
 {
     /* FIXME: remove from rig and rt */
     player_clear(&deck->player);
@@ -76,7 +76,7 @@ void deck_clear(struct deck_t *deck)
  * Load a record from the library to a deck
  */
 
-void deck_load(struct deck_t *deck, struct record *record)
+void deck_load(struct deck *deck, struct record *record)
 {
     struct track *t;
 

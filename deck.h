@@ -26,7 +26,7 @@
 #include "realtime.h"
 #include "timecoder.h"
 
-struct deck_t {
+struct deck {
     struct device device;
     struct timecoder timecoder;
     const char *importer;
@@ -35,9 +35,9 @@ struct deck_t {
     const struct record *record;
 };
 
-int deck_init(struct deck_t *deck, struct rt_t *rt);
-void deck_clear(struct deck_t *deck);
+int deck_init(struct deck *deck, struct rt_t *rt);
+void deck_clear(struct deck *deck);
 
-void deck_load(struct deck_t *deck, struct record *record);
+void deck_load(struct deck *deck, struct record *record);
 
 #endif

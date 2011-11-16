@@ -828,7 +828,7 @@ static void draw_meters(SDL_Surface *surface, const struct rect_t *rect,
  * Draw the current playback status -- clocks, spinner and scope
  */
 
-static void draw_deck_top(SDL_Surface *surface, const struct rect_t *rect,
+static void draw_deckop(SDL_Surface *surface, const struct rect_t *rect,
                           struct player *pl, struct track *track)
 {
     struct rect_t clocks, left, right, spinner, scope;
@@ -897,7 +897,7 @@ static void draw_deck_status(SDL_Surface *surface,
  */
 
 static void draw_deck(SDL_Surface *surface, const struct rect_t *rect,
-                      struct deck_t *deck, int meter_scale)
+                      struct deck *deck, int meter_scale)
 {
     int position;
     struct rect_t track, top, meters, status, rest, lower;
@@ -919,7 +919,7 @@ static void draw_deck(SDL_Surface *surface, const struct rect_t *rect,
     if (lower.h < 64)
         lower = rest;
     else
-        draw_deck_top(surface, &top, pl, t);
+        draw_deckop(surface, &top, pl, t);
 
     split_bottom(&lower, &meters, &status, FONT_SPACE, SPACER);
     if (meters.h < 64)
@@ -935,7 +935,7 @@ static void draw_deck(SDL_Surface *surface, const struct rect_t *rect,
  */
 
 static void draw_decks(SDL_Surface *surface, const struct rect_t *rect,
-                       struct deck_t deck[], size_t ndecks, int meter_scale)
+                       struct deck deck[], size_t ndecks, int meter_scale)
 {
     int d, deck_width;
     struct rect_t single;
@@ -1282,7 +1282,7 @@ static bool handle_key(struct interface_t *in, struct selector *sel,
 
         if (d < in->ndeck) {
             int func;
-            struct deck_t *deck;
+            struct deck *deck;
             struct player *pl;
             struct record *re;
             struct timecoder *tc;
@@ -1513,7 +1513,7 @@ static void* launch(void *p)
  * error
  */
 
-int interface_start(struct interface_t *in, struct deck_t deck[], size_t ndeck,
+int interface_start(struct interface_t *in, struct deck deck[], size_t ndeck,
                     struct library *lib)
 {
     size_t n;
