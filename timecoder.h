@@ -42,7 +42,7 @@ struct timecode_def_t {
     struct lut_t lut;
 };
 
-struct timecoder_channel_t {
+struct timecoder_channel {
     int positive, /* wave is in positive part of cycle */
 	swapped; /* wave recently swapped polarity */
     signed int zero;
@@ -60,7 +60,7 @@ struct timecoder {
     /* Pitch information */
 
     bool forwards;
-    struct timecoder_channel_t primary, secondary;
+    struct timecoder_channel primary, secondary;
     struct pitch_t pitch;
 
     /* Numerical timecode */

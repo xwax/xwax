@@ -271,7 +271,7 @@ void timecoder_free_lookup(void) {
  * Initialise filter values for one channel
  */
 
-static void init_channel(struct timecoder_channel_t *ch)
+static void init_channel(struct timecoder_channel *ch)
 {
     ch->positive = 0;
     ch->zero = 0;
@@ -359,7 +359,7 @@ void timecoder_monitor_clear(struct timecoder *tc)
  * Update channel information with axis-crossings
  */
 
-static void detect_zero_crossing(struct timecoder_channel_t *ch,
+static void detect_zero_crossing(struct timecoder_channel *ch,
                                  signed int v, double alpha)
 {
     ch->crossing_ticker++;
