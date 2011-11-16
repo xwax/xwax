@@ -102,7 +102,7 @@ int main(int argc, char *argv[])
     int r, n, decks;
     const char *importer, *scanner;
     double speed;
-    struct timecode_def_t *timecode;
+    struct timecode_def *timecode;
 
     struct deck_t deck[3];
     struct rt_t rt;

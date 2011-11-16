@@ -49,7 +49,7 @@
 #define SWITCH_PRIMARY 0x2 /* use left channel (not right) as primary */
 #define SWITCH_POLARITY 0x4 /* read bit values in negative (not positive) */
 
-static struct timecode_def_t timecodes[] = {
+static struct timecode_def timecodes[] = {
     {
         .name = "serato_2a",
         .desc = "Serato 2nd Ed., side A",
@@ -160,7 +160,7 @@ static inline bits_t lfsr(bits_t code, bits_t taps)
  * are generated at the least-significant bit.
  */
 
-static inline bits_t fwd(bits_t current, struct timecode_def_t *def)
+static inline bits_t fwd(bits_t current, struct timecode_def *def)
 {
     bits_t l;
 
@@ -174,7 +174,7 @@ static inline bits_t fwd(bits_t current, struct timecode_def_t *def)
  * Linear Feedback Shift Register in the reverse direction
  */
 
-static inline bits_t rev(bits_t current, struct timecode_def_t *def)
+static inline bits_t rev(bits_t current, struct timecode_def *def)
 {
     bits_t l, mask;
 
@@ -191,7 +191,7 @@ static inline bits_t rev(bits_t current, struct timecode_def_t *def)
  * Return: -1 if not enough memory could be allocated, otherwise 0
  */
 
-static int build_lookup(struct timecode_def_t *def)
+static int build_lookup(struct timecode_def *def)
 {
     unsigned int n;
     bits_t current, last;
@@ -227,9 +227,9 @@ static int build_lookup(struct timecode_def_t *def)
  * Return: pointer to timecode definition, or NULL if not found
  */
 
-struct timecode_def_t* timecoder_find_definition(const char *name)
+struct timecode_def* timecoder_find_definition(const char *name)
 {
-    struct timecode_def_t *def, *end;
+    struct timecode_def *def, *end;
 
     def = &timecodes[0];
     end = def + ARRAY_SIZE(timecodes);
@@ -255,7 +255,7 @@ struct timecode_def_t* timecoder_find_definition(const char *name)
  */
 
 void timecoder_free_lookup(void) {
-    struct timecode_def_t *def, *end;
+    struct timecode_def *def, *end;
 
     def = &timecodes[0];
     end = def + ARRAY_SIZE(timecodes);
@@ -283,7 +283,7 @@ static void init_channel(struct timecoder_channel *ch)
  * Return: -1 if the timecoder could not be initialised, otherwise 0
  */
 
-void timecoder_init(struct timecoder *tc, struct timecode_def_t *def,
+void timecoder_init(struct timecoder *tc, struct timecode_def *def,
                     double speed, unsigned int sample_rate)
 {
     assert(def != NULL);
@@ -529,7 +529,7 @@ static void process_sample(struct timecoder *tc,
  * Return: pointer to timecode definition
  */
 
-static struct timecode_def_t* next_definition(struct timecode_def_t *def)
+static struct timecode_def* next_definition(struct timecode_def *def)
 {
     assert(def != NULL);
 

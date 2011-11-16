@@ -29,7 +29,7 @@
 
 typedef unsigned int bits_t;
 
-struct timecode_def_t {
+struct timecode_def {
     char *name, *desc;
     int bits, /* number of bits in string */
         resolution, /* wave cycles per second */
@@ -50,7 +50,7 @@ struct timecoder_channel {
 };
 
 struct timecoder {
-    struct timecode_def_t *def;
+    struct timecode_def *def;
     double speed;
 
     /* Precomputed values */
@@ -77,10 +77,10 @@ struct timecoder {
     int mon_size, mon_counter;
 };
 
-struct timecode_def_t* timecoder_find_definition(const char *name);
+struct timecode_def* timecoder_find_definition(const char *name);
 void timecoder_free_lookup(void);
 
-void timecoder_init(struct timecoder *tc, struct timecode_def_t *def,
+void timecoder_init(struct timecoder *tc, struct timecode_def *def,
                     double speed, unsigned int sample_rate);
 void timecoder_clear(struct timecoder *tc);
 
@@ -95,7 +95,7 @@ signed int timecoder_get_position(struct timecoder *tc, double *when);
  * The timecode definition currently in use by this decoder
  */
 
-static inline struct timecode_def_t* timecoder_get_definition(struct timecoder *tc)
+static inline struct timecode_def* timecoder_get_definition(struct timecoder *tc)
 {
     return tc->def;
 }
