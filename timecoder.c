@@ -283,7 +283,7 @@ static void init_channel(struct timecoder_channel_t *ch)
  * Return: -1 if the timecoder could not be initialised, otherwise 0
  */
 
-void timecoder_init(struct timecoder_t *tc, struct timecode_def_t *def,
+void timecoder_init(struct timecoder *tc, struct timecode_def_t *def,
                     double speed, unsigned int sample_rate)
 {
     assert(def != NULL);
@@ -316,7 +316,7 @@ void timecoder_init(struct timecoder_t *tc, struct timecode_def_t *def,
  * Clear resources associated with a timecode decoder
  */
 
-void timecoder_clear(struct timecoder_t *tc)
+void timecoder_clear(struct timecoder *tc)
 {
     assert(tc->mon == NULL);
 }
@@ -330,7 +330,7 @@ void timecoder_clear(struct timecoder_t *tc)
  * Return: -1 if not enough memory could be allocated, otherwise 0
  */
 
-int timecoder_monitor_init(struct timecoder_t *tc, int size)
+int timecoder_monitor_init(struct timecoder *tc, int size)
 {
     assert(tc->mon == NULL);
     tc->mon_size = size;
@@ -348,7 +348,7 @@ int timecoder_monitor_init(struct timecoder_t *tc, int size)
  * Clear the monitor on the given timecoder
  */
 
-void timecoder_monitor_clear(struct timecoder_t *tc)
+void timecoder_monitor_clear(struct timecoder *tc)
 {
     assert(tc->mon != NULL);
     free(tc->mon);
@@ -382,7 +382,7 @@ static void detect_zero_crossing(struct timecoder_channel_t *ch,
  * Plot the given sample value in the x-y monitor
  */
 
-static void update_monitor(struct timecoder_t *tc, signed int x, signed int y)
+static void update_monitor(struct timecoder *tc, signed int x, signed int y)
 {
     int px, py, p;
     double v, w;
@@ -415,7 +415,7 @@ static void update_monitor(struct timecoder_t *tc, signed int x, signed int y)
  * Extract the bitstream from the sample value
  */
 
-static void process_bitstream(struct timecoder_t *tc, signed int m)
+static void process_bitstream(struct timecoder *tc, signed int m)
 {
     bits_t b;
 
@@ -466,7 +466,7 @@ static void process_bitstream(struct timecoder_t *tc, signed int m)
  * Process a single sample from the incoming audio
  */
 
-static void process_sample(struct timecoder_t *tc,
+static void process_sample(struct timecoder *tc,
 			   signed int primary, signed int secondary)
 {
     signed int m; /* pcm sample, sum of two shorts */
@@ -548,7 +548,7 @@ static struct timecode_def_t* next_definition(struct timecode_def_t *def)
  * Change the timecode definition to the next available
  */
 
-void timecoder_cycle_definition(struct timecoder_t *tc)
+void timecoder_cycle_definition(struct timecoder *tc)
 {
     tc->def = next_definition(tc->def);
     tc->valid_counter = 0;
@@ -559,7 +559,7 @@ void timecoder_cycle_definition(struct timecoder_t *tc)
  * Submit and decode a block of PCM audio data to the timecode decoder
  */
 
-void timecoder_submit(struct timecoder_t *tc, signed short *pcm, size_t npcm)
+void timecoder_submit(struct timecoder *tc, signed short *pcm, size_t npcm)
 {
     while (npcm--) {
 	signed int primary, secondary;
@@ -591,7 +591,7 @@ void timecoder_submit(struct timecoder_t *tc, signed short *pcm, size_t npcm)
  * Post: if when != -1, *when contains the elapsed time in seconds
  */
 
-signed int timecoder_get_position(struct timecoder_t *tc, double *when)
+signed int timecoder_get_position(struct timecoder *tc, double *when)
 {
     signed int r;
 

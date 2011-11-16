@@ -522,7 +522,7 @@ static void draw_clock(SDL_Surface *surface, const struct rect_t *rect, int t,
  */
 
 static void draw_scope(SDL_Surface *surface, const struct rect_t *rect,
-                       struct timecoder_t *tc)
+                       struct timecoder *tc)
 {
     int r, c, v, mid;
     Uint8 *p;
@@ -1285,7 +1285,7 @@ static bool handle_key(struct interface_t *in, struct selector_t *sel,
             struct deck_t *deck;
             struct player_t *pl;
             struct record_t *re;
-            struct timecoder_t *tc;
+            struct timecoder *tc;
 
             func = (key - SDLK_F1) % 4;
 

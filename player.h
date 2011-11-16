@@ -45,16 +45,16 @@ struct player_t {
 
     /* Timecode control */
 
-    struct timecoder_t *timecoder;
+    struct timecoder *timecoder;
     bool timecode_control,
         recalibrate; /* re-sync offset at next opportunity */
 };
 
 void player_init(struct player_t *pl, unsigned int sample_rate,
-                 struct track_t *track, struct timecoder_t *timecoder);
+                 struct track_t *track, struct timecoder *timecoder);
 void player_clear(struct player_t *pl);
 
-void player_set_timecoder(struct player_t *pl, struct timecoder_t *tc);
+void player_set_timecoder(struct player_t *pl, struct timecoder *tc);
 void player_set_timecode_control(struct player_t *pl, bool on);
 bool player_toggle_timecode_control(struct player_t *pl);
 

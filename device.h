@@ -29,7 +29,7 @@ struct device {
     void *local;
     struct device_ops *ops;
 
-    struct timecoder_t *timecoder;
+    struct timecoder *timecoder;
     struct player_t *player;
 };
 
@@ -44,7 +44,7 @@ struct device_ops {
     void (*clear)(struct device *dv);
 };
 
-void device_connect_timecoder(struct device *dv, struct timecoder_t *tc);
+void device_connect_timecoder(struct device *dv, struct timecoder *tc);
 void device_connect_player(struct device *dv, struct player_t *pl);
 
 unsigned int device_sample_rate(struct device *dv);

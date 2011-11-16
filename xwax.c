@@ -255,7 +255,7 @@ int main(int argc, char *argv[])
             unsigned int sample_rate;
             struct deck_t *ld;
             struct device *device;
-            struct timecoder_t *timecoder;
+            struct timecoder *timecoder;
 
             /* Create a deck */
 

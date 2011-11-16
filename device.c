@@ -24,7 +24,7 @@
 #include "player.h"
 #include "timecoder.h"
 
-void device_connect_timecoder(struct device *dv, struct timecoder_t *tc)
+void device_connect_timecoder(struct device *dv, struct timecoder *tc)
 {
     dv->timecoder = tc;
 }

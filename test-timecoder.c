@@ -34,7 +34,7 @@ int main(int argc, char *argv[])
 {
     unsigned int s;
     signed short sample[STEREO];
-    struct timecoder_t tc;
+    struct timecoder tc;
 
     if(timecoder_init(&tc, "serato_2a", 1.0, RATE) != 0)
         return -1;

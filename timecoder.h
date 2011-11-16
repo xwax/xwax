@@ -49,7 +49,7 @@ struct timecoder_channel_t {
     unsigned int crossing_ticker; /* samples since we last crossed zero */
 };
 
-struct timecoder_t {
+struct timecoder {
     struct timecode_def_t *def;
     double speed;
 
@@ -80,22 +80,22 @@ struct timecoder_t {
 struct timecode_def_t* timecoder_find_definition(const char *name);
 void timecoder_free_lookup(void);
 
-void timecoder_init(struct timecoder_t *tc, struct timecode_def_t *def,
+void timecoder_init(struct timecoder *tc, struct timecode_def_t *def,
                     double speed, unsigned int sample_rate);
-void timecoder_clear(struct timecoder_t *tc);
+void timecoder_clear(struct timecoder *tc);
 
-int timecoder_monitor_init(struct timecoder_t *tc, int size);
-void timecoder_monitor_clear(struct timecoder_t *tc);
+int timecoder_monitor_init(struct timecoder *tc, int size);
+void timecoder_monitor_clear(struct timecoder *tc);
 
-void timecoder_cycle_definition(struct timecoder_t *tc);
-void timecoder_submit(struct timecoder_t *tc, signed short *pcm, size_t npcm);
-signed int timecoder_get_position(struct timecoder_t *tc, double *when);
+void timecoder_cycle_definition(struct timecoder *tc);
+void timecoder_submit(struct timecoder *tc, signed short *pcm, size_t npcm);
+signed int timecoder_get_position(struct timecoder *tc, double *when);
 
 /*
  * The timecode definition currently in use by this decoder
  */
 
-static inline struct timecode_def_t* timecoder_get_definition(struct timecoder_t *tc)
+static inline struct timecode_def_t* timecoder_get_definition(struct timecoder *tc)
 {
     return tc->def;
 }
@@ -104,7 +104,7 @@ static inline struct timecode_def_t* timecoder_get_definition(struct timecoder_t
  * Return the pitch relative to reference playback speed
  */
 
-static inline double timecoder_get_pitch(struct timecoder_t *tc)
+static inline double timecoder_get_pitch(struct timecoder *tc)
 {
     return pitch_current(&tc->pitch) / tc->speed;
 }
@@ -115,7 +115,7 @@ static inline double timecoder_get_pitch(struct timecoder_t *tc)
  * label of the record.
  */
 
-static inline unsigned int timecoder_get_safe(struct timecoder_t *tc)
+static inline unsigned int timecoder_get_safe(struct timecoder *tc)
 {
     return tc->def->safe;
 }
@@ -125,7 +125,7 @@ static inline unsigned int timecoder_get_safe(struct timecoder_t *tc)
  * second at reference playback speed
  */
 
-static inline double timecoder_get_resolution(struct timecoder_t *tc)
+static inline double timecoder_get_resolution(struct timecoder *tc)
 {
     return tc->def->resolution * tc->speed;
 }
@@ -135,7 +135,7 @@ static inline double timecoder_get_resolution(struct timecoder_t *tc)
  * used only for visual display
  */
 
-static inline double timecoder_revs_per_sec(struct timecoder_t *tc)
+static inline double timecoder_revs_per_sec(struct timecoder *tc)
 {
     return (33.0 + 1.0 / 3) * tc->speed / 60;
 }

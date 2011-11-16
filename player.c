@@ -175,7 +175,7 @@ static double build_silence(signed short *pcm, unsigned samples,
  * Change the timecoder used by this playback
  */
 
-void player_set_timecoder(struct player_t *pl, struct timecoder_t *tc)
+void player_set_timecoder(struct player_t *pl, struct timecoder *tc)
 {
     assert(tc != NULL);
     pl->timecoder = tc;
@@ -188,7 +188,7 @@ void player_set_timecoder(struct player_t *pl, struct timecoder_t *tc)
  */
 
 void player_init(struct player_t *pl, unsigned int sample_rate,
-                 struct track_t *track, struct timecoder_t *tc)
+                 struct track_t *track, struct timecoder *tc)
 {
     assert(track != NULL);
     assert(sample_rate != 0);
