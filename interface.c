@@ -144,7 +144,7 @@ static SDL_Color background_col = {0, 0, 0, 255},
 
 static int spinner_angle[SPINNER_SIZE * SPINNER_SIZE];
 
-struct rect_t {
+struct rect {
     signed short x, y, w, h;
 };
 
@@ -155,8 +155,8 @@ struct rect_t {
  * Post: upper and lower are set
  */
 
-static void split_top(const struct rect_t *source, struct rect_t *upper,
-                      struct rect_t *lower, int v, int space)
+static void split_top(const struct rect *source, struct rect *upper,
+                      struct rect *lower, int v, int space)
 {
     int u;
 
@@ -181,8 +181,8 @@ static void split_top(const struct rect_t *source, struct rect_t *upper,
  * As above, x pixels from the bottom
  */
 
-static void split_bottom(const struct rect_t *source, struct rect_t *upper,
-                         struct rect_t *lower, int v, int space)
+static void split_bottom(const struct rect *source, struct rect *upper,
+                         struct rect *lower, int v, int space)
 {
     split_top(source, upper, lower, source->h - v - space, space);
 }
@@ -191,8 +191,8 @@ static void split_bottom(const struct rect_t *source, struct rect_t *upper,
  * As above, v pixels from the left
  */
 
-static void split_left(const struct rect_t *source, struct rect_t *left,
-                       struct rect_t *right, int v, int space)
+static void split_left(const struct rect *source, struct rect *left,
+                       struct rect *right, int v, int space)
 {
     int u;
 
@@ -217,8 +217,8 @@ static void split_left(const struct rect_t *source, struct rect_t *left,
  * As above, v pixels from the right
  */
 
-static void split_right(const struct rect_t *source, struct rect_t *left,
-                        struct rect_t *right, int v, int space)
+static void split_right(const struct rect *source, struct rect *left,
+                        struct rect *right, int v, int space)
 {
     split_left(source, left, right, source->w - v - space, space);
 }
@@ -466,7 +466,7 @@ static int draw_font(SDL_Surface *sf, int x, int y, int w, int h,
  * Return: width of text drawn
  */
 
-static int draw_font_rect(SDL_Surface *surface, const struct rect_t *rect,
+static int draw_font_rect(SDL_Surface *surface, const struct rect *rect,
                           const char *buf, TTF_Font *font,
                           SDL_Color fg, SDL_Color bg)
 {
@@ -478,10 +478,10 @@ static int draw_font_rect(SDL_Surface *surface, const struct rect_t *rect,
  * Draw the record information in the deck
  */
 
-static void draw_record(SDL_Surface *surface, const struct rect_t *rect,
+static void draw_record(SDL_Surface *surface, const struct rect *rect,
                         const struct record *record)
 {
-    struct rect_t top, bottom;
+    struct rect top, bottom;
 
     split_top(rect, &top, &bottom, FONT_SPACE, 0);
 
@@ -495,13 +495,13 @@ static void draw_record(SDL_Surface *surface, const struct rect_t *rect,
  * Draw a single time in milliseconds in hours:minutes.seconds format
  */
 
-static void draw_clock(SDL_Surface *surface, const struct rect_t *rect, int t,
+static void draw_clock(SDL_Surface *surface, const struct rect *rect, int t,
                        SDL_Color col)
 {
     char hms[8], deci[8];
     short int v;
     int offset;
-    struct rect_t sr;
+    struct rect sr;
 
     time_to_clock(hms, deci, t);
 
@@ -521,7 +521,7 @@ static void draw_clock(SDL_Surface *surface, const struct rect_t *rect, int t,
  * Draw the visual monitor of the input audio to the timecoder
  */
 
-static void draw_scope(SDL_Surface *surface, const struct rect_t *rect,
+static void draw_scope(SDL_Surface *surface, const struct rect *rect,
                        struct timecoder *tc)
 {
     int r, c, v, mid;
@@ -554,7 +554,7 @@ static void draw_scope(SDL_Surface *surface, const struct rect_t *rect,
  * matches the physical rotation of the vinyl record.
  */
 
-static void draw_spinner(SDL_Surface *surface, const struct rect_t *rect,
+static void draw_spinner(SDL_Surface *surface, const struct rect *rect,
                          struct player *pl)
 {
     int x, y, r, c, rangle, pangle;
@@ -610,11 +610,11 @@ static void draw_spinner(SDL_Surface *surface, const struct rect_t *rect,
  * Draw the clocks which show time elapsed and time remaining
  */
 
-static void draw_deck_clocks(SDL_Surface *surface, const struct rect_t *rect,
+static void draw_deck_clocks(SDL_Surface *surface, const struct rect *rect,
                              struct player *pl, struct track *track)
 {
     int elapse, remain;
-    struct rect_t upper, lower;
+    struct rect upper, lower;
     SDL_Color col;
 
     split_top(rect, &upper, &lower, CLOCK_FONT_SIZE, 0);
@@ -650,7 +650,7 @@ static void draw_deck_clocks(SDL_Surface *surface, const struct rect_t *rect,
  * of the track
  */
 
-static void draw_overview(SDL_Surface *surface, const struct rect_t *rect,
+static void draw_overview(SDL_Surface *surface, const struct rect *rect,
                           struct track *tr, int position)
 {
     int x, y, w, h, r, c, sp, fade, bytes_per_pixel, pitch, height,
@@ -738,7 +738,7 @@ static void draw_overview(SDL_Surface *surface, const struct rect_t *rect,
  * 'scale'
  */
 
-static void draw_closeup(SDL_Surface *surface, const struct rect_t *rect,
+static void draw_closeup(SDL_Surface *surface, const struct rect *rect,
                          struct track *tr, int position, int scale)
 {
     int x, y, w, h, c;
@@ -809,10 +809,10 @@ static void draw_closeup(SDL_Surface *surface, const struct rect_t *rect,
  * Draw the audio meters for a deck
  */
 
-static void draw_meters(SDL_Surface *surface, const struct rect_t *rect,
+static void draw_meters(SDL_Surface *surface, const struct rect *rect,
                         struct track *tr, int position, int scale)
 {
-    struct rect_t overview, closeup;
+    struct rect overview, closeup;
 
     split_top(rect, &overview, &closeup, OVERVIEW_HEIGHT, SPACER);
 
@@ -828,10 +828,10 @@ static void draw_meters(SDL_Surface *surface, const struct rect_t *rect,
  * Draw the current playback status -- clocks, spinner and scope
  */
 
-static void draw_deckop(SDL_Surface *surface, const struct rect_t *rect,
+static void draw_deckop(SDL_Surface *surface, const struct rect *rect,
                           struct player *pl, struct track *track)
 {
-    struct rect_t clocks, left, right, spinner, scope;
+    struct rect clocks, left, right, spinner, scope;
 
     split_left(rect, &clocks, &right, CLOCKS_WIDTH, SPACER);
 
@@ -864,7 +864,7 @@ static void draw_deckop(SDL_Surface *surface, const struct rect_t *rect,
  */
 
 static void draw_deck_status(SDL_Surface *surface,
-                                 const struct rect_t *rect,
+                                 const struct rect *rect,
                                  struct player *pl)
 {
     char buf[128], *c;
@@ -896,11 +896,11 @@ static void draw_deck_status(SDL_Surface *surface,
  * Draw a single deck
  */
 
-static void draw_deck(SDL_Surface *surface, const struct rect_t *rect,
+static void draw_deck(SDL_Surface *surface, const struct rect *rect,
                       struct deck *deck, int meter_scale)
 {
     int position;
-    struct rect_t track, top, meters, status, rest, lower;
+    struct rect track, top, meters, status, rest, lower;
     struct player *pl;
     struct track *t;
 
@@ -934,11 +934,11 @@ static void draw_deck(SDL_Surface *surface, const struct rect_t *rect,
  * Draw all the decks in the system left to right
  */
 
-static void draw_decks(SDL_Surface *surface, const struct rect_t *rect,
+static void draw_decks(SDL_Surface *surface, const struct rect *rect,
                        struct deck deck[], size_t ndecks, int meter_scale)
 {
     int d, deck_width;
-    struct rect_t single;
+    struct rect single;
 
     deck_width = (rect->w - BORDER * (ndecks - 1)) / ndecks;
 
@@ -955,7 +955,7 @@ static void draw_decks(SDL_Surface *surface, const struct rect_t *rect,
  * Draw the status bar
  */
 
-static void draw_status(SDL_Surface *sf, const struct rect_t *rect,
+static void draw_status(SDL_Surface *sf, const struct rect *rect,
                         const char *text)
 {
     draw_font_rect(sf, rect, text, detail_font, detail_col, background_col);
@@ -965,14 +965,14 @@ static void draw_status(SDL_Surface *sf, const struct rect_t *rect,
  * Draw the search field which the user types into
  */
 
-static void draw_search(SDL_Surface *surface, const struct rect_t *rect,
+static void draw_search(SDL_Surface *surface, const struct rect *rect,
                         struct selector *sel)
 {
     int s;
     const char *buf;
     char cm[32];
     SDL_Rect cursor;
-    struct rect_t rtext;
+    struct rect rtext;
 
     split_left(rect, NULL, &rtext, SCROLLBAR_SIZE, SPACER);
 
@@ -1008,7 +1008,7 @@ static void draw_search(SDL_Surface *surface, const struct rect_t *rect,
  * given number of entries
  */
 
-static void draw_scroll_bar(SDL_Surface *surface, const struct rect_t *rect,
+static void draw_scroll_bar(SDL_Surface *surface, const struct rect *rect,
                             struct scroll *scroll)
 {
     SDL_Rect box;
@@ -1040,11 +1040,11 @@ static void draw_scroll_bar(SDL_Surface *surface, const struct rect_t *rect,
  * Return: the number of lines which fit on the display.
  */
 
-static void draw_crates(SDL_Surface *surface, const struct rect_t *rect,
+static void draw_crates(SDL_Surface *surface, const struct rect *rect,
                         struct selector *sel)
 {
     int x, y, w, h, r, ox, n;
-    struct rect_t rs;
+    struct rect rs;
     SDL_Rect box;
     SDL_Color col_bg, col_text;
 
@@ -1102,11 +1102,11 @@ static void draw_crates(SDL_Surface *surface, const struct rect_t *rect,
  * Return: the number of lines which fit on the display
  */
 
-static void draw_records(SDL_Surface *surface, const struct rect_t *rect,
+static void draw_records(SDL_Surface *surface, const struct rect *rect,
                          struct selector *sel)
 {
     int x, y, w, h, n, r, ox;
-    struct rect_t rs;
+    struct rect rs;
     struct record *re;
     SDL_Rect box;
     SDL_Color col;
@@ -1170,11 +1170,11 @@ static void draw_records(SDL_Surface *surface, const struct rect_t *rect,
  * results
  */
 
-static void draw_library(SDL_Surface *surface, const struct rect_t *rect,
+static void draw_library(SDL_Surface *surface, const struct rect *rect,
                          struct selector *sel)
 {
     unsigned int lines;
-    struct rect_t rsearch, rlists, rcrates, rrecords;
+    struct rect rsearch, rlists, rcrates, rrecords;
 
     split_top(rect, &rsearch, &rlists, SEARCH_HEIGHT, SPACER);
     draw_search(surface, &rsearch, sel);
@@ -1326,7 +1326,7 @@ static bool handle_key(struct interface *in, struct selector *sel,
  * Action on size change event on the main window
  */
 
-static SDL_Surface* set_size(int w, int h, struct rect_t *rect)
+static SDL_Surface* set_size(int w, int h, struct rect *rect)
 {
     SDL_Surface *surface;
 
@@ -1377,7 +1377,7 @@ static int interface_main(struct interface *in)
     SDL_TimerID timer;
     SDL_Surface *surface;
 
-    struct rect_t rworkspace, rplayers, rlibrary, rstatus, rtmp;
+    struct rect rworkspace, rplayers, rlibrary, rstatus, rtmp;
 
     meter_scale = DEFAULT_METER_SCALE;
 
