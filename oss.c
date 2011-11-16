@@ -31,7 +31,7 @@
 #define FRAME 32 /* maximum read size */
 
 
-struct oss_t {
+struct oss {
     int fd;
     struct pollfd *pe;
     unsigned int rate;
@@ -41,7 +41,7 @@ struct oss_t {
 static void clear(struct device *dv)
 {
     int r;
-    struct oss_t *oss = (struct oss_t*)dv->local;
+    struct oss *oss = (struct oss*)dv->local;
 
     r = close(oss->fd);
     if (r == -1) {
@@ -101,7 +101,7 @@ static int handle(struct device *dv)
 {
     signed short pcm[FRAME * DEVICE_CHANNELS];
     int samples;
-    struct oss_t *oss = (struct oss_t*)dv->local;
+    struct oss *oss = (struct oss*)dv->local;
 
     /* Check input buffer for recording */
 
@@ -127,7 +127,7 @@ static int handle(struct device *dv)
 
 static ssize_t pollfds(struct device *dv, struct pollfd *pe, size_t z)
 {
-    struct oss_t *oss = (struct oss_t*)dv->local;
+    struct oss *oss = (struct oss*)dv->local;
 
     if (z < 1)
         return -1;
@@ -142,7 +142,7 @@ static ssize_t pollfds(struct device *dv, struct pollfd *pe, size_t z)
 
 static unsigned int sample_rate(struct device *dv)
 {
-    struct oss_t *oss = (struct oss_t*)dv->local;
+    struct oss *oss = (struct oss*)dv->local;
 
     return oss->rate;
 }
@@ -160,7 +160,7 @@ int oss_init(struct device *dv, const char *filename, unsigned int rate,
 	     unsigned short buffers, unsigned short fragment)
 {
     int p, fd;
-    struct oss_t *oss;
+    struct oss *oss;
    
     fd = open(filename, O_RDWR, 0);
     if (fd == -1) {
@@ -210,7 +210,7 @@ int oss_init(struct device *dv, const char *filename, unsigned int rate,
         return -1;
     }
 
-    oss = malloc(sizeof(struct oss_t));
+    oss = malloc(sizeof(struct oss));
     if (oss == NULL) {
         perror("malloc");
         goto fail;
