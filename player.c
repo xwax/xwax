@@ -175,7 +175,7 @@ static double build_silence(signed short *pcm, unsigned samples,
  * Change the timecoder used by this playback
  */
 
-void player_set_timecoder(struct player_t *pl, struct timecoder *tc)
+void player_set_timecoder(struct player *pl, struct timecoder *tc)
 {
     assert(tc != NULL);
     pl->timecoder = tc;
@@ -187,7 +187,7 @@ void player_set_timecoder(struct player_t *pl, struct timecoder *tc)
  * Post: player is initialised
  */
 
-void player_init(struct player_t *pl, unsigned int sample_rate,
+void player_init(struct player *pl, unsigned int sample_rate,
                  struct track_t *track, struct timecoder *tc)
 {
     assert(track != NULL);
@@ -214,7 +214,7 @@ void player_init(struct player_t *pl, unsigned int sample_rate,
  * Post: no resources are allocated by the player
  */
 
-void player_clear(struct player_t *pl)
+void player_clear(struct player *pl)
 {
     spin_clear(&pl->lock);
     track_put(pl->track);
@@ -224,7 +224,7 @@ void player_clear(struct player_t *pl)
  * Enable or disable timecode control
  */
 
-void player_set_timecode_control(struct player_t *pl, bool on)
+void player_set_timecode_control(struct player *pl, bool on)
 {
     if (on && !pl->timecode_control)
         pl->recalibrate = true;
@@ -237,7 +237,7 @@ void player_set_timecode_control(struct player_t *pl, bool on)
  * Return: the new state of timecode control
  */
 
-bool player_toggle_timecode_control(struct player_t *pl)
+bool player_toggle_timecode_control(struct player *pl)
 {
     pl->timecode_control = !pl->timecode_control;
     if (pl->timecode_control)
@@ -245,17 +245,17 @@ bool player_toggle_timecode_control(struct player_t *pl)
     return pl->timecode_control;
 }
 
-double player_get_position(struct player_t *pl)
+double player_get_position(struct player *pl)
 {
     return pl->position;
 }
 
-double player_get_elapsed(struct player_t *pl)
+double player_get_elapsed(struct player *pl)
 {
     return pl->position - pl->offset;
 }
 
-double player_get_remain(struct player_t *pl)
+double player_get_remain(struct player *pl)
 {
     return (double)pl->track->length / pl->track->rate
         + pl->offset - pl->position;
@@ -265,7 +265,7 @@ double player_get_remain(struct player_t *pl)
  * Cue to the zero position of the track
  */
 
-void player_recue(struct player_t *pl)
+void player_recue(struct player *pl)
 {
     pl->offset = pl->position;
 }
@@ -277,7 +277,7 @@ void player_recue(struct player_t *pl)
  * Post: caller does not hold reference on track
  */
 
-void player_set_track(struct player_t *pl, struct track_t *track)
+void player_set_track(struct player *pl, struct track_t *track)
 {
     struct track_t *x;
 
@@ -298,7 +298,7 @@ void player_set_track(struct player_t *pl, struct track_t *track)
  * Return: 0 on success or -1 if the timecoder is not currently valid
  */
 
-static int sync_to_timecode(struct player_t *pl)
+static int sync_to_timecode(struct player *pl)
 {
     double when, tcpos;
     signed int timecode;
@@ -332,14 +332,14 @@ static int sync_to_timecode(struct player_t *pl)
  * affecting the audio playback position
  */
 
-static void calibrate_to_timecode_position(struct player_t *pl)
+static void calibrate_to_timecode_position(struct player *pl)
 {
     assert(pl->target_position != TARGET_UNKNOWN);
     pl->offset += pl->target_position - pl->position;
     pl->position = pl->target_position;
 }
 
-void retarget(struct player_t *pl)
+void retarget(struct player *pl)
 {
     double diff;
 
@@ -381,7 +381,7 @@ void retarget(struct player_t *pl)
  * Post: buffer at pcm is filled with the given number of samples
  */
 
-void player_collect(struct player_t *pl, signed short *pcm, unsigned samples)
+void player_collect(struct player *pl, signed short *pcm, unsigned samples)
 {
     double r, pitch, dt, target_volume;
 

@@ -31,7 +31,7 @@ struct deck_t {
     struct timecoder timecoder;
     const char *importer;
 
-    struct player_t player;
+    struct player player;
     const struct record_t *record;
 };
 

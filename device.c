@@ -29,7 +29,7 @@ void device_connect_timecoder(struct device *dv, struct timecoder *tc)
     dv->timecoder = tc;
 }
 
-void device_connect_player(struct device *dv, struct player_t *pl)
+void device_connect_player(struct device *dv, struct player *pl)
 {
     dv->player = pl;
 }

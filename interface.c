@@ -555,7 +555,7 @@ static void draw_scope(SDL_Surface *surface, const struct rect_t *rect,
  */
 
 static void draw_spinner(SDL_Surface *surface, const struct rect_t *rect,
-                         struct player_t *pl)
+                         struct player *pl)
 {
     int x, y, r, c, rangle, pangle;
     double elapsed, remain, rps;
@@ -611,7 +611,7 @@ static void draw_spinner(SDL_Surface *surface, const struct rect_t *rect,
  */
 
 static void draw_deck_clocks(SDL_Surface *surface, const struct rect_t *rect,
-                             struct player_t *pl, struct track_t *track)
+                             struct player *pl, struct track_t *track)
 {
     int elapse, remain;
     struct rect_t upper, lower;
@@ -829,7 +829,7 @@ static void draw_meters(SDL_Surface *surface, const struct rect_t *rect,
  */
 
 static void draw_deck_top(SDL_Surface *surface, const struct rect_t *rect,
-                          struct player_t *pl, struct track_t *track)
+                          struct player *pl, struct track_t *track)
 {
     struct rect_t clocks, left, right, spinner, scope;
 
@@ -865,7 +865,7 @@ static void draw_deck_top(SDL_Surface *surface, const struct rect_t *rect,
 
 static void draw_deck_status(SDL_Surface *surface,
                                  const struct rect_t *rect,
-                                 struct player_t *pl)
+                                 struct player *pl)
 {
     char buf[128], *c;
     int tc;
@@ -901,7 +901,7 @@ static void draw_deck(SDL_Surface *surface, const struct rect_t *rect,
 {
     int position;
     struct rect_t track, top, meters, status, rest, lower;
-    struct player_t *pl;
+    struct player *pl;
     struct track_t *t;
 
     pl = &deck->player;
@@ -1283,7 +1283,7 @@ static bool handle_key(struct interface_t *in, struct selector_t *sel,
         if (d < in->ndeck) {
             int func;
             struct deck_t *deck;
-            struct player_t *pl;
+            struct player *pl;
             struct record_t *re;
             struct timecoder *tc;
 

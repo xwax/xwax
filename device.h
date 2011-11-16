@@ -30,7 +30,7 @@ struct device {
     struct device_ops *ops;
 
     struct timecoder *timecoder;
-    struct player_t *player;
+    struct player *player;
 };
 
 struct device_ops {
@@ -45,7 +45,7 @@ struct device_ops {
 };
 
 void device_connect_timecoder(struct device *dv, struct timecoder *tc);
-void device_connect_player(struct device *dv, struct player_t *pl);
+void device_connect_player(struct device *dv, struct player *pl);
 
 unsigned int device_sample_rate(struct device *dv);
 
