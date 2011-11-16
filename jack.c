@@ -30,7 +30,7 @@
 #define SCALE 32768
 
 
-struct jack_t {
+struct jack {
     bool started;
     jack_port_t *input_port[DEVICE_CHANNELS],
         *output_port[DEVICE_CHANNELS];
@@ -83,7 +83,7 @@ static void process_deck(struct device *dv, jack_nframes_t nframes)
     int n;
     jack_default_audio_sample_t *in[DEVICE_CHANNELS], *out[DEVICE_CHANNELS];
     jack_nframes_t remain;
-    struct jack_t *jack = (struct jack_t*)dv->local;
+    struct jack *jack = (struct jack*)dv->local;
 
     assert(dv->timecoder != NULL);
     assert(dv->player != NULL);
@@ -129,10 +129,10 @@ static void process_deck(struct device *dv, jack_nframes_t nframes)
 static int process_callback(jack_nframes_t nframes, void *local)
 {
     size_t n;
-    struct jack_t *jack;
+    struct jack *jack;
 
     for (n = 0; n < ndeck; n++) {
-        jack = (struct jack_t*)device[n]->local;
+        jack = (struct jack*)device[n]->local;
         if (jack->started)
             process_deck(device[n], nframes);
     }
@@ -195,7 +195,7 @@ static int stop_jack_client(void)
 
 /* Register the JACK ports needed for a single deck */
 
-static int register_ports(struct jack_t *jack, const char *name)
+static int register_ports(struct jack *jack, const char *name)
 {
     size_t n;
     static const char channel[] = { 'L', 'R' };
@@ -235,7 +235,7 @@ static unsigned int sample_rate(struct device *dv)
 
 static void start(struct device *dv)
 {
-    struct jack_t *jack = (struct jack_t*)dv->local;
+    struct jack *jack = (struct jack*)dv->local;
 
     assert(dv->timecoder != NULL);
     assert(dv->player != NULL);
@@ -256,7 +256,7 @@ static void start(struct device *dv)
 
 static void stop(struct device *dv)
 {
-    struct jack_t *jack = (struct jack_t*)dv->local;
+    struct jack *jack = (struct jack*)dv->local;
 
     jack->started = false;
     nstarted--;
@@ -274,7 +274,7 @@ static void stop(struct device *dv)
 
 static void clear(struct device *dv)
 {
-    struct jack_t *jack = (struct jack_t*)dv->local;
+    struct jack *jack = (struct jack*)dv->local;
     int n;
 
     /* Unregister ports */
@@ -320,7 +320,7 @@ static struct device_ops jack_ops = {
 
 int jack_init(struct device *dv, const char *name)
 {
-    struct jack_t *jack;
+    struct jack *jack;
 
     /* If this is the first JACK deck, initialise the global JACK services */
 
@@ -329,7 +329,7 @@ int jack_init(struct device *dv, const char *name)
             return -1;
     }
 
-    jack = malloc(sizeof(struct jack_t));
+    jack = malloc(sizeof(struct jack));
     if (jack == NULL) {
         perror("malloc");
         return -1;
