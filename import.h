@@ -38,7 +38,7 @@ int import_start(struct import *im, struct track *track,
                  const char *cmd, const char *path);
 void import_pollfd(struct import *im, struct pollfd *pe);
 int import_handle(struct import *im);
-void import_terminate(struct import *im);
+void importerminate(struct import *im);
 void import_stop(const struct import *im);
 
 #endif

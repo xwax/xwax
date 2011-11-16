@@ -35,7 +35,7 @@ struct deck {
     const struct record *record;
 };
 
-int deck_init(struct deck *deck, struct rt_t *rt);
+int deck_init(struct deck *deck, struct rt *rt);
 void deck_clear(struct deck *deck);
 
 void deck_load(struct deck *deck, struct record *record);

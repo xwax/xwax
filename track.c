@@ -313,7 +313,7 @@ void track_put(struct track *t)
      * only one remaining terminate it to save resources */
 
     if (t->refcount == 1 && t->importing) {
-        import_terminate(&t->import);
+        importerminate(&t->import);
         return;
     }
 

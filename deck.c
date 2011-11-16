@@ -41,7 +41,7 @@ static const struct record no_record = {
  * Pre: deck->device, deck->timecoder, deck->importer are valid
  */
 
-int deck_init(struct deck *deck, struct rt_t *rt)
+int deck_init(struct deck *deck, struct rt *rt)
 {
     unsigned int sample_rate;
 

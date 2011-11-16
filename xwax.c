@@ -105,7 +105,7 @@ int main(int argc, char *argv[])
     struct timecode_def *timecode;
 
     struct deck deck[3];
-    struct rt_t rt;
+    struct rt rt;
     struct interface iface;
     struct library library;
 

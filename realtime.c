@@ -109,7 +109,7 @@ static int raise_priority()
  * The realtime thread
  */
 
-static void rt_main(struct rt_t *rt)
+static void rt_main(struct rt *rt)
 {
     int r;
     size_t n;
@@ -146,7 +146,7 @@ static void* launch(void *p)
  * Initialise state of realtime handler
  */
 
-void rt_init(struct rt_t *rt)
+void rt_init(struct rt *rt)
 {
     rt->finished = false;
     rt->ndv = 0;
@@ -157,7 +157,7 @@ void rt_init(struct rt_t *rt)
  * Clear resources associated with the realtime handler
  */
 
-void rt_clear(struct rt_t *rt)
+void rt_clear(struct rt *rt)
 {
 }
 
@@ -168,7 +168,7 @@ void rt_clear(struct rt_t *rt)
  * Post: if 0 is returned the device is added
  */
 
-int rt_add_device(struct rt_t *rt, struct device *dv)
+int rt_add_device(struct rt *rt, struct device *dv)
 {
     ssize_t z;
 
@@ -203,7 +203,7 @@ int rt_add_device(struct rt_t *rt, struct device *dv)
  * Return: -1 on error, otherwise 0
  */
 
-int rt_start(struct rt_t *rt)
+int rt_start(struct rt *rt)
 {
     size_t n;
 
@@ -253,7 +253,7 @@ int rt_start(struct rt_t *rt)
  * Stop realtime handling, which was previously started by rt_start()
  */
 
-void rt_stop(struct rt_t *rt)
+void rt_stop(struct rt *rt)
 {
     size_t n;
 
