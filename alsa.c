@@ -41,7 +41,7 @@ struct alsa_pcm_t {
 };
 
 
-struct alsa_t {
+struct alsa {
     struct alsa_pcm_t capture, playback;
 };
 
@@ -206,7 +206,7 @@ static int pcm_revents(struct alsa_pcm_t *alsa, unsigned short *revents) {
 
 static void start(struct device *dv)
 {
-    struct alsa_t *alsa = (struct alsa_t*)dv->local;
+    struct alsa *alsa = (struct alsa*)dv->local;
 
     if (snd_pcm_start(alsa->capture.pcm) < 0)
         abort();
@@ -219,7 +219,7 @@ static void start(struct device *dv)
 static ssize_t pollfds(struct device *dv, struct pollfd *pe, size_t z)
 {
     int total, r;
-    struct alsa_t *alsa = (struct alsa_t*)dv->local;
+    struct alsa *alsa = (struct alsa*)dv->local;
 
     total = 0;
 
@@ -247,7 +247,7 @@ static ssize_t pollfds(struct device *dv, struct pollfd *pe, size_t z)
 static int playback(struct device *dv)
 {
     int r;
-    struct alsa_t *alsa = (struct alsa_t*)dv->local;
+    struct alsa *alsa = (struct alsa*)dv->local;
 
     device_collect(dv, alsa->playback.buf, alsa->playback.period);
 
@@ -271,7 +271,7 @@ static int playback(struct device *dv)
 static int capture(struct device *dv)
 {
     int r;
-    struct alsa_t *alsa = (struct alsa_t*)dv->local;
+    struct alsa *alsa = (struct alsa*)dv->local;
 
     r = snd_pcm_readi(alsa->capture.pcm, alsa->capture.buf,
                       alsa->capture.period);
@@ -296,7 +296,7 @@ static int handle(struct device *dv)
 {
     int r;
     unsigned short revents;
-    struct alsa_t *alsa = (struct alsa_t*)dv->local;
+    struct alsa *alsa = (struct alsa*)dv->local;
 
     /* Check input buffer for timecode capture */
     
@@ -365,7 +365,7 @@ static int handle(struct device *dv)
 
 static unsigned int sample_rate(struct device *dv)
 {
-    struct alsa_t *alsa = (struct alsa_t*)dv->local;
+    struct alsa *alsa = (struct alsa*)dv->local;
 
     return alsa->capture.rate;
 }
@@ -375,7 +375,7 @@ static unsigned int sample_rate(struct device *dv)
 
 static void clear(struct device *dv)
 {
-    struct alsa_t *alsa = (struct alsa_t*)dv->local;
+    struct alsa *alsa = (struct alsa*)dv->local;
 
     pcm_close(&alsa->capture);
     pcm_close(&alsa->playback);
@@ -397,9 +397,9 @@ static struct device_ops alsa_ops = {
 int alsa_init(struct device *dv, const char *device_name,
               int rate, int buffer_time)
 {
-    struct alsa_t *alsa;
+    struct alsa *alsa;
 
-    alsa = malloc(sizeof(struct alsa_t));
+    alsa = malloc(sizeof(struct alsa));
     if (!alsa) {
         perror("malloc");
         return -1;
