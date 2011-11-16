@@ -1197,7 +1197,7 @@ static void draw_library(SDL_Surface *surface, const struct rect_t *rect,
  * Return: true if the selector needs to be redrawn, otherwise false
  */
 
-static bool handle_key(struct interface_t *in, struct selector *sel,
+static bool handle_key(struct interface *in, struct selector *sel,
                        int *meter_scale, SDLKey key, SDLMod mod)
 {
     if (key >= SDLK_a && key <= SDLK_z) {
@@ -1368,7 +1368,7 @@ static Uint32 ticker(Uint32 interval, void *p)
  * The SDL interface thread
  */
 
-static int interface_main(struct interface_t *in)
+static int interface_main(struct interface *in)
 {
     int meter_scale, library_update, decks_update, status_update;
     const char *status = banner;
@@ -1513,7 +1513,7 @@ static void* launch(void *p)
  * error
  */
 
-int interface_start(struct interface_t *in, struct deck deck[], size_t ndeck,
+int interface_start(struct interface *in, struct deck deck[], size_t ndeck,
                     struct library *lib)
 {
     size_t n;
@@ -1562,7 +1562,7 @@ int interface_start(struct interface_t *in, struct deck deck[], size_t ndeck,
  * Synchronise with the SDL interface and exit
  */
 
-void interface_stop(struct interface_t *in)
+void interface_stop(struct interface *in)
 {
     size_t n;
     SDL_Event quit;

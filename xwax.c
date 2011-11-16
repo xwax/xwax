@@ -106,7 +106,7 @@ int main(int argc, char *argv[])
 
     struct deck deck[3];
     struct rt_t rt;
-    struct interface_t iface;
+    struct interface iface;
     struct library library;
 
 #if defined WITH_OSS || WITH_ALSA

@@ -26,7 +26,7 @@
 #include "library.h"
 #include "selector.h"
 
-struct interface_t {
+struct interface {
     pthread_t ph;
 
     size_t ndeck;
@@ -35,8 +35,8 @@ struct interface_t {
     struct selector selector;
 };
 
-int interface_start(struct interface_t *in, struct deck deck[], size_t ndeck,
+int interface_start(struct interface *in, struct deck deck[], size_t ndeck,
                     struct library *lib);
-void interface_stop(struct interface_t *in);
+void interface_stop(struct interface *in);
 
 #endif
