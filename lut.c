@@ -34,7 +34,7 @@
 /* Initialise an empty hash lookup table to store the given number
  * of timecode -> position lookups */
 
-int lut_init(struct lut_t *lut, int nslots)
+int lut_init(struct lut *lut, int nslots)
 {
     int n, hashes;
     size_t bytes;
@@ -67,14 +67,14 @@ int lut_init(struct lut_t *lut, int nslots)
 }
 
 
-void lut_clear(struct lut_t *lut)
+void lut_clear(struct lut *lut)
 {
     free(lut->table);
     free(lut->slot);
 }
 
 
-void lut_push(struct lut_t *lut, unsigned int timecode)
+void lut_push(struct lut *lut, unsigned int timecode)
 {
     unsigned int hash;
     slot_no_t slot_no;
@@ -91,7 +91,7 @@ void lut_push(struct lut_t *lut, unsigned int timecode)
 }
 
 
-unsigned int lut_lookup(struct lut_t *lut, unsigned int timecode)
+unsigned int lut_lookup(struct lut *lut, unsigned int timecode)
 {
     unsigned int hash;
     slot_no_t slot_no;
