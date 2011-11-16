@@ -34,7 +34,7 @@
  * Initialise a record listing
  */
 
-void listing_init(struct listing_t *ls)
+void listing_init(struct listing *ls)
 {
     ls->record = NULL;
     ls->size = 0;
@@ -48,7 +48,7 @@ void listing_init(struct listing_t *ls)
  * responsible for deallocating them.
  */
 
-void listing_clear(struct listing_t *ls)
+void listing_clear(struct listing *ls)
 {
     if (ls->record != NULL)
         free(ls->record);
@@ -61,7 +61,7 @@ void listing_clear(struct listing_t *ls)
  * listing re-use is of similar size.
  */
 
-void listing_blank(struct listing_t *ls)
+void listing_blank(struct listing *ls)
 {
     ls->entries = 0;
 }
@@ -74,7 +74,7 @@ void listing_blank(struct listing_t *ls)
  * Post: size of listing is greater than or equal to target
  */
 
-static int enlarge(struct listing_t *ls, size_t target)
+static int enlarge(struct listing *ls, size_t target)
 {
     size_t p;
     struct record_t **ln;
@@ -101,7 +101,7 @@ static int enlarge(struct listing_t *ls, size_t target)
  * Return: 0 on success or -1 on memory allocation failure
  */
 
-int listing_add(struct listing_t *ls, struct record_t *lr)
+int listing_add(struct listing *ls, struct record_t *lr)
 {
     if (enlarge(ls, ls->entries + 1) == -1)
         return -1;
@@ -146,7 +146,7 @@ static int qcompar(const void *a, const void *b)
  * Post: listing is sorted
  */
 
-void listing_sort(struct listing_t *ls)
+void listing_sort(struct listing *ls)
 {
     qsort(ls->record, ls->entries, sizeof(struct record_t*), qcompar);
 }
@@ -191,7 +191,7 @@ static bool record_match_all(struct record_t *re, char **matches)
  * Post: on failure, dest is valid but incomplete
  */
 
-int listing_copy(const struct listing_t *src, struct listing_t *dest)
+int listing_copy(const struct listing *src, struct listing *dest)
 {
     int n;
 
@@ -216,7 +216,7 @@ int listing_copy(const struct listing_t *src, struct listing_t *dest)
  * Post: on failure, dest is valid but incomplete
  */
 
-int listing_match(struct listing_t *src, struct listing_t *dest,
+int listing_match(struct listing *src, struct listing *dest,
 		  const char *match)
 {
     int n;
@@ -305,7 +305,7 @@ static size_t bin_search(struct record_t **base, size_t n,
  * Post: listing is sorted and contains item or a matching item
  */
 
-struct record_t* listing_insert(struct listing_t *ls, struct record_t *item)
+struct record_t* listing_insert(struct listing *ls, struct record_t *item)
 {
     bool found;
     size_t z;
@@ -331,7 +331,7 @@ struct record_t* listing_insert(struct listing_t *ls, struct record_t *item)
  * Debug the content of a listing to standard error
  */
 
-void listing_debug(struct listing_t *ls)
+void listing_debug(struct listing *ls)
 {
     int n;
 

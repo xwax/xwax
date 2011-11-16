@@ -165,7 +165,7 @@ static int scroll_current(struct scroll *s)
 /* Return the listing which acts as the starting point before
  * string matching, based on the current crate */
 
-static struct listing_t* initial(struct selector *sel)
+static struct listing* initial(struct selector *sel)
 {
     return &sel->library->crate[sel->crates.selected]->listing;
 }
@@ -319,7 +319,7 @@ void selector_search_expand(struct selector *sel)
 
 void selector_search_refine(struct selector *sel, char key)
 {
-    struct listing_t *tmp;
+    struct listing *tmp;
 
     if (sel->search_len >= sizeof(sel->search) - 1) /* would overflow */
         return;

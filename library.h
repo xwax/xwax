@@ -30,7 +30,7 @@
 struct crate_t {
     bool is_fixed;
     char *name;
-    struct listing_t listing;
+    struct listing listing;
 };
 
 /* The complete music library, which consists of multiple crates */
