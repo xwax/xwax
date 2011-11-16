@@ -1514,7 +1514,7 @@ static void* launch(void *p)
  */
 
 int interface_start(struct interface_t *in, struct deck_t deck[], size_t ndeck,
-                    struct library_t *lib)
+                    struct library *lib)
 {
     size_t n;
 

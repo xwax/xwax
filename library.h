@@ -35,15 +35,15 @@ struct crate_t {
 
 /* The complete music library, which consists of multiple crates */
 
-struct library_t {
+struct library {
     struct crate_t all, **crate;
     size_t crates;
 };
 
-int library_init(struct library_t *li);
-void library_clear(struct library_t *li);
+int library_init(struct library *li);
+void library_clear(struct library *li);
 
-int library_import(struct library_t *lib, bool sort,
+int library_import(struct library *lib, bool sort,
                    const char *scan, const char *path);
 
 #endif

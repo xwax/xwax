@@ -95,7 +95,7 @@ static int qcompar(const void *a, const void *b)
  * Sort all crates into a defined order
  */
 
-static void sort_crates(struct library_t *lib)
+static void sort_crates(struct library *lib)
 {
     qsort(lib->crate, lib->crates, sizeof(struct crate_t*), qcompar);
 }
@@ -106,7 +106,7 @@ static void sort_crates(struct library_t *lib)
  * Return: 0 on success or -1 on memory allocation failure
  */
 
-static int add_crate(struct library_t *lib, struct crate_t *c)
+static int add_crate(struct library *lib, struct crate_t *c)
 {
     struct crate_t **cn;
 
@@ -133,7 +133,7 @@ static int add_crate(struct library_t *lib, struct crate_t *c)
  * Return: pointer to crate, or NULL if no crate has the given name
  */
 
-struct crate_t* get_crate(struct library_t *lib, const char *name)
+struct crate_t* get_crate(struct library *lib, const char *name)
 {
     int n;
 
@@ -151,7 +151,7 @@ struct crate_t* get_crate(struct library_t *lib, const char *name)
  * Return: pointer to crate, or NULL on memory allocation failure
  */
 
-struct crate_t* use_crate(struct library_t *lib, char *name, bool is_fixed)
+struct crate_t* use_crate(struct library *lib, char *name, bool is_fixed)
 {
     struct crate_t *new_crate;
 
@@ -188,7 +188,7 @@ struct crate_t* use_crate(struct library_t *lib, char *name, bool is_fixed)
  * Return: 0 on success or -1 on memory allocation failure
  */
 
-int library_init(struct library_t *li)
+int library_init(struct library *li)
 {
     li->crate = NULL;
     li->crates = 0;
@@ -219,7 +219,7 @@ static void record_clear(struct record_t *re)
  * Free resources associated with the music library
  */
 
-void library_clear(struct library_t *li)
+void library_clear(struct library *li)
 {
     int n;
 
@@ -283,7 +283,7 @@ static int get_field(FILE *fp, char delim, char **f)
  * Return: 0 on success, -1 on fatal error (may leak)
  */
 
-int library_import(struct library_t *li, bool sort,
+int library_import(struct library *li, bool sort,
                    const char *scan, const char *path)
 {
     int pstdout[2], status;

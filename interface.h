@@ -36,7 +36,7 @@ struct interface_t {
 };
 
 int interface_start(struct interface_t *in, struct deck_t deck[], size_t ndeck,
-                    struct library_t *lib);
+                    struct library *lib);
 void interface_stop(struct interface_t *in);
 
 #endif

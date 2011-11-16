@@ -171,7 +171,7 @@ static struct listing* initial(struct selector *sel)
 }
 
 
-void selector_init(struct selector *sel, struct library_t *lib)
+void selector_init(struct selector *sel, struct library *lib)
 {
     sel->library = lib;
 

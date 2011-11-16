@@ -35,7 +35,7 @@ struct scroll {
 };
 
 struct selector {
-    struct library_t *library;
+    struct library *library;
     struct listing
         *view_listing, /* base_listing + search filter applied */
         *swap_listing, /* used to swap between a and b listings */
@@ -49,7 +49,7 @@ struct selector {
     char search[256];
 };
 
-void selector_init(struct selector *sel, struct library_t *lib);
+void selector_init(struct selector *sel, struct library *lib);
 void selector_clear(struct selector *sel);
 
 void selector_set_lines(struct selector *sel, unsigned int lines);

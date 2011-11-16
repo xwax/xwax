@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
 {
     const char *scan;
     size_t n;
-    struct library_t lib;
+    struct library lib;
 
     if (argc < 3) {
         fprintf(stderr, "usage: %s <scan> <path> [...]\n", argv[0]);
