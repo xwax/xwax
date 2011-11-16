@@ -1009,7 +1009,7 @@ static void draw_search(SDL_Surface *surface, const struct rect_t *rect,
  */
 
 static void draw_scroll_bar(SDL_Surface *surface, const struct rect_t *rect,
-                            struct scroll_t *scroll)
+                            struct scroll *scroll)
 {
     SDL_Rect box;
     SDL_Color bg;

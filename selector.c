@@ -24,7 +24,7 @@
 #include "selector.h"
 
 
-static void scroll_reset(struct scroll_t *s)
+static void scroll_reset(struct scroll *s)
 {
     s->lines = 0;
     s->offset = 0;
@@ -36,7 +36,7 @@ static void scroll_reset(struct scroll_t *s)
 /* Set the number of lines displayed on screen. The current selection
  * is moved to within range. */
 
-static void scroll_set_lines(struct scroll_t *s, unsigned int lines)
+static void scroll_set_lines(struct scroll *s, unsigned int lines)
 {
     s->lines = lines;
     if (s->selected >= s->offset + s->lines)
@@ -52,7 +52,7 @@ static void scroll_set_lines(struct scroll_t *s, unsigned int lines)
 /* Set the number of entries in the list which backs the scrolling
  * display. Bring the current selection within the bounds given. */
 
-static void scroll_set_entries(struct scroll_t *s, unsigned int entries)
+static void scroll_set_entries(struct scroll *s, unsigned int entries)
 {
     s->entries = entries;
     if (s->selected >= s->entries)
@@ -73,7 +73,7 @@ static void scroll_set_entries(struct scroll_t *s, unsigned int entries)
 /* Scroll the selection up by n lines. Move the window offset if
  * needed */
 
-static void scroll_up(struct scroll_t *s, unsigned int n)
+static void scroll_up(struct scroll *s, unsigned int n)
 {
     s->selected -= n;
     if (s->selected < 0)
@@ -89,7 +89,7 @@ static void scroll_up(struct scroll_t *s, unsigned int n)
 }
 
 
-static void scroll_down(struct scroll_t *s, unsigned int n)
+static void scroll_down(struct scroll *s, unsigned int n)
 {
     s->selected += n;
     if (s->selected >= s->entries)
@@ -107,7 +107,7 @@ static void scroll_down(struct scroll_t *s, unsigned int n)
 
 /* Scroll to the first entry on the list */
 
-static void scroll_first(struct scroll_t *s)
+static void scroll_first(struct scroll *s)
 {
     s->selected = 0;
     s->offset = 0;
@@ -116,7 +116,7 @@ static void scroll_first(struct scroll_t *s)
 
 /* Scroll to the final entry on the list */
 
-static void scroll_last(struct scroll_t *s)
+static void scroll_last(struct scroll *s)
 {
     s->selected = s->entries - 1;
     s->offset = s->selected - s->lines + 1;
@@ -127,7 +127,7 @@ static void scroll_last(struct scroll_t *s)
 
 /* Scroll to an entry by index */
 
-static void scroll_to(struct scroll_t *s, unsigned int n)
+static void scrollo(struct scroll *s, unsigned int n)
 {
     s->selected = n;
 
@@ -152,7 +152,7 @@ static void scroll_to(struct scroll_t *s, unsigned int n)
 /* Return the index of the current selected list entry, or -1 if
  * no current selection */
 
-static int scroll_current(struct scroll_t *s)
+static int scroll_current(struct scroll *s)
 {
     if (s->entries == 0) {
         return -1;
@@ -292,7 +292,7 @@ void selectoroggle(struct selector *sel)
         scroll_first(&sel->crates);
         sel->toggled = true;
     } else {
-        scroll_to(&sel->crates, sel->toggle_back);
+        scrollo(&sel->crates, sel->toggle_back);
         sel->toggled = false;
     }
     crate_has_changed(sel);

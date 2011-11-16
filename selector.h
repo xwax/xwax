@@ -30,7 +30,7 @@
 /* Managed context of a scrolling window, of a number of fixed-height
  * lines, backed by a list of a known number of entries */
 
-struct scroll_t {
+struct scroll {
     int lines, offset, entries, selected;
 };
 
@@ -41,7 +41,7 @@ struct selector {
         *swap_listing, /* used to swap between a and b listings */
         listing_a, listing_b;
 
-    struct scroll_t records, crates;
+    struct scroll records, crates;
     bool toggled;
     int toggle_back;
 
