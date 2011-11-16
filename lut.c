@@ -40,13 +40,13 @@ int lut_init(struct lut *lut, int nslots)
     size_t bytes;
 
     hashes = 1 << HASH_BITS;
-    bytes = sizeof(struct slot_t) * nslots + sizeof(slot_no_t) * hashes;
+    bytes = sizeof(struct slot) * nslots + sizeof(slot_no_t) * hashes;
 
     fprintf(stderr, "Lookup table has %d hashes to %d slots"
             " (%d slots per hash, %zuKb)\n",
             hashes, nslots, nslots / hashes, bytes / 1024);
 
-    lut->slot = malloc(sizeof(struct slot_t) * nslots);
+    lut->slot = malloc(sizeof(struct slot) * nslots);
     if (lut->slot == NULL) {
         perror("malloc");
         return -1;
@@ -78,7 +78,7 @@ void lut_push(struct lut *lut, unsigned int timecode)
 {
     unsigned int hash;
     slot_no_t slot_no;
-    struct slot_t *slot;
+    struct slot *slot;
 
     slot_no = lut->avail++; /* take the next available slot */
 
@@ -95,7 +95,7 @@ unsigned int lut_lookup(struct lut *lut, unsigned int timecode)
 {
     unsigned int hash;
     slot_no_t slot_no;
-    struct slot_t *slot;
+    struct slot *slot;
 
     hash = HASH(timecode);
     slot_no = lut->table[hash];

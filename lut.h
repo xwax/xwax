@@ -22,13 +22,13 @@
 
 typedef unsigned int slot_no_t;
 
-struct slot_t {
+struct slot {
     unsigned int timecode;
     slot_no_t next; /* next slot with the same hash */
 };
 
 struct lut {
-    struct slot_t *slot;
+    struct slot *slot;
     slot_no_t *table, /* hash -> slot lookup */
         avail; /* next available slot */
 };
