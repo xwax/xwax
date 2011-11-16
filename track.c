@@ -57,7 +57,7 @@ static struct track empty = {
 
 static int more_space(struct track *tr)
 {
-    struct track_block_t *block;
+    struct track_block *block;
 
     rt_not_allowed();
 
@@ -66,7 +66,7 @@ static int more_space(struct track *tr)
         return -1;
     }
 
-    block = malloc(sizeof(struct track_block_t));
+    block = malloc(sizeof(struct track_block));
     if (block == NULL) {
         perror("malloc");
         return -1;
@@ -118,7 +118,7 @@ static void commit_pcm_samples(struct track *tr, unsigned int samples)
 {
     unsigned int fill, n;
     signed short *pcm;
-    struct track_block_t *block;
+    struct track_block *block;
 
     block = tr->block[tr->length / TRACK_BLOCK_SAMPLES];
     fill = tr->length % TRACK_BLOCK_SAMPLES;

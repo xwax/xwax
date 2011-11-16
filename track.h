@@ -35,7 +35,7 @@
 #define TRACK_PPM_RES 64
 #define TRACK_OVERVIEW_RES 2048
 
-struct track_block_t {
+struct track_block {
     signed short pcm[TRACK_BLOCK_SAMPLES * TRACK_CHANNELS];
     unsigned char ppm[TRACK_BLOCK_SAMPLES / TRACK_PPM_RES],
         overview[TRACK_BLOCK_SAMPLES / TRACK_OVERVIEW_RES];
@@ -53,7 +53,7 @@ struct track {
     size_t bytes; /* loaded in */
     unsigned int length, /* track length in samples */
         blocks; /* number of blocks allocated */
-    struct track_block_t *block[TRACK_MAX_BLOCKS];
+    struct track_block *block[TRACK_MAX_BLOCKS];
 
     /* State of audio import */
 
@@ -95,7 +95,7 @@ static inline bool track_is_importing(struct track *tr)
 
 static inline unsigned char track_get_ppm(struct track *tr, int s)
 {
-    struct track_block_t *b;
+    struct track_block *b;
     b = tr->block[s / TRACK_BLOCK_SAMPLES];
     return b->ppm[(s % TRACK_BLOCK_SAMPLES) / TRACK_PPM_RES];
 }
@@ -104,7 +104,7 @@ static inline unsigned char track_get_ppm(struct track *tr, int s)
 
 static inline unsigned char track_get_overview(struct track *tr, int s)
 {
-    struct track_block_t *b;
+    struct track_block *b;
     b = tr->block[s / TRACK_BLOCK_SAMPLES];
     return b->overview[(s % TRACK_BLOCK_SAMPLES) / TRACK_OVERVIEW_RES];
 }
@@ -113,7 +113,7 @@ static inline unsigned char track_get_overview(struct track *tr, int s)
 
 static inline signed short* track_get_sample(struct track *tr, int s)
 {
-    struct track_block_t *b;
+    struct track_block *b;
     b = tr->block[s / TRACK_BLOCK_SAMPLES];
     return &b->pcm[(s % TRACK_BLOCK_SAMPLES) * TRACK_CHANNELS];
 }
