@@ -43,7 +43,7 @@ struct timecode_def {
 };
 
 struct timecoder_channel {
-    int positive, /* wave is in positive part of cycle */
+    bool positive, /* wave is in positive part of cycle */
 	swapped; /* wave recently swapped polarity */
     signed int zero;
     unsigned int crossing_ticker; /* samples since we last crossed zero */

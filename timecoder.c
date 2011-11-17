@@ -273,7 +273,7 @@ void timecoder_free_lookup(void) {
 
 static void init_channel(struct timecoder_channel *ch)
 {
-    ch->positive = 0;
+    ch->positive = false;
     ch->zero = 0;
 }
 
@@ -364,14 +364,14 @@ static void detect_zero_crossing(struct timecoder_channel *ch,
 {
     ch->crossing_ticker++;
 
-    ch->swapped = 0;
+    ch->swapped = false;
     if (v > ch->zero + ZERO_THRESHOLD && !ch->positive) {
-        ch->swapped = 1;
-        ch->positive = 1;
+        ch->swapped = true;
+        ch->positive = true;
         ch->crossing_ticker = 0;
     } else if (v < ch->zero - ZERO_THRESHOLD && ch->positive) {
-        ch->swapped = 1;
-        ch->positive = 0;
+        ch->swapped = true;
+        ch->positive = false;
         ch->crossing_ticker = 0;
     }
 
