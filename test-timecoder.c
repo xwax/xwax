@@ -17,6 +17,7 @@
  *
  */
 
+#include <assert.h>
 #include <stdio.h>
 
 #include "timecoder.h"
@@ -35,9 +36,12 @@ int main(int argc, char *argv[])
     unsigned int s;
     signed short sample[STEREO];
     struct timecoder tc;
+    struct timecode_def *def;
 
-    if(timecoder_init(&tc, "serato_2a", 1.0, RATE) != 0)
-        return -1;
+    def = timecoder_find_definition("serato_2a");
+    assert(def != NULL);
+
+    timecoder_init(&tc, def, 1.0, RATE);
 
     s = 0;
 
