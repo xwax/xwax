@@ -19,7 +19,9 @@
 
 #define _GNU_SOURCE /* getdelim(), strdupa() */
 #include <assert.h>
+#include <errno.h>
 #include <libgen.h> /*  basename() */
+#include <math.h> /* isfinite() */
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -357,8 +359,11 @@ static int get_record(FILE *f, struct record **r)
     if (s == NULL)
         goto fail;
 
+    errno = 0;
     x.bpm = strtod(s, &endptr);
-    if (*endptr != '\0' || x.bpm <= 0.0) {
+    if (errno == ERANGE || *endptr != '\0'
+        || !isfinite(x.bpm) || x.bpm <= 0.0)
+    {
         fprintf(stderr, "Malformed record BPM '%s'\n", x.pathname);
         free(s);
         goto fail;
