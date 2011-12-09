@@ -296,6 +296,77 @@ done:
 }
 
 /*
+ * Read the next record from the file
+ *
+ * Return: 0 on success, otherwise -1
+ * Post: if 0 is returned, *r points to an alloc'd record or NULL
+ *     if EOF was found
+ */
+
+static int get_record(FILE *f, struct record **r)
+{
+    struct record x, *y;
+    char delim;
+
+    x.pathname = NULL;
+    x.artist = NULL;
+    x.title = NULL;
+
+    x.pathname = get_field(f, &delim);
+    if (x.pathname == NULL)
+        goto fail;
+
+    /* Check for clean EOF */
+
+    if (delim == '\0' && x.pathname[0] == '\0') {
+        free(x.pathname);
+        *r = NULL;
+        return 0;
+    }
+
+    if (delim != '\t') {
+        fprintf(stderr, "Malformed record '%s'\n", x.pathname);
+        goto fail;
+    }
+
+    x.artist = get_field(f, &delim);
+    if (x.artist == NULL)
+        goto fail;
+
+    if (delim != '\t') {
+        fprintf(stderr, "Malformed record '%s'\n", x.pathname);
+        goto fail;
+    }
+
+    x.title = get_field(f, &delim);
+    if (x.title == NULL)
+        goto fail;
+
+    if (delim != '\n') {
+        fprintf(stderr, "Malformed record '%s'\n", x.pathname);
+        goto fail;
+    }
+
+    y = malloc(sizeof *y);
+    if (y == NULL) {
+        perror("malloc");
+        goto fail;
+    }
+
+    *y = x;
+    *r = y;
+    return 0;
+
+fail:
+    /* no-op on NULL */
+    free(x.pathname);
+    free(x.artist);
+    free(x.title);
+
+    return -1;
+}
+
+/*
  * Scan a record library
  *
  * Launch the given scan script and pass it the path argument.
@@ -375,45 +446,12 @@ int library_import(struct library *li, bool sort,
 
     for (;;) {
         struct record *d, *x;
-        char *pathname, delim;
 
-        pathname = get_field(fp, &delim);
-        if (pathname == NULL)
+        if (get_record(fp, &d) == -1)
             return -1;
 
-        if (delim == '\0') /* EOF */
+        if (d == NULL)
             break;
-
-        if (delim != '\t') {
-            fprintf(stderr, "Malformed entry '%s'", pathname);
-            return -1;
-        }
-
-        d = malloc(sizeof(struct record));
-        if (d == NULL) {
-            perror("malloc");
-            return -1;
-        }
-
-        d->pathname = pathname;
-
-        d->artist = get_field(fp, &delim);
-        if (d->artist == NULL)
-            return -1;
-
-        if (delim != '\t') {
-            fprintf(stderr, "Malformed entry '%s'", pathname);
-            return -1;
-        }
-
-        d->title = get_field(fp, &delim);
-        if (d->title == NULL)
-            return -1;
-
-        if (delim != '\n') {
-            fprintf(stderr, "Malformed entry '%s'", pathname);
-            return -1;
-        }
 
         /* Add to the crate of all records */
 
