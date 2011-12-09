@@ -1009,7 +1009,7 @@ static void draw_search(SDL_Surface *surface, const struct rect *rect,
  */
 
 static void draw_scroll_bar(SDL_Surface *surface, const struct rect *rect,
-                            struct scroll *scroll)
+                            const struct scroll *scroll)
 {
     SDL_Rect box;
     SDL_Color bg;
@@ -1102,8 +1102,9 @@ static void draw_crates(SDL_Surface *surface, const struct rect *rect,
  * Return: the number of lines which fit on the display
  */
 
-static void draw_records(SDL_Surface *surface, const struct rect *rect,
-                         struct selector *sel)
+static void draw_listing(SDL_Surface *surface, const struct rect *rect,
+                         const struct listing *listing,
+                         const struct scroll *scroll)
 {
     int x, y, w, h, n, r, ox;
     struct rect rs;
@@ -1121,15 +1122,15 @@ static void draw_records(SDL_Surface *surface, const struct rect *rect,
     x += SCROLLBAR_SIZE + SPACER;
     w -= SCROLLBAR_SIZE + SPACER;
 
-    for (n = 0; n + sel->records.offset < sel->view_listing->entries; n++) {
-        re = sel->view_listing->record[n + sel->records.offset];
+    for (n = 0; n + scroll->offset < listing->entries; n++) {
+        re = listing->record[n + scroll->offset];
 
         if ((n + 1) * FONT_SPACE > h)
             break;
 
         r = y + n * FONT_SPACE;
 
-        if (n + sel->records.offset == sel->records.selected)
+        if (n + scroll->offset == scroll->selected)
             col = selected_col;
         else
             col = background_col;
@@ -1162,7 +1163,7 @@ static void draw_records(SDL_Surface *surface, const struct rect *rect,
     rs.y = y;
     rs.w = SCROLLBAR_SIZE;
     rs.h = h;
-    draw_scroll_bar(surface, &rs, &sel->records);
+    draw_scroll_bar(surface, &rs, scroll);
 }
 
 /*
@@ -1184,10 +1185,10 @@ static void draw_library(SDL_Surface *surface, const struct rect *rect,
 
     split_left(&rlists, &rcrates, &rrecords, (rlists.w / 4), SPACER);
     if (rcrates.w > LIBRARY_MIN_WIDTH) {
-        draw_records(surface, &rrecords, sel);
+        draw_listing(surface, &rrecords, sel->view_listing, &sel->records);
         draw_crates(surface, &rcrates, sel);
     } else {
-        draw_records(surface, rect, sel);
+        draw_listing(surface, rect, sel->view_listing, &sel->records);
     }
 }
 
