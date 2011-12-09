@@ -475,6 +475,22 @@ static int draw_font_rect(SDL_Surface *surface, const struct rect *rect,
 }
 
 /*
+ * Draw a coloured rectangle
+ */
+
+static void draw_rect(SDL_Surface *surface, const struct rect *rect,
+                      SDL_Color col)
+{
+    SDL_Rect b;
+
+    b.x = rect->x;
+    b.y = rect->y;
+    b.w = rect->w;
+    b.h = rect->h;
+    SDL_FillRect(surface, &b, palette(surface, &col));
+}
+
+/*
  * Draw the record information in the deck
  */
 
@@ -1106,58 +1122,46 @@ static void draw_listing(SDL_Surface *surface, const struct rect *rect,
                          const struct listing *listing,
                          const struct scroll *scroll)
 {
-    int x, y, w, h, n, r, ox;
-    struct rect left, right;
-    struct record *re;
-    SDL_Rect box;
-    SDL_Color col;
+    size_t n;
+    struct rect left, bottom;
 
-    split_left(rect, &left, &right, SCROLLBAR_SIZE, SPACER);
+    split_left(rect, &left, &bottom, SCROLLBAR_SIZE, SPACER);
     draw_scroll_bar(surface, &left, scroll);
 
-    x = right.x;
-    y = right.y;
-    w = right.w;
-    h = right.h;
+    n = scroll->offset;
 
-    ox = x;
+    for (;;) {
+        SDL_Color col;
+        struct rect top, left, right;
+        const struct record *record;
 
-    for (n = 0; n + scroll->offset < listing->entries; n++) {
-        re = listing->record[n + scroll->offset];
-
-        if ((n + 1) * FONT_SPACE > h)
+        if (n >= listing->entries)
             break;
 
-        r = y + n * FONT_SPACE;
+        if (bottom.h < FONT_SPACE)
+            break;
 
-        if (n + scroll->offset == scroll->selected)
+        split_top(&bottom, &top, &bottom, FONT_SPACE, 0);
+
+        record = listing->record[n];
+
+        if (n == scroll->selected) {
             col = selected_col;
-        else
+        } else {
             col = background_col;
+        }
 
-        draw_font(surface, x, r, RESULTS_ARTIST_WIDTH, FONT_SPACE,
-                  re->artist, font, text_col, col);
+        split_left(&top, &left, &right, RESULTS_ARTIST_WIDTH, 0);
+        draw_font_rect(surface, &left, record->artist, font, text_col, col);
 
-        box.x = x + RESULTS_ARTIST_WIDTH;
-        box.y = r;
-        box.w = SPACER;
-        box.h = FONT_SPACE;
+        split_left(&right, &left, &right, SPACER, 0);
+        draw_rect(surface, &left, col);
+        draw_font_rect(surface, &right, record->title, font, text_col, col);
 
-        SDL_FillRect(surface, &box, palette(surface, &col));
-
-        draw_font(surface, x + RESULTS_ARTIST_WIDTH + SPACER, r,
-                  w - RESULTS_ARTIST_WIDTH - SPACER, FONT_SPACE,
-                  re->title, em_font, text_col, col);
+        n++;
     }
 
-    /* Blank any remaining space */
-
-    box.x = x;
-    box.y = y + n * FONT_SPACE;
-    box.w = w;
-    box.h = h - (n * FONT_SPACE);
-
-    SDL_FillRect(surface, &box, palette(surface, &background_col));
+    draw_rect(surface, &bottom, background_col);
 }
 
 /*
