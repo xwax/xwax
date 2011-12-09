@@ -409,9 +409,9 @@ static Uint32 palette(SDL_Surface *sf, SDL_Color *col)
  * Return: width of text drawn
  */
 
-static int draw_font(SDL_Surface *sf, int x, int y, int w, int h,
-                     const char *buf, TTF_Font *font,
-                     SDL_Color fg, SDL_Color bg)
+static int draw_font_rect(SDL_Surface *sf, const struct rect *rect,
+                           const char *buf, TTF_Font *font,
+                           SDL_Color fg, SDL_Color bg)
 {
     SDL_Surface *rendered;
     SDL_Rect dst, src, fill;
@@ -429,11 +429,11 @@ static int draw_font(SDL_Surface *sf, int x, int y, int w, int h,
 
         src.x = 0;
         src.y = 0;
-        src.w = MIN(w, rendered->w);
-        src.h = MIN(h, rendered->h);
+        src.w = MIN(rect->w, rendered->w);
+        src.h = MIN(rect->h, rendered->h);
 
-        dst.x = x;
-        dst.y = y;
+        dst.x = rect->x;
+        dst.y = rect->y;
 
         SDL_BlitSurface(rendered, &src, sf, &dst);
         SDL_FreeSurface(rendered);
@@ -441,37 +441,23 @@ static int draw_font(SDL_Surface *sf, int x, int y, int w, int h,
 
     /* Complete the remaining space with a blank rectangle */
 
-    if (src.w < w) {
-        fill.x = x + src.w;
-        fill.y = y;
-        fill.w = w - src.w;
-        fill.h = h;
+    if (src.w < rect->w) {
+        fill.x = rect->x + src.w;
+        fill.y = rect->y;
+        fill.w = rect->w - src.w;
+        fill.h = rect->h;
         SDL_FillRect(sf, &fill, palette(sf, &bg));
     }
 
-    if (src.h < h) {
-        fill.x = x;
-        fill.y = y + src.h;
+    if (src.h < rect->h) {
+        fill.x = rect->x;
+        fill.y = rect->y + src.h;
         fill.w = src.w; /* the x-fill rectangle does the corner */
-        fill.h = h - src.h;
+        fill.h = rect->h - src.h;
         SDL_FillRect(sf, &fill, palette(sf, &bg));
     }
 
     return src.w;
-}
-
-/*
- * Draw text at the given rectangle
- *
- * Return: width of text drawn
- */
-
-static int draw_font_rect(SDL_Surface *surface, const struct rect *rect,
-                          const char *buf, TTF_Font *font,
-                          SDL_Color fg, SDL_Color bg)
-{
-    return draw_font(surface, rect->x, rect->y, rect->w, rect->h,
-                     buf, font, fg, bg);
 }
 
 /*
