@@ -1057,58 +1057,41 @@ static void draw_scroll_bar(SDL_Surface *surface, const struct rect *rect,
  */
 
 static void draw_crates(SDL_Surface *surface, const struct rect *rect,
-                        struct selector *sel)
+                        const struct library *library,
+                        const struct scroll *scroll)
 {
-    int x, y, w, h, r, ox, n;
-    struct rect rs;
-    SDL_Rect box;
-    SDL_Color col_bg, col_text;
+    size_t n;
+    struct rect left, bottom;
 
-    x = rect->x;
-    y = rect->y;
-    w = rect->w;
-    h = rect->h;
-    ox = x;
+    split_left(rect, &left, &bottom, SCROLLBAR_SIZE, SPACER);
+    draw_scroll_bar(surface, &left, scroll);
 
-    x += SCROLLBAR_SIZE + SPACER;
-    w -= SCROLLBAR_SIZE + SPACER;
+    n = scroll->offset;
 
-    for (n = 0; n + sel->crates.offset < sel->library->crates; n++) {
+    for (;;) {
+        SDL_Color col_text, col_bg;
+        struct rect top;
+        const struct crate *crate;
 
-        if ((n + 1) * FONT_SPACE > h)
+        if (n >= library->crates)
             break;
 
-        r = y + n * FONT_SPACE;
+        if (bottom.h < FONT_SPACE)
+            break;
 
-        if (sel->library->crate[n + sel->crates.offset]->is_fixed)
-            col_text = detail_col;
-        else
-            col_text = text_col;
+        split_top(&bottom, &top, &bottom, FONT_SPACE, 0);
 
-        if (n + sel->crates.offset == sel->crates.selected)
-            col_bg = selected_col;
-        else
-            col_bg = background_col;
+        crate = library->crate[n];
 
-        draw_font(surface, x, r, w, FONT_SPACE,
-                  sel->library->crate[n + sel->crates.offset]->name, font,
-                  col_text, col_bg);
+        col_text = crate->is_fixed ? detail_col: text_col;
+        col_bg = (n == scroll->selected) ? selected_col : background_col;
+
+        draw_font_rect(surface, &top, crate->name, font, col_text, col_bg);
+
+        n++;
     }
 
-    /* Blank any remaining space */
-
-    box.x = x;
-    box.y = y + n * FONT_SPACE;
-    box.w = w;
-    box.h = h - (n * FONT_SPACE);
-
-    SDL_FillRect(surface, &box, palette(surface, &background_col));
-
-    rs.x = ox;
-    rs.y = y;
-    rs.w = SCROLLBAR_SIZE;
-    rs.h = h;
-    draw_scroll_bar(surface, &rs, &sel->crates);
+    draw_rect(surface, &bottom, background_col);
 }
 
 /*
@@ -1184,7 +1167,7 @@ static void draw_library(SDL_Surface *surface, const struct rect *rect,
     split_left(&rlists, &rcrates, &rrecords, (rlists.w / 4), SPACER);
     if (rcrates.w > LIBRARY_MIN_WIDTH) {
         draw_listing(surface, &rrecords, sel->view_listing, &sel->records);
-        draw_crates(surface, &rcrates, sel);
+        draw_crates(surface, &rcrates, sel->library, &sel->crates);
     } else {
         draw_listing(surface, rect, sel->view_listing, &sel->records);
     }
