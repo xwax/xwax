@@ -83,6 +83,7 @@
 #define SEARCH_HEIGHT (FONT_SPACE)
 #define STATUS_HEIGHT (FONT_SPACE)
 
+#define BPM_WIDTH 28
 #define RESULTS_ARTIST_WIDTH 200
 
 #define CLOCKS_WIDTH 160
@@ -479,19 +480,39 @@ static void draw_rect(SDL_Surface *surface, const struct rect *rect,
 }
 
 /*
+ * Draw the beats-per-minute indicator
+ */
+
+static void draw_bpm(SDL_Surface *surface, const struct rect *rect, double bpm)
+{
+    char buf[32];
+
+    if (bpm != 0.0)
+        sprintf(buf, "%0.1f", bpm);
+    else
+        strcpy(buf, "-");
+
+    draw_text(surface, rect, buf, font, detail_col, background_col);
+}
+
+/*
  * Draw the record information in the deck
  */
 
 static void draw_record(SDL_Surface *surface, const struct rect *rect,
                         const struct record *record)
 {
-    struct rect top, bottom;
+    struct rect top, bottom, left, right;
 
     split_top(rect, &top, &bottom, FONT_SPACE, 0);
 
     draw_text(surface, &top, record->artist,
               font, text_col, background_col);
-    draw_text(surface, &bottom, record->title,
+
+    split_left(&bottom, &left, &right, BPM_WIDTH, SPACER);
+
+    draw_bpm(surface, &left, record->bpm);
+    draw_text(surface, &right, record->title,
               em_font, text_col, background_col);
 }
 
