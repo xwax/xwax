@@ -1107,20 +1107,20 @@ static void draw_listing(SDL_Surface *surface, const struct rect *rect,
                          const struct scroll *scroll)
 {
     int x, y, w, h, n, r, ox;
-    struct rect rs;
+    struct rect left, right;
     struct record *re;
     SDL_Rect box;
     SDL_Color col;
 
-    x = rect->x;
-    y = rect->y;
-    w = rect->w;
-    h = rect->h;
+    split_left(rect, &left, &right, SCROLLBAR_SIZE, SPACER);
+    draw_scroll_bar(surface, &left, scroll);
+
+    x = right.x;
+    y = right.y;
+    w = right.w;
+    h = right.h;
 
     ox = x;
-
-    x += SCROLLBAR_SIZE + SPACER;
-    w -= SCROLLBAR_SIZE + SPACER;
 
     for (n = 0; n + scroll->offset < listing->entries; n++) {
         re = listing->record[n + scroll->offset];
@@ -1158,12 +1158,6 @@ static void draw_listing(SDL_Surface *surface, const struct rect *rect,
     box.h = h - (n * FONT_SPACE);
 
     SDL_FillRect(surface, &box, palette(surface, &background_col));
-
-    rs.x = ox;
-    rs.y = y;
-    rs.w = SCROLLBAR_SIZE;
-    rs.h = h;
-    draw_scroll_bar(surface, &rs, scroll);
 }
 
 /*
