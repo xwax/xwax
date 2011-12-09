@@ -409,9 +409,9 @@ static Uint32 palette(SDL_Surface *sf, SDL_Color *col)
  * Return: width of text drawn
  */
 
-static int draw_font_rect(SDL_Surface *sf, const struct rect *rect,
-                           const char *buf, TTF_Font *font,
-                           SDL_Color fg, SDL_Color bg)
+static int draw_text(SDL_Surface *sf, const struct rect *rect,
+                     const char *buf, TTF_Font *font,
+                     SDL_Color fg, SDL_Color bg)
 {
     SDL_Surface *rendered;
     SDL_Rect dst, src, fill;
@@ -487,10 +487,10 @@ static void draw_record(SDL_Surface *surface, const struct rect *rect,
 
     split_top(rect, &top, &bottom, FONT_SPACE, 0);
 
-    draw_font_rect(surface, &top, record->artist,
-                   font, text_col, background_col);
-    draw_font_rect(surface, &bottom, record->title,
-                   em_font, text_col, background_col);
+    draw_text(surface, &top, record->artist,
+              font, text_col, background_col);
+    draw_text(surface, &bottom, record->title,
+              em_font, text_col, background_col);
 }
 
 /*
@@ -507,7 +507,7 @@ static void draw_clock(SDL_Surface *surface, const struct rect *rect, int t,
 
     time_to_clock(hms, deci, t);
 
-    v = draw_font_rect(surface, rect, hms, clock_font, col, background_col);
+    v = draw_text(surface, rect, hms, clock_font, col, background_col);
 
     offset = CLOCK_FONT_SIZE - DECI_FONT_SIZE * 1.04;
 
@@ -516,7 +516,7 @@ static void draw_clock(SDL_Surface *surface, const struct rect *rect, int t,
     sr.w = rect->w - v;
     sr.h = rect->h - offset;
 
-    draw_font_rect(surface, &sr, deci, deci_font, col, background_col);
+    draw_text(surface, &sr, deci, deci_font, col, background_col);
 }
 
 /*
@@ -890,8 +890,7 @@ static void draw_deck_status(SDL_Surface *surface,
             pl->pitch * pl->sync_pitch,
             pl->recalibrate ? "RCAL  " : "");
 
-    draw_font_rect(surface, rect, buf, detail_font,
-                   detail_col, background_col);
+    draw_text(surface, rect, buf, detail_font, detail_col, background_col);
 }
 
 /*
@@ -960,7 +959,7 @@ static void draw_decks(SDL_Surface *surface, const struct rect *rect,
 static void draw_status(SDL_Surface *sf, const struct rect *rect,
                         const char *text)
 {
-    draw_font_rect(sf, rect, text, detail_font, detail_col, background_col);
+    draw_text(sf, rect, text, detail_font, detail_col, background_col);
 }
 
 /*
@@ -983,7 +982,7 @@ static void draw_search(SDL_Surface *surface, const struct rect *rect,
     else
         buf = NULL;
 
-    s = draw_font_rect(surface, &rtext, buf, font, text_col, background_col);
+    s = draw_text(surface, &rtext, buf, font, text_col, background_col);
 
     cursor.x = rtext.x + s;
     cursor.y = rtext.y;
@@ -1002,7 +1001,7 @@ static void draw_search(SDL_Surface *surface, const struct rect *rect,
     rtext.x += s + CURSOR_WIDTH + SPACER;
     rtext.w -= s + CURSOR_WIDTH + SPACER;
 
-    draw_font_rect(surface, &rtext, cm, em_font, detail_col, background_col);
+    draw_text(surface, &rtext, cm, em_font, detail_col, background_col);
 }
 
 /*
@@ -1072,7 +1071,7 @@ static void draw_crates(SDL_Surface *surface, const struct rect *rect,
         col_text = crate->is_fixed ? detail_col: text_col;
         col_bg = (n == scroll->selected) ? selected_col : background_col;
 
-        draw_font_rect(surface, &top, crate->name, font, col_text, col_bg);
+        draw_text(surface, &top, crate->name, font, col_text, col_bg);
 
         n++;
     }
@@ -1121,11 +1120,11 @@ static void draw_listing(SDL_Surface *surface, const struct rect *rect,
         }
 
         split_left(&top, &left, &right, RESULTS_ARTIST_WIDTH, 0);
-        draw_font_rect(surface, &left, record->artist, font, text_col, col);
+        draw_text(surface, &left, record->artist, font, text_col, col);
 
         split_left(&right, &left, &right, SPACER, 0);
         draw_rect(surface, &left, col);
-        draw_font_rect(surface, &right, record->title, font, text_col, col);
+        draw_text(surface, &right, record->title, font, text_col, col);
 
         n++;
     }
