@@ -206,7 +206,7 @@ int import_handle(struct import *im)
  * Request premature termination of an import operation
  */
 
-void importerminate(struct import *im)
+void import_terminate(struct import *im)
 {
     assert(im->pid != 0);
 
