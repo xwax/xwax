@@ -480,19 +480,91 @@ static void draw_rect(SDL_Surface *surface, const struct rect *rect,
 }
 
 /*
+ * Get a colour from RGB values
+ */
+
+static SDL_Color rgb(double r, double g, double b)
+{
+    SDL_Color c;
+
+    c.r = r * 255;
+    c.g = g * 255;
+    c.b = b * 255;
+
+    return c;
+}
+
+/*
+ * Get a colour from HSV values
+ *
+ * Pre: h is in degrees, in the range 0.0 to 360.0
+ */
+
+static SDL_Color hsv(double h, double s, double v)
+{
+    int i;
+    double f, p, q, t;
+
+    if (s == 0.0)
+        return rgb(v, v, v);
+
+    h /= 60;
+    i = floor(h);
+    f = h - i;
+    p = v * (1 - s);
+    q = v * (1 - s * f);
+    t = v * (1 - s * (1 - f));
+
+    switch (i) {
+    case 0:
+        return rgb(v, t, p);
+    case 1:
+        return rgb(q, v, p);
+    case 2:
+        return rgb(p, v, t);
+    case 3:
+        return rgb(p, q, v);
+    case 4:
+        return rgb(t, p, v);
+    case 5:
+    case 6:
+        return rgb(v, p, q);
+    default:
+        abort();
+    }
+}
+
+/*
  * Draw the beats-per-minute indicator
  */
 
 static void draw_bpm(SDL_Surface *surface, const struct rect *rect, double bpm)
 {
+    static const int min = 80.0, max = 170.0;
     char buf[32];
+    double f, h;
 
-    if (bpm != 0.0)
-        sprintf(buf, "%0.1f", bpm);
-    else
-        strcpy(buf, "-");
+    if (bpm == 0.0) {
+        draw_text(surface, rect, "-", font, detail_col, background_col);
+        return;
+    }
 
-    draw_text(surface, rect, buf, font, detail_col, background_col);
+    sprintf(buf, "%0.1f", bpm);
+
+    if (bpm < min || bpm > max) {
+        draw_text(surface, rect, buf, font, detail_col, background_col);
+        return;
+    }
+
+    f = (bpm - min) / (max - min);
+    assert(f >= 0.0);
+    assert(f <= 1.0);
+
+    h = 120.0 + f * 300.0; /* degrees */
+    if (h > 360.0)
+        h -= 360.0;
+
+    draw_text(surface, rect, buf, font, detail_col, hsv(h, 1.0, 0.3));
 }
 
 /*
