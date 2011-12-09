@@ -118,13 +118,13 @@ static int record_cmp(const struct record *a, const struct record *b)
 {
     int r;
 
-    r = strcmp(a->artist, b->artist);
+    r = strcasecmp(a->artist, b->artist);
     if (r < 0)
         return -1;
     else if (r > 0)
         return 1;
 
-    r = strcmp(a->title, b->title);
+    r = strcasecmp(a->title, b->title);
     if (r < 0)
         return -1;
     else if (r > 0)
