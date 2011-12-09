@@ -1142,7 +1142,10 @@ static void draw_listing(SDL_Surface *surface, const struct rect *rect,
             col = background_col;
         }
 
-        split_left(&top, &left, &right, RESULTS_ARTIST_WIDTH, 0);
+        split_left(&top, &left, &right, BPM_WIDTH, SPACER);
+        draw_bpm(surface, &left, record->bpm);
+
+        split_left(&right, &left, &right, RESULTS_ARTIST_WIDTH, 0);
         draw_text(surface, &left, record->artist, font, text_col, col);
 
         split_left(&right, &left, &right, SPACER, 0);
