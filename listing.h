@@ -24,6 +24,7 @@
 
 struct record {
     char *pathname, *artist, *title;
+    double bpm; /* or 0.0 if not known */
 };
 
 /* Listing points to records, but does not manage those pointers */

@@ -306,11 +306,12 @@ done:
 static int get_record(FILE *f, struct record **r)
 {
     struct record x, *y;
-    char delim;
+    char delim, *s, *endptr;
 
     x.pathname = NULL;
     x.artist = NULL;
     x.title = NULL;
+    x.bpm = 0.0;
 
     x.pathname = get_field(f, &delim);
     if (x.pathname == NULL)
@@ -342,11 +343,35 @@ static int get_record(FILE *f, struct record **r)
     if (x.title == NULL)
         goto fail;
 
+    if (delim == '\n') /* other fields are optional */
+        goto done;
+
+    if (delim != '\t') {
+        fprintf(stderr, "Malformed record '%s'\n", x.pathname);
+        goto fail;
+    }
+
+    /* Beats-per-minute (BPM) */
+
+    s = get_field(f, &delim);
+    if (s == NULL)
+        goto fail;
+
+    x.bpm = strtod(s, &endptr);
+    if (*endptr != '\0' || x.bpm <= 0.0) {
+        fprintf(stderr, "Malformed record BPM '%s'\n", x.pathname);
+        free(s);
+        goto fail;
+    }
+
+    free(s);
+
     if (delim != '\n') {
         fprintf(stderr, "Malformed record '%s'\n", x.pathname);
         goto fail;
     }
 
+done:
     y = malloc(sizeof *y);
     if (y == NULL) {
         perror("malloc");
