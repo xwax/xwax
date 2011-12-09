@@ -248,30 +248,51 @@ void library_clear(struct library *li)
 }
 
 /*
- * Read a string from a file.
+ * Read the next string from the file up to a valid delimeter
  *
- * A null-terminated string is read from the given file handle
- * by reading until the delimiter.
- *
- * Return: 0 on success, -1 on error or EOF
- * Post: On success, *s is an alloc'd string returned to the caller;
- *     if an empty string is read, *s is set to NULL
+ * Return: pointer to alloc'd string
+ * Post: *delim is set
  */
 
-static int get_field(FILE *fp, char delim, char **f)
+static char* get_field(FILE *f, char *delim)
 {
-    char *s = NULL;
-    size_t n, z;
+    char *s;
+    size_t len;
 
-    z = getdelim(&s, &n, delim, fp);
-    if (z == -1) {
-        free(s);
-        return -1;
+    s = NULL;
+    len = 0;
+
+    for (;;) {
+        int c;
+        void *x;
+
+        x = realloc(s, len + 1);
+        if (x == NULL) {
+            perror("realloc");
+            free(s);
+            return NULL;
+        }
+        s = x;
+
+        c = fgetc(f);
+        switch (c) {
+        case EOF:
+            *delim = '\0';
+            goto done;
+
+        case '\n':
+        case '\t':
+            *delim = c;
+            goto done;
+        }
+
+        s[len] = c;
+        len++;
     }
 
-    s[z - 1] = '\0'; /* don't include delimiter */
-    *f = s;
-    return 0;
+done:
+    s[len] = '\0';
+    return s;
 }
 
 /*
@@ -354,10 +375,19 @@ int library_import(struct library *li, bool sort,
 
     for (;;) {
         struct record *d, *x;
-        char *pathname;
+        char *pathname, delim;
 
-        if (get_field(fp, '\t', &pathname) != 0)
+        pathname = get_field(fp, &delim);
+        if (pathname == NULL)
+            return -1;
+
+        if (delim == '\0') /* EOF */
             break;
+
+        if (delim != '\t') {
+            fprintf(stderr, "Malformed entry '%s'", pathname);
+            return -1;
+        }
 
         d = malloc(sizeof(struct record));
         if (d == NULL) {
@@ -367,13 +397,21 @@ int library_import(struct library *li, bool sort,
 
         d->pathname = pathname;
 
-        if (get_field(fp, '\t', &d->artist) != 0) {
-            fprintf(stderr, "EOF when reading artist for '%s'.\n", d->pathname);
+        d->artist = get_field(fp, &delim);
+        if (d->artist == NULL)
+            return -1;
+
+        if (delim != '\t') {
+            fprintf(stderr, "Malformed entry '%s'", pathname);
             return -1;
         }
 
-        if (get_field(fp, '\n', &d->title) != 0) {
-            fprintf(stderr, "EOF when reading title for '%s'.\n", d->pathname);
+        d->title = get_field(fp, &delim);
+        if (d->title == NULL)
+            return -1;
+
+        if (delim != '\n') {
+            fprintf(stderr, "Malformed entry '%s'", pathname);
             return -1;
         }
 
