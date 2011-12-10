@@ -21,6 +21,7 @@
 #include <errno.h>
 #include <math.h>
 #include <pthread.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -229,13 +230,14 @@ static void split_right(const struct rect *source, struct rect *left,
 
 static void time_to_clock(char *buf, char *deci, int t)
 {
-    int minutes, seconds, frac, neg;
+    int minutes, seconds, frac;
+    bool neg;
 
     if (t < 0) {
         t = abs(t);
-        neg = 1;
+        neg = true;
     } else
-        neg = 0;
+        neg = false;
 
     minutes = (t / 60 / 1000) % (60*60);
     seconds = (t / 1000) % 60;
