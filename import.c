@@ -17,16 +17,15 @@
  *
  */
 
-#define _BSD_SOURCE /* vfork() */
 #include <assert.h>
 #include <errno.h>
-#include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 
+#include "external.h"
 #include "import.h"
 #include "track.h"
 
@@ -40,7 +39,7 @@
 int import_start(struct import *im, struct track *track,
                  const char *cmd, const char *path)
 {
-    int pstdout[2];
+    int fd;
     char rate[16];
     pid_t pid;
 
@@ -48,61 +47,15 @@ int import_start(struct import *im, struct track *track,
 
     sprintf(rate, "%d", track->rate);
 
-    if (pipe(pstdout) == -1) {
-        perror("pipe");
+    pid = fork_pipe_nb(&fd, cmd, "import", path, rate, NULL);
+    if (pid == -1)
         return -1;
-    }
-
-    if (fcntl(pstdout[0], F_SETFL, O_NONBLOCK) == -1) {
-        perror("fcntl");
-        return -1;
-    }
-
-    pid = vfork();
-
-    if (pid == -1) {
-        perror("vfork");
-        return -1;
-
-    } else if (pid == 0) { /* child */
-
-        /* Reconnect stdout to this process, leave stderr to terminal */
-
-        if (close(pstdout[0]) != 0) {
-            perror("close");
-            abort();
-        }
-
-        if (dup2(pstdout[1], STDOUT_FILENO) == -1) {
-            perror("dup2");
-            _exit(EXIT_FAILURE); /* vfork() was used */
-        }
-
-        if (close(pstdout[1]) != 0) {
-            perror("close");
-            abort();
-        }
-
-        if (execl(cmd, "import", path, rate, NULL) == -1) {
-            perror("execl");
-            fprintf(stderr, "Failed to launch importer %s\n", cmd);
-            _exit(EXIT_FAILURE); /* vfork() was used */
-        }
-
-        abort(); /* execl() never returns */
-    }
-
-    if (close(pstdout[1]) != 0) {
-        perror("close");
-        abort();
-    }
 
     im->pid = pid;
-    im->fd = pstdout[0];
+    im->fd = fd;
     im->track = track;
 
     return 0;
-
 }
 
 /*

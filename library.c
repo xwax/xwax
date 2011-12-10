@@ -17,7 +17,6 @@
  *
  */
 
-#define _BSD_SOURCE /* vfork() */
 #define _GNU_SOURCE /* getdelim(), strdupa() */
 #include <assert.h>
 #include <libgen.h> /*  basename() */
@@ -29,6 +28,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
+#include "external.h"
 #include "library.h"
 
 #define CRATE_ALL "All records"
@@ -378,7 +378,7 @@ fail:
 int library_import(struct library *li, bool sort,
                    const char *scan, const char *path)
 {
-    int pstdout[2], status;
+    int fd, status;
     char *cratename, *pathname;
     pid_t pid;
     FILE *fp;
@@ -396,52 +396,14 @@ int library_import(struct library *li, bool sort,
     if (crate == NULL)
         return -1;
 
-    if (pipe(pstdout) == -1) {
-        perror("pipe");
-        return -1;
-    }
-
-    pid = vfork();
-
-    if (pid == -1) {
-        perror("vfork");
+    pid = fork_pipe(&fd, scan, "scan", path, NULL);
+    if (pid == -1)
         return -1;
 
-    } else if (pid == 0) { /* child */
-
-        if (close(pstdout[0]) == -1) {
-            perror("close");
-            abort();
-        }
-
-        if (dup2(pstdout[1], STDOUT_FILENO) == -1) {
-            perror("dup2");
-            _exit(EXIT_FAILURE); /* vfork() was used */
-        }
-
-        if (close(pstdout[1]) == -1) {
-            perror("close");
-            abort();
-        }
-
-        if (execl(scan, "scan", path, NULL) == -1) {
-            perror("execl");
-            fprintf(stderr, "Failed to launch library scanner %s\n", scan);
-            _exit(EXIT_FAILURE); /* vfork() was used */
-        }
-
-        abort(); /* execl() does not return */
-    }
-
-    if (close(pstdout[1]) == -1) {
-        perror("close");
-        abort();
-    }
-
-    fp = fdopen(pstdout[0], "r");
+    fp = fdopen(fd, "r");
     if (fp == NULL) {
         perror("fdopen");
-        return -1;
+        abort(); /* recovery not implemented */
     }
 
     for (;;) {

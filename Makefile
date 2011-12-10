@@ -41,7 +41,7 @@ DOCDIR = $(PREFIX)/share/doc
 
 # Core objects and libraries
 
-OBJS = deck.o import.o interface.o library.o listing.o lut.o \
+OBJS = deck.o external.o import.o interface.o library.o listing.o lut.o \
 	player.o realtime.o \
 	rig.o selector.o timecoder.o track.o xwax.o
 DEVICE_OBJS = device.o
@@ -118,7 +118,7 @@ dist:		.version
 
 # Manual tests
 
-test-library:	test-library.o library.o listing.o
+test-library:	test-library.o external.o library.o listing.o
 
 test-timecoder:	test-timecoder.o lut.o timecoder.o
 
