@@ -1190,7 +1190,7 @@ static bool handle_key(struct interface *in, struct selector *sel,
         return true;
 
     } else if (key == SDLK_HOME) {
-        selectorop(sel);
+        selector_top(sel);
         return true;
 
     } else if (key == SDLK_END) {
@@ -1222,7 +1222,7 @@ static bool handle_key(struct interface *in, struct selector *sel,
         return true;
 
     } else if (key == SDLK_TAB) {
-        selectoroggle(sel);
+        selector_toggle(sel);
         return true;
 
     } else if ((key == SDLK_EQUALS) || (key == SDLK_PLUS)) {

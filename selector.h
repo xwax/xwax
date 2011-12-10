@@ -58,14 +58,14 @@ void selector_up(struct selector *sel);
 void selector_down(struct selector *sel);
 void selector_page_up(struct selector *sel);
 void selector_page_down(struct selector *sel);
-void selectorop(struct selector *sel);
+void selector_top(struct selector *sel);
 void selector_bottom(struct selector *sel);
 
 struct record* selector_current(struct selector *sel);
 
 void selector_prev(struct selector *sel);
 void selector_next(struct selector *sel);
-void selectoroggle(struct selector *sel);
+void selector_toggle(struct selector *sel);
 
 void selector_search_expand(struct selector *sel);
 void selector_search_refine(struct selector *sel, char key);

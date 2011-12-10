@@ -232,7 +232,7 @@ void selector_page_down(struct selector *sel)
 }
 
 
-void selectorop(struct selector *sel)
+void selector_top(struct selector *sel)
 {
     scroll_first(&sel->records);
 }
@@ -285,7 +285,7 @@ void selector_next(struct selector *sel)
 
 /* Toggle between the current crate and the 'all' crate */
 
-void selectoroggle(struct selector *sel)
+void selector_toggle(struct selector *sel)
 {
     if (!sel->toggled) {
         sel->toggle_back = scroll_current(&sel->crates);
