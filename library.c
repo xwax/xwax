@@ -53,6 +53,7 @@ static int crate_init(struct crate *c, const char *name, bool is_fixed)
 
     c->is_fixed = is_fixed;
     listing_init(&c->listing);
+    listing_init(&c->by_bpm);
 
     return 0;
 }
@@ -67,6 +68,7 @@ static int crate_init(struct crate *c, const char *name, bool is_fixed)
 static void crate_clear(struct crate *c)
 {
     listing_clear(&c->listing);
+    listing_clear(&c->by_bpm);
     free(c->name);
 }
 
@@ -82,6 +84,28 @@ static int crate_cmp(const struct crate *a, const struct crate *b)
         return 1;
 
     return strcmp(a->name, b->name);
+}
+
+/*
+ * Add a record into a crate and its various indexes
+ */
+
+static struct record* crate_add(struct crate *c, struct record *r)
+{
+    struct record *x;
+
+    assert(r != NULL);
+
+    x = listing_insert(&c->listing, r, SORT_ARTIST);
+    if (x != r) /* may be NULL */
+        return x;
+
+    /* FIXME: handle out-of-memory cases below */
+
+    x = listing_insert(&c->by_bpm, r, SORT_BPM);
+    assert(x == r);
+
+    return r;
 }
 
 /*
@@ -447,7 +471,7 @@ int library_import(struct library *li, bool sort,
 
         /* Add to the crate of all records */
 
-        x = listing_insert(&all_crate->listing, d);
+        x = crate_add(all_crate, d);
         if (x == NULL)
             return -1;
 
@@ -461,13 +485,8 @@ int library_import(struct library *li, bool sort,
 
         /* Insert into the user's crate */
 
-        if (sort) {
-            if (listing_insert(&crate->listing, d) == NULL)
-                return -1;
-        } else {
-            if (listing_add(&crate->listing, d) == -1)
-                return -1;
-        }
+        if (crate_add(crate, d) == NULL)
+            return -1;
     }
 
     if (fclose(fp) == -1) {

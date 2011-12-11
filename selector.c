@@ -182,7 +182,17 @@ static void retain_position(struct selector *sel, struct record *x)
 
 static struct listing* initial(struct selector *sel)
 {
-    return &sel->library->crate[sel->crates.selected]->listing;
+    struct crate *c;
+
+    c = sel->library->crate[sel->crates.selected];
+    switch (sel->sort) {
+    case SORT_ARTIST:
+        return &c->listing;
+    case SORT_BPM:
+        return &c->by_bpm;
+    default:
+        abort();
+    }
 }
 
 
@@ -196,6 +206,7 @@ void selector_init(struct selector *sel, struct library *lib)
     scroll_set_entries(&sel->crates, lib->crates);
 
     sel->toggled = false;
+    sel->sort = SORT_ARTIST;
     sel->search[0] = '\0';
     sel->search_len = 0;
 
@@ -311,6 +322,21 @@ void selector_toggle(struct selector *sel)
         sel->toggled = false;
     }
     crate_has_changed(sel);
+}
+
+
+/* Toggle between sort order */
+
+void selector_toggle_order(struct selector *sel)
+{
+    struct record *c;
+
+    c = selector_current(sel);
+
+    sel->sort = (sel->sort + 1) % SORT_END;
+
+    crate_has_changed(sel);
+    retain_position(sel, c);
 }
 
 

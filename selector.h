@@ -43,7 +43,7 @@ struct selector {
 
     struct scroll records, crates;
     bool toggled;
-    int toggle_back;
+    int toggle_back, sort;
 
     size_t search_len;
     char search[256];
@@ -66,6 +66,7 @@ struct record* selector_current(struct selector *sel);
 void selector_prev(struct selector *sel);
 void selector_next(struct selector *sel);
 void selector_toggle(struct selector *sel);
+void selector_toggle_order(struct selector *sel);
 
 void selector_search_expand(struct selector *sel);
 void selector_search_refine(struct selector *sel, char key);

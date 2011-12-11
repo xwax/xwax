@@ -22,6 +22,10 @@
 
 #include <stddef.h>
 
+#define SORT_ARTIST 0
+#define SORT_BPM    1
+#define SORT_END    2
+
 struct record {
     char *pathname, *artist, *title;
     double bpm; /* or 0.0 if not known */
@@ -41,7 +45,8 @@ int listing_add(struct listing *li, struct record *lr);
 int listing_copy(const struct listing *src, struct listing *dest);
 int listing_match(struct listing *src, struct listing *dest,
 		  const char *match);
-struct record* listing_insert(struct listing *ls, struct record *item);
+struct record* listing_insert(struct listing *ls, struct record *item,
+                              int sort);
 void listing_debug(struct listing *ls);
 void listing_sort(struct listing *ls);
 
