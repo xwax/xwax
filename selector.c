@@ -127,7 +127,7 @@ static void scroll_last(struct scroll *s)
 
 /* Scroll to an entry by index */
 
-static void scrollo(struct scroll *s, unsigned int n)
+static void scroll_to(struct scroll *s, unsigned int n)
 {
     s->selected = n;
 
@@ -292,7 +292,7 @@ void selector_toggle(struct selector *sel)
         scroll_first(&sel->crates);
         sel->toggled = true;
     } else {
-        scrollo(&sel->crates, sel->toggle_back);
+        scroll_to(&sel->crates, sel->toggle_back);
         sel->toggled = false;
     }
     crate_has_changed(sel);
