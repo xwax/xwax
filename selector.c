@@ -158,6 +158,25 @@ static int scroll_current(struct scroll *s)
 }
 
 
+/* Scroll to an entry if it can be found, otherwise leave our position
+ * unchanged */
+
+static void retain_position(struct selector *sel, struct record *x)
+{
+    size_t n;
+    struct listing *l;
+
+    l = sel->view_listing;
+
+    for (n = 0; n < l->size; n++) {
+        if (l->record[n] == x) {
+            scroll_to(&sel->records, n);
+            return;
+        }
+    }
+}
+
+
 /* Return the listing which acts as the starting point before
  * string matching, based on the current crate */
 
@@ -300,13 +319,20 @@ void selector_toggle(struct selector *sel)
 
 void selector_search_expand(struct selector *sel)
 {
+    struct record *c;
+
     if (sel->search_len == 0)
         return;
 
     sel->search[--sel->search_len] = '\0';
 
+    c = selector_current(sel);
+
     (void)listing_match(initial(sel), sel->view_listing, sel->search);
     scroll_set_entries(&sel->records, sel->view_listing->entries);
+
+    if (c != NULL)
+        retain_position(sel, c);
 }
 
 
