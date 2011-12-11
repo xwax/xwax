@@ -832,7 +832,7 @@ static void draw_meters(SDL_Surface *surface, const struct rect *rect,
  * Draw the current playback status -- clocks, spinner and scope
  */
 
-static void draw_deckop(SDL_Surface *surface, const struct rect *rect,
+static void draw_deck_top(SDL_Surface *surface, const struct rect *rect,
                           struct player *pl, struct track *track)
 {
     struct rect clocks, left, right, spinner, scope;
@@ -922,7 +922,7 @@ static void draw_deck(SDL_Surface *surface, const struct rect *rect,
     if (lower.h < 64)
         lower = rest;
     else
-        draw_deckop(surface, &top, pl, t);
+        draw_deck_top(surface, &top, pl, t);
 
     split_bottom(&lower, &meters, &status, FONT_SPACE, SPACER);
     if (meters.h < 64)
