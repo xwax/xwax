@@ -129,23 +129,19 @@ static void scroll_last(struct scroll *s)
 
 static void scroll_to(struct scroll *s, unsigned int n)
 {
+    int p;
+
+    assert(s->selected != -1);
+    assert(n < s->entries);
+
+    /* Retain the on-screen position of the current selection */
+
+    p = s->selected - s->offset;
     s->selected = n;
+    s->offset = s->selected - p;
 
-    /* Move the viewing offset down, if necessary */
-
-    if (s->selected >= s->offset + s->lines) {
-        s->offset = s->selected - s->lines / 2;
-        if (s->offset + s->lines > s->entries)
-            s->offset = s->entries - s->lines;
-    }
-
-    /* Move the viewing offset up, if necessary */
-
-    if (s->selected < s->offset) {
-        s->offset = s->selected - s->lines / 2 + 1;
-        if (s->offset < 0)
-            s->offset = 0;
-    }
+    if (s->offset < 0)
+        s->offset = 0;
 }
 
 
