@@ -388,9 +388,8 @@ static int get_record(FILE *f, struct record **r)
     if (errno == ERANGE || *endptr != '\0'
         || !isfinite(x.bpm) || x.bpm <= 0.0)
     {
-        fprintf(stderr, "Malformed record BPM '%s'\n", x.pathname);
-        free(s);
-        goto fail;
+        fprintf(stderr, "%s: Ignoring malformed BPM '%s'\n", x.pathname, s);
+        x.bpm = 0.0;
     }
 
     free(s);
