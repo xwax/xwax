@@ -168,7 +168,7 @@ static void retain_position(struct selector *sel, struct record *x)
 
     l = sel->view_listing;
 
-    for (n = 0; n < l->size; n++) {
+    for (n = 0; n < l->entries; n++) {
         if (l->record[n] == x) {
             scroll_to(&sel->records, n);
             return;
