@@ -44,6 +44,7 @@ struct selector {
     struct scroll records, crates;
     bool toggled;
     int toggle_back, sort;
+    struct record *target;
 
     size_t search_len;
     char search[256];
