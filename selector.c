@@ -360,6 +360,7 @@ void selector_toggle(struct selector *sel)
 
 void selector_toggle_order(struct selector *sel)
 {
+    set_target(sel);
     sel->sort = (sel->sort + 1) % SORT_END;
     crate_has_changed(sel);
 }
