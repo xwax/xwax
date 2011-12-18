@@ -574,15 +574,15 @@ static void draw_bpm(SDL_Surface *surface, const struct rect *rect, double bpm,
     char buf[32];
     double f, h;
 
-    if (bpm <= 0.0 || bpm >= 1000.0) {
+    if (bpm <= 0.0) {
         draw_rect(surface, rect, bg_col);
         return;
     }
 
-    if (bpm < 100.0) {
-        sprintf(buf, " %0.1f", bpm);
-    } else {
-        sprintf(buf, "%0.1f", bpm);
+    sprintf(buf, "%5.1f", bpm);
+    if (strlen(buf) > 5) {
+        draw_rect(surface, rect, bg_col);
+        return;
     }
 
     f = (bpm - min) / (max - min);
