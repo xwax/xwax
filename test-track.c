@@ -18,8 +18,8 @@
  */
 
 #include <stdio.h>
-#include <sys/poll.h>
 
+#include "rig.h"
 #include "track.h"
 
 /*
@@ -28,35 +28,23 @@
 
 int main(int argc, char *argv[])
 {
-    struct pollfd pe;
-    struct track track;
+    struct track *track;
 
     if (argc != 3) {
         fprintf(stderr, "usage: %s <command> <path>\n", argv[0]);
         return -1;
     }
 
-    track_init(&track, argv[1]);
+    rig_init();
 
-    if (track_import(&track, argv[2]) == -1)
+    track = track_get_by_import(argv[1], argv[2]);
+    if (track == NULL)
         return -1;
 
-    for (;;) {
-        ssize_t nfds;
+    rig_main();
 
-        nfds = track_pollfd(&track, &pe);
-        if (nfds == 0)
-            break;
-
-        if (poll(&pe, nfds, -1) == -1) {
-            perror("poll");
-            break;
-        }
-
-        track_handle(&track);
-    }
-
-    track_clear(&track);
+    track_put(track);
+    rig_clear();
 
     return 0;
 }
