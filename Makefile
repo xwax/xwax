@@ -118,6 +118,10 @@ dist:		.version
 
 # Manual tests
 
+.PHONY:		tests
+
+tests:		test-library test-timecoder test-track
+
 test-library:	test-library.o external.o library.o listing.o
 
 test-timecoder:	test-timecoder.o lut.o timecoder.o
