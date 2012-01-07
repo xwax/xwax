@@ -72,6 +72,11 @@ void deck_clear(struct deck *deck)
     device_clear(&deck->device);
 }
 
+bool deck_is_locked(const struct deck *deck)
+{
+    return (deck->protect && player_is_active(&deck->player));
+}
+
 /*
  * Load a record from the library to a deck
  */
@@ -79,6 +84,9 @@ void deck_clear(struct deck *deck)
 void deck_load(struct deck *deck, struct record *record)
 {
     struct track *t;
+
+    if (deck_is_locked(deck))
+        return;
 
     t = track_get_by_import(deck->importer, record->pathname);
     if (t == NULL)

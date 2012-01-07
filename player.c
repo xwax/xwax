@@ -261,6 +261,11 @@ double player_get_remain(struct player *pl)
         + pl->offset - pl->position;
 }
 
+bool player_is_active(const struct player *pl)
+{
+    return (fabs(pl->pitch) > 0.01);
+}
+
 /*
  * Cue to the zero position of the track
  */

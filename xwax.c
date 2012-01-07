@@ -60,6 +60,7 @@ static void usage(FILE *fd)
       "  -t <name>      Timecode name\n"
       "  -33            Use timecode at 33.3RPM (default)\n"
       "  -45            Use timecode at 45RPM\n"
+      "  -c             Protect against track change while playing\n"
       "  -i <program>   Importer (default '%s')\n"
       "  -s <program>   Library scanner (default '%s')\n"
       "  -h             Display this message\n\n",
@@ -103,6 +104,7 @@ int main(int argc, char *argv[])
     const char *importer, *scanner;
     double speed;
     struct timecode_def *timecode;
+    bool protect;
 
     struct deck deck[3];
     struct rt rt;
@@ -137,6 +139,7 @@ int main(int argc, char *argv[])
     scanner = DEFAULT_SCANNER;
     timecode = NULL;
     speed = 1.0;
+    protect = false;
 
 #if defined WITH_OSS || WITH_ALSA
     rate = DEFAULT_RATE;
@@ -276,6 +279,7 @@ int main(int argc, char *argv[])
             device = &ld->device;
             timecoder = &ld->timecoder;
             ld->importer = importer;
+            ld->protect = protect;
 
             /* Work out which device type we are using, and initialise
              * an appropriate device. */
@@ -356,6 +360,13 @@ int main(int argc, char *argv[])
         } else if (!strcmp(argv[0], "-45")) {
 
             speed = 1.35;
+
+            argv++;
+            argc--;
+
+        } else if (!strcmp(argv[0], "-c")) {
+
+            protect = true;
 
             argv++;
             argc--;

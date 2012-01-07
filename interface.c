@@ -868,11 +868,12 @@ static void draw_deck_top(SDL_Surface *surface, const struct rect *rect,
  */
 
 static void draw_deck_status(SDL_Surface *surface,
-                                 const struct rect *rect,
-                                 struct player *pl)
+                             const struct rect *rect,
+                             const struct deck *deck)
 {
     char buf[128], *c;
     int tc;
+    const struct player *pl = &deck->player;
 
     c = buf;
 
@@ -885,12 +886,13 @@ static void draw_deck_status(SDL_Surface *surface,
         c += sprintf(c, "        ");
     }
 
-    sprintf(c, "pitch:%+0.2f (sync %0.2f %+.5fs = %+0.2f)  %s",
+    sprintf(c, "pitch:%+0.2f (sync %0.2f %+.5fs = %+0.2f)  %s%s",
             pl->pitch,
             pl->sync_pitch,
             pl->last_difference,
             pl->pitch * pl->sync_pitch,
-            pl->recalibrate ? "RCAL  " : "");
+            pl->recalibrate ? "RCAL  " : "",
+            deck_is_locked(deck) ? "LOCK  " : "");
 
     draw_text(surface, rect, buf, detail_font, detail_col, background_col);
 }
@@ -928,7 +930,7 @@ static void draw_deck(SDL_Surface *surface, const struct rect *rect,
     if (meters.h < 64)
         meters = lower;
     else
-        draw_deck_status(surface, &status, pl);
+        draw_deck_status(surface, &status, deck);
 
     draw_meters(surface, &meters, t, position, meter_scale);
 }

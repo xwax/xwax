@@ -30,6 +30,7 @@ struct deck {
     struct device device;
     struct timecoder timecoder;
     const char *importer;
+    bool protect;
 
     struct player player;
     const struct record *record;
@@ -37,6 +38,8 @@ struct deck {
 
 int deck_init(struct deck *deck, struct rt *rt);
 void deck_clear(struct deck *deck);
+
+bool deck_is_locked(const struct deck *deck);
 
 void deck_load(struct deck *deck, struct record *record);
 

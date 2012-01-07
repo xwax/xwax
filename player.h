@@ -63,6 +63,7 @@ void player_set_track(struct player *pl, struct track *track);
 double player_get_position(struct player *pl);
 double player_get_elapsed(struct player *pl);
 double player_get_remain(struct player *pl);
+bool player_is_active(const struct player *pl);
 
 void player_recue(struct player *pl);
 
