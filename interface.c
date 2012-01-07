@@ -1276,7 +1276,7 @@ static bool handle_key(struct interface *in, struct selector *sel,
                 break;
 
             case FUNC_RECUE:
-                player_recue(pl);
+                deck_recue(deck);
                 break;
 
             case FUNC_TIMECODE:

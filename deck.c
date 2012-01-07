@@ -95,3 +95,11 @@ void deck_load(struct deck *deck, struct record *record)
     deck->record = record;
     player_set_track(&deck->player, t); /* passes reference */
 }
+
+void deck_recue(struct deck *deck)
+{
+    if (deck_is_locked(deck))
+        return;
+
+    player_recue(&deck->player);
+}
