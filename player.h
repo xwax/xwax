@@ -59,6 +59,7 @@ void player_set_timecode_control(struct player *pl, bool on);
 bool player_toggle_timecode_control(struct player *pl);
 
 void player_set_track(struct player *pl, struct track *track);
+void player_clone(struct player *pl, const struct player *from);
 
 double player_get_position(struct player *pl);
 double player_get_elapsed(struct player *pl);

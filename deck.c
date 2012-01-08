@@ -103,3 +103,9 @@ void deck_recue(struct deck *deck)
 
     player_recue(&deck->player);
 }
+
+void deck_clone(struct deck *deck, const struct deck *from)
+{
+    deck->record = from->record;
+    player_clone(&deck->player, &from->player);
+}

@@ -1271,7 +1271,7 @@ static bool handle_key(struct deck deck[], size_t ndeck,
 
             if (mod & KMOD_SHIFT) {
                 if (func < ndeck)
-                    player_set_timecoder(pl, &deck[func].timecoder);
+                    deck_clone(de, &deck[func]);
 
             } else switch(func) {
             case FUNC_LOAD:

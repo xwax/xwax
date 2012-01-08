@@ -298,6 +298,30 @@ void player_set_track(struct player *pl, struct track *track)
 }
 
 /*
+ * Set the playback of one player to match another, used
+ * for "instant doubles" and beat juggling
+ */
+
+void player_clone(struct player *pl, const struct player *from)
+{
+    double elapsed;
+    struct track *x, *t;
+
+    elapsed = from->position - from->offset;
+    pl->offset = pl->position - elapsed;
+
+    t = from->track;
+    track_get(t);
+
+    spin_lock(&pl->lock);
+    x = pl->track;
+    pl->track = t;
+    spin_unlock(&pl->lock);
+
+    track_put(x);
+}
+
+/*
  * Synchronise to the position and speed given by the timecoder
  *
  * Return: 0 on success or -1 if the timecoder is not currently valid
