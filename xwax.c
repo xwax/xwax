@@ -108,7 +108,6 @@ int main(int argc, char *argv[])
 
     struct deck deck[3];
     struct rt rt;
-    struct interface iface;
     struct library library;
 
 #if defined WITH_OSS || WITH_ALSA
@@ -441,7 +440,7 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    if (interface_start(&iface, deck, decks, &library) == -1)
+    if (interface_start(deck, decks, &library) == -1)
         return -1;
     if (rt_start(&rt) == -1)
         return -1;
@@ -452,7 +451,7 @@ int main(int argc, char *argv[])
     fprintf(stderr, "Exiting cleanly...\n");
 
     rt_stop(&rt);
-    interface_stop(&iface);
+    interface_stop();
 
     for (n = 0; n < decks; n++)
         deck_clear(&deck[n]);

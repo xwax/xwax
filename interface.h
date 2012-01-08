@@ -20,23 +20,10 @@
 #ifndef INTERFACE_H
 #define INTERFACE_H
 
-#include <pthread.h>
-
 #include "deck.h"
 #include "library.h"
-#include "selector.h"
 
-struct interface {
-    pthread_t ph;
-
-    size_t ndeck;
-    struct deck *deck;
-
-    struct selector selector;
-};
-
-int interface_start(struct interface *in, struct deck deck[], size_t ndeck,
-                    struct library *lib);
-void interface_stop(struct interface *in);
+int interface_start(struct deck deck[], size_t ndeck, struct library *lib);
+void interface_stop();
 
 #endif

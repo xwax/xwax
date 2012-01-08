@@ -33,7 +33,6 @@
 #include <SDL_ttf.h>
 
 #include "interface.h"
-#include "listing.h"
 #include "player.h"
 #include "rig.h"
 #include "selector.h"
@@ -144,6 +143,11 @@ static SDL_Color background_col = {0, 0, 0, 255},
     needle_col = {255, 255, 255, 255};
 
 static int spinner_angle[SPINNER_SIZE * SPINNER_SIZE];
+
+static pthread_t ph;
+static struct deck *deck;
+static size_t ndeck;
+static struct selector selector;
 
 struct rect {
     signed short x, y, w, h;
@@ -1168,8 +1172,9 @@ static void draw_library(SDL_Surface *surface, const struct rect *rect,
  * Return: true if the selector needs to be redrawn, otherwise false
  */
 
-static bool handle_key(struct interface *in, struct selector *sel,
-                       int *meter_scale, SDLKey key, SDLMod mod)
+static bool handle_key(struct deck deck[], size_t ndeck,
+                       struct selector *sel, int *meter_scale,
+                       SDLKey key, SDLMod mod)
 {
     if (key >= SDLK_a && key <= SDLK_z) {
         selector_search_refine(sel, (key - SDLK_a) + 'a');
@@ -1251,32 +1256,32 @@ static bool handle_key(struct interface *in, struct selector *sel,
 
         d = (key - SDLK_F1) / 4;
 
-        if (d < in->ndeck) {
+        if (d < ndeck) {
             int func;
-            struct deck *deck;
+            struct deck *de;
             struct player *pl;
             struct record *re;
             struct timecoder *tc;
 
             func = (key - SDLK_F1) % 4;
 
-            deck = &in->deck[d];
-            pl = &deck->player;
-            tc = &deck->timecoder;
+            de = &deck[d];
+            pl = &de->player;
+            tc = &de->timecoder;
 
             if (mod & KMOD_SHIFT) {
-                if (func < in->ndeck)
-                    player_set_timecoder(pl, &in->deck[func].timecoder);
+                if (func < ndeck)
+                    player_set_timecoder(pl, &deck[func].timecoder);
 
             } else switch(func) {
             case FUNC_LOAD:
                 re = selector_current(sel);
                 if (re != NULL)
-                    deck_load(deck, re);
+                    deck_load(de, re);
                 break;
 
             case FUNC_RECUE:
-                deck_recue(deck);
+                deck_recue(de);
                 break;
 
             case FUNC_TIMECODE:
@@ -1339,7 +1344,7 @@ static Uint32 ticker(Uint32 interval, void *p)
  * The SDL interface thread
  */
 
-static int interface_main(struct interface *in)
+static int interface_main(void)
 {
     int meter_scale, library_update, decks_update, status_update;
     const char *status = banner;
@@ -1362,7 +1367,7 @@ static int interface_main(struct interface *in)
 
     /* The final action is to add the timer which triggers refresh */
 
-    timer = SDL_AddTimer(REFRESH, ticker, (void*)in);
+    timer = SDL_AddTimer(REFRESH, ticker, NULL);
 
     while (SDL_WaitEvent(&event) >= 0) {
 
@@ -1398,8 +1403,8 @@ static int interface_main(struct interface *in)
             break;
 
         case SDL_KEYDOWN:
-            if (handle_key(in, &in->selector, &meter_scale,
-                          event.key.keysym.sym, event.key.keysym.mod))
+            if (handle_key(deck, ndeck, &selector, &meter_scale,
+                           event.key.keysym.sym, event.key.keysym.mod))
             {
                 library_update = UPDATE_REDRAW;
             }
@@ -1429,14 +1434,14 @@ static int interface_main(struct interface *in)
 
         if (library_update == UPDATE_REDRAW) {
 
-            if (selector_current(&in->selector) != NULL)
-                status = selector_current(&in->selector)->pathname;
+            if (selector_current(&selector) != NULL)
+                status = selector_current(&selector)->pathname;
             else
                 status = "No search results found";
             status_update = UPDATE_REDRAW;
 
             LOCK(surface);
-            draw_library(surface, &rlibrary, &in->selector);
+            draw_library(surface, &rlibrary, &selector);
             UNLOCK(surface);
             UPDATE(surface, &rlibrary);
             library_update = UPDATE_NONE;
@@ -1457,7 +1462,7 @@ static int interface_main(struct interface *in)
 
         if (decks_update == UPDATE_REDRAW) {
             LOCK(surface);
-            draw_decks(surface, &rplayers, in->deck, in->ndeck, meter_scale);
+            draw_decks(surface, &rplayers, deck, ndeck, meter_scale);
             UNLOCK(surface);
             UPDATE(surface, &rplayers);
             decks_update = UPDATE_NONE;
@@ -1473,7 +1478,7 @@ static int interface_main(struct interface *in)
 
 static void* launch(void *p)
 {
-    interface_main(p);
+    interface_main();
     return NULL;
 }
 
@@ -1484,20 +1489,19 @@ static void* launch(void *p)
  * error
  */
 
-int interface_start(struct interface *in, struct deck deck[], size_t ndeck,
-                    struct library *lib)
+int interface_start(struct deck ldeck[], size_t lndeck, struct library *lib)
 {
     size_t n;
+
+    deck = ldeck;
+    ndeck = lndeck;
 
     for (n = 0; n < ndeck; n++) {
         if (timecoder_monitor_init(&deck[n].timecoder, SCOPE_SIZE) == -1)
             return -1;
     }
 
-    in->deck = deck;
-    in->ndeck = ndeck;
-
-    selector_init(&in->selector, lib);
+    selector_init(&selector, lib);
     calculate_spinner_lookup(spinner_angle, NULL, SPINNER_SIZE);
 
     fprintf(stderr, "Initialising SDL...\n");
@@ -1521,7 +1525,7 @@ int interface_start(struct interface *in, struct deck deck[], size_t ndeck,
 
     fprintf(stderr, "Launching interface thread...\n");
 
-    if (pthread_create(&in->ph, NULL, launch, (void*)in)) {
+    if (pthread_create(&ph, NULL, launch, NULL)) {
         perror("pthread_create");
         return -1;
     }
@@ -1533,7 +1537,7 @@ int interface_start(struct interface *in, struct deck deck[], size_t ndeck,
  * Synchronise with the SDL interface and exit
  */
 
-void interface_stop(struct interface *in)
+void interface_stop(void)
 {
     size_t n;
     SDL_Event quit;
@@ -1543,13 +1547,13 @@ void interface_stop(struct interface *in)
     if (SDL_PushEvent(&quit) == -1)
         abort();
 
-    if (pthread_join(in->ph, NULL) != 0)
+    if (pthread_join(ph, NULL) != 0)
         abort();
 
-    for (n = 0; n < in->ndeck; n++)
-        timecoder_monitor_clear(&in->deck[n].timecoder);
+    for (n = 0; n < ndeck; n++)
+        timecoder_monitor_clear(&deck[n].timecoder);
 
-    selector_clear(&in->selector);
+    selector_clear(&selector);
 
     clear_fonts();
 
