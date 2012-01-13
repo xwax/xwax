@@ -17,44 +17,28 @@
  *
  */
 
-#ifndef REALTIME_H
-#define REALTIME_H
+#ifndef CUES_H
+#define CUES_H
 
-#include <poll.h>
-#include <pthread.h>
-#include <semaphore.h>
-#include <stdbool.h>
+#include <math.h>
+
+#define MAX_CUES 16
+#define CUE_UNSET (HUGE_VAL)
 
 /*
- * State data for the realtime thread, maintained during rt_start and
- * rt_stop
+ * A set of cue points
  */
 
-struct rt {
-    pthread_t ph;
-    sem_t sem;
-    bool finished;
-
-    size_t ndv;
-    struct device *dv[3];
-
-    size_t nctl;
-    struct controller *ctl[3];
-
-    size_t npt;
-    struct pollfd pt[32];
+struct cues {
+    double position[MAX_CUES];
 };
 
-int rt_global_init();
-void rt_not_allowed();
+void cues_reset(struct cues *q);
 
-void rt_init(struct rt *rt);
-void rt_clear(struct rt *rt);
-
-int rt_add_device(struct rt *rt, struct device *dv);
-int rt_add_controller(struct rt *rt, struct controller *c);
-
-int rt_start(struct rt *rt);
-void rt_stop(struct rt *rt);
+void cues_unset(struct cues *q, unsigned int label);
+void cues_set(struct cues *q, unsigned int label, double position);
+double cues_get(const struct cues *q, unsigned int label);
+double cues_prev(const struct cues *q, double current);
+double cues_next(const struct cues *q, double current);
 
 #endif

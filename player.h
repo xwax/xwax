@@ -66,6 +66,7 @@ double player_get_elapsed(struct player *pl);
 double player_get_remain(struct player *pl);
 bool player_is_active(const struct player *pl);
 
+void player_seek_to(struct player *pl, double seconds);
 void player_recue(struct player *pl);
 
 void player_collect(struct player *pl, signed short *pcm, unsigned samples);

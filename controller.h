@@ -17,44 +17,39 @@
  *
  */
 
-#ifndef REALTIME_H
-#define REALTIME_H
+#ifndef CONTROLLER_H
+#define CONTROLLER_H
 
-#include <poll.h>
-#include <pthread.h>
-#include <semaphore.h>
 #include <stdbool.h>
+#include <stdlib.h>
+
+struct deck;
 
 /*
- * State data for the realtime thread, maintained during rt_start and
- * rt_stop
+ * Base state of a 'controller', which is a MIDI controller or HID
+ * device used to control the program
  */
 
-struct rt {
-    pthread_t ph;
-    sem_t sem;
-    bool finished;
-
-    size_t ndv;
-    struct device *dv[3];
-
-    size_t nctl;
-    struct controller *ctl[3];
-
-    size_t npt;
-    struct pollfd pt[32];
+struct controller {
+    bool fault;
+    void *local;
+    struct controller_ops *ops;
 };
 
-int rt_global_init();
-void rt_not_allowed();
+/*
+ * Functions which must be implemented for a controller
+ */
 
-void rt_init(struct rt *rt);
-void rt_clear(struct rt *rt);
+struct controller_ops {
+    int (*add_deck)(struct controller *c, struct deck *deck);
+    int (*realtime)(struct controller *c);
+    void (*clear)(struct controller *c);
+};
 
-int rt_add_device(struct rt *rt, struct device *dv);
-int rt_add_controller(struct rt *rt, struct controller *c);
+void controller_init(struct controller *c, struct controller_ops *t);
+void controller_clear(struct controller *c);
 
-int rt_start(struct rt *rt);
-void rt_stop(struct rt *rt);
+void controller_add_deck(struct controller *c, struct deck *d);
+void controller_handle(struct controller *c);
 
 #endif

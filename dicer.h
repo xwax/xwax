@@ -17,44 +17,12 @@
  *
  */
 
-#ifndef REALTIME_H
-#define REALTIME_H
+#ifndef DICER_H
+#define DICER_H
 
-#include <poll.h>
-#include <pthread.h>
-#include <semaphore.h>
-#include <stdbool.h>
+struct controller;
+struct rt;
 
-/*
- * State data for the realtime thread, maintained during rt_start and
- * rt_stop
- */
-
-struct rt {
-    pthread_t ph;
-    sem_t sem;
-    bool finished;
-
-    size_t ndv;
-    struct device *dv[3];
-
-    size_t nctl;
-    struct controller *ctl[3];
-
-    size_t npt;
-    struct pollfd pt[32];
-};
-
-int rt_global_init();
-void rt_not_allowed();
-
-void rt_init(struct rt *rt);
-void rt_clear(struct rt *rt);
-
-int rt_add_device(struct rt *rt, struct device *dv);
-int rt_add_controller(struct rt *rt, struct controller *c);
-
-int rt_start(struct rt *rt);
-void rt_stop(struct rt *rt);
+int dicer_init(struct controller *c, struct rt *rt, const char *hw);
 
 #endif

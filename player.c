@@ -401,6 +401,15 @@ void retarget(struct player *pl)
 }
 
 /*
+ * Seek to the given position
+ */
+
+void player_seek_to(struct player *pl, double seconds)
+{
+    pl->offset = pl->position - seconds;
+}
+
+/*
  * Get a block of PCM audio data to send to the soundcard
  *
  * This is the main function which retrieves audio for playback.  The

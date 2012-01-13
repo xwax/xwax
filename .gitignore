@@ -1,5 +1,7 @@
 xwax
+test-cues
 test-library
+test-midi
 test-timecoder
 test-track
 *.o
