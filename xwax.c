@@ -60,7 +60,8 @@ static void usage(FILE *fd)
       "  -t <name>      Timecode name\n"
       "  -33            Use timecode at 33.3RPM (default)\n"
       "  -45            Use timecode at 45RPM\n"
-      "  -c             Protect against track change while playing\n"
+      "  -c             Protect against certain operations while playing\n"
+      "  -u             Allow all operations when playing\n"
       "  -i <program>   Importer (default '%s')\n"
       "  -s <program>   Library scanner (default '%s')\n"
       "  -h             Display this message\n\n",
@@ -366,6 +367,13 @@ int main(int argc, char *argv[])
         } else if (!strcmp(argv[0], "-c")) {
 
             protect = true;
+
+            argv++;
+            argc--;
+
+        } else if (!strcmp(argv[0], "-u")) {
+
+            protect = false;
 
             argv++;
             argc--;
