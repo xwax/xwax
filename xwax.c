@@ -49,6 +49,8 @@
 #define DEFAULT_SCANNER EXECDIR "/xwax-scan"
 #define DEFAULT_TIMECODE "serato_2a"
 
+#define ARRAY_SIZE(x) (sizeof(x) / sizeof(*x))
+
 char *banner = "xwax " VERSION \
     " (C) Copyright 2011 Mark Hills <mark@pogo.org.uk>";
 
@@ -268,7 +270,7 @@ int main(int argc, char *argv[])
                 return -1;
             }
 
-            if (decks == sizeof deck) {
+            if (decks == ARRAY_SIZE(deck)) {
                 fprintf(stderr, "Too many decks; aborting.\n");
                 return -1;
             }
