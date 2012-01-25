@@ -466,11 +466,14 @@ int dicer_init(struct controller *c, struct rt *rt, const char *hw)
     c->local = d;
 
     if (rt_add_controller(rt, c) == -1)
-        abort(); /* FIXME */
+        goto fail2;
 
     return 0;
 
- fail:
+fail2:
+    controller_clear(c);
+    midi_close(&d->midi);
+fail:
     free(d);
     return -1;
 }
