@@ -159,7 +159,7 @@ static void commit_pcm_samples(struct track *tr, unsigned int samples)
         pcm += TRACK_CHANNELS;
     }
 
-    tr->length += samples; /* FIXME: atomic */
+    tr->length += samples; /* other threads; write assumed to be atomic */
 }
 
 /*
