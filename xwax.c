@@ -22,6 +22,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/mman.h> /* mlockall() */
 
 #include <SDL.h> /* may override main() */
 
@@ -58,18 +59,26 @@ char *banner = "xwax " VERSION \
 
 static void usage(FILE *fd)
 {
-    fprintf(fd, "Usage: xwax [<options>]\n\n"
+    fprintf(fd, "Usage: xwax [<options>]\n\n");
+
+    fprintf(fd, "Program-wide options:\n"
+      "  -k             Lock allocated memory into RAM\n"
+      "  -h             Display this message to stdout and exit\n\n");
+
+    fprintf(fd, "Music library options:\n"
       "  -l <path>      Location to scan for audio tracks\n"
       "  -p <path>      Ordered playlist for audio tracks\n"
+      "  -s <program>   Library scanner (default '%s')\n\n",
+      DEFAULT_SCANNER);
+
+    fprintf(fd, "Deck options:\n"
       "  -t <name>      Timecode name\n"
       "  -33            Use timecode at 33.3RPM (default)\n"
       "  -45            Use timecode at 45RPM\n"
       "  -c             Protect against certain operations while playing\n"
       "  -u             Allow all operations when playing\n"
-      "  -i <program>   Importer (default '%s')\n"
-      "  -s <program>   Library scanner (default '%s')\n"
-      "  -h             Display this message\n\n",
-      DEFAULT_IMPORTER, DEFAULT_SCANNER);
+      "  -i <program>   Importer (default '%s')\n\n",
+      DEFAULT_IMPORTER);
 
 #ifdef WITH_OSS
     fprintf(fd, "OSS device options:\n"
@@ -115,7 +124,7 @@ int main(int argc, char *argv[])
     size_t nctl;
     double speed;
     struct timecode_def *timecode;
-    bool protect;
+    bool protect, use_mlock;
 
     struct deck deck[3];
     struct controller ctl[2];
@@ -152,6 +161,7 @@ int main(int argc, char *argv[])
     timecode = NULL;
     speed = 1.0;
     protect = false;
+    use_mlock = false;
 
 #if defined WITH_OSS || WITH_ALSA
     rate = DEFAULT_RATE;
@@ -395,6 +405,14 @@ int main(int argc, char *argv[])
             argv++;
             argc--;
 
+        } else if (!strcmp(argv[0], "-k")) {
+
+            use_mlock = true;
+            track_use_mlock();
+
+            argv++;
+            argc--;
+
         } else if (!strcmp(argv[0], "-i")) {
 
             /* Importer script for subsequent decks */
@@ -496,9 +514,17 @@ int main(int argc, char *argv[])
             return -1;
     }
 
-    if (interface_start(deck, decks, &library) == -1)
-        return -1;
+    /* Order is important: launch realtime thread first, then mlock */
+
     if (rt_start(&rt) == -1)
+        return -1;
+
+    if (use_mlock && mlockall(MCL_CURRENT) == -1) {
+        perror("mlockall");
+        return -1;
+    }
+
+    if (interface_start(deck, decks, &library) == -1)
         return -1;
 
     if (rig_main() == -1)
@@ -506,8 +532,8 @@ int main(int argc, char *argv[])
 
     fprintf(stderr, "Exiting cleanly...\n");
 
-    rt_stop(&rt);
     interface_stop();
+    rt_stop(&rt);
 
     for (n = 0; n < decks; n++)
         deck_clear(&deck[n]);

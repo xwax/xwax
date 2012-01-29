@@ -21,6 +21,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/mman.h> /* mlock() */
 
 #include "debug.h"
 #include "list.h"
@@ -32,6 +33,7 @@
 #define TRACK_BLOCK_PCM_BYTES (TRACK_BLOCK_SAMPLES * SAMPLE)
 
 struct list tracks = LIST_INIT(tracks);
+bool use_mlock = false;
 
 /*
  * An empty track is used rarely, and is easier than
@@ -48,6 +50,16 @@ static struct track empty = {
 
     .importing = false
 };
+
+/*
+ * Request that memory for tracks is locked into RAM as it is
+ * allocated
+ */
+
+void track_use_mlock(void)
+{
+    use_mlock = true;
+}
 
 /*
  * Allocate more memory
@@ -69,6 +81,12 @@ static int more_space(struct track *tr)
     block = malloc(sizeof(struct track_block));
     if (block == NULL) {
         perror("malloc");
+        return -1;
+    }
+
+    if (use_mlock && mlock(block, sizeof(struct track_block)) == -1) {
+        perror("mlock");
+        free(block);
         return -1;
     }
 

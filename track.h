@@ -67,6 +67,8 @@ struct track {
     unsigned int overview;
 };
 
+void track_use_mlock(void);
+
 /* Tracks are dynamically allocated and reference counted */
 
 struct track* track_get_by_import(const char *importer, const char *path);
