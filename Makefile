@@ -41,32 +41,33 @@ DOCDIR = $(PREFIX)/share/doc
 
 # Core objects and libraries
 
-OBJS = controller.o cues.o deck.o external.o import.o interface.o \
+OBJS = controller.o cues.o deck.o device.o external.o import.o interface.o \
 	library.o listing.o lut.o \
 	player.o realtime.o \
 	rig.o selector.o timecoder.o track.o xwax.o
-DEVICE_OBJS = device.o
 DEVICE_CPPFLAGS =
 DEVICE_LIBS =
 
 # Optional device types
 
 ifdef ALSA
-DEVICE_OBJS += alsa.o dicer.o midi.o
+OBJS += alsa.o dicer.o midi.o
 DEVICE_CPPFLAGS += -DWITH_ALSA
 DEVICE_LIBS += $(ALSA_LIBS)
 endif
 
 ifdef JACK
-DEVICE_OBJS += jack.o
+OBJS += jack.o
 DEVICE_CPPFLAGS += -DWITH_JACK
 DEVICE_LIBS += $(JACK_LIBS)
 endif
 
 ifdef OSS
-DEVICE_OBJS += oss.o
+OBJS += oss.o
 DEVICE_CPPFLAGS += -DWITH_OSS
 endif
+
+DEPS = $(OBJS:.o=.d)
 
 # Rules
 
@@ -85,7 +86,7 @@ VERSION = $(shell ./mkversion)
 
 # Main binary
 
-xwax:		$(OBJS) $(DEVICE_OBJS)
+xwax:		$(OBJS)
 xwax:		LDLIBS += $(SDL_LIBS) $(DEVICE_LIBS) -lm
 xwax:		LDFLAGS += -pthread
 
@@ -144,6 +145,6 @@ clean:
 			test-midi \
 			test-timecoder \
 			test-track \
-			*.o *.d
+			$(OBJS) $(DEPS)
 
--include *.d
+-include $(DEPS)
