@@ -13,7 +13,8 @@
 PATHNAME="$1"
 
 if [ -d "$PATHNAME" ]; then
-	find -L "$PATHNAME" -type f
+	find -L "$PATHNAME" -type f |
+		grep -E '\.(ogg|oga|aac|cdaudio|mp3|flac|wav|aif|aiff|m4a|wma)$'
 else
 	cat "$PATHNAME"
 fi | sed -n '
