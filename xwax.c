@@ -57,19 +57,26 @@ char *banner = "xwax " VERSION \
 
 static void usage(FILE *fd)
 {
-    fprintf(fd, "Usage: xwax [<options>]\n\n"
+    fprintf(fd, "Usage: xwax [<options>]\n\n");
+
+    fprintf(fd, "Program-wide options:\n"
+      "  -k             Lock allocated memory into RAM\n"
+      "  -h             Display this message to stdout and exit\n\n");
+
+    fprintf(fd, "Music library options:\n"
       "  -l <path>      Location to scan for audio tracks\n"
       "  -p <path>      Ordered playlist for audio tracks\n"
+      "  -s <program>   Library scanner (default '%s')\n\n",
+      DEFAULT_SCANNER);
+
+    fprintf(fd, "Deck options:\n"
       "  -t <name>      Timecode name\n"
       "  -33            Use timecode at 33.3RPM (default)\n"
       "  -45            Use timecode at 45RPM\n"
       "  -c             Protect against certain operations while playing\n"
       "  -u             Allow all operations when playing\n"
-      "  -i <program>   Importer (default '%s')\n"
-      "  -s <program>   Library scanner (default '%s')\n"
-      "  -k             Lock allocated memory into RAM\n"
-      "  -h             Display this message\n\n",
-      DEFAULT_IMPORTER, DEFAULT_SCANNER);
+      "  -i <program>   Importer (default '%s')\n\n",
+      DEFAULT_IMPORTER);
 
 #ifdef WITH_OSS
     fprintf(fd, "OSS device options:\n"
