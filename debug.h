@@ -24,8 +24,10 @@
 
 #ifdef DEBUG
 #define debug(...) fprintf(stderr, __VA_ARGS__)
+#define dassert(x) assert(x)
 #else
 #define debug(...)
+#define dassert(x)
 #endif
 
 #endif

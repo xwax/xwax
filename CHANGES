@@ -5,6 +5,7 @@ v1.1 (work in progress)
 * Instant loading of duplicate tracks
 * Optionally protect decks during playback
 * Improvements to music selector
+* Increase speed building look-up tables
 
 v1.0 (2011-08-01)
 -----------------

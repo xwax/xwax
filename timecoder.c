@@ -209,11 +209,11 @@ static int build_lookup(struct timecode_def *def)
 
     for (n = 0; n < def->length; n++) {
         /* timecode must not wrap */
-        assert(lut_lookup(&def->lut, current) == (unsigned)-1);
+        dassert(lut_lookup(&def->lut, current) == (unsigned)-1);
         lut_push(&def->lut, current);
         last = current;
         current = fwd(current, def);
-        assert(rev(current, def) == last);
+        dassert(rev(current, def) == last);
     }
 
     def->lookup = true;
