@@ -21,6 +21,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/mman.h> /* mlock() */
 
 #include "debug.h"
 #include "list.h"
@@ -69,6 +70,12 @@ static int more_space(struct track *tr)
     block = malloc(sizeof(struct track_block));
     if (block == NULL) {
         perror("malloc");
+        return -1;
+    }
+
+    if (mlock(block, sizeof(struct track_block)) == -1) {
+        perror("mlock");
+        free(block);
         return -1;
     }
 

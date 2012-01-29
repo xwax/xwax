@@ -22,6 +22,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/mman.h> /* mlockall() */
 
 #include <SDL.h> /* may override main() */
 
@@ -450,9 +451,17 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    if (interface_start(deck, decks, &library) == -1)
-        return -1;
+    /* Order is important: launch realtime thread first, then mlock */
+
     if (rt_start(&rt) == -1)
+        return -1;
+
+    if (mlockall(MCL_CURRENT) == -1) {
+        perror("mlockall");
+        return -1;
+    }
+
+    if (interface_start(deck, decks, &library) == -1)
         return -1;
 
     if (rig_main() == -1)
@@ -460,8 +469,8 @@ int main(int argc, char *argv[])
 
     fprintf(stderr, "Exiting cleanly...\n");
 
-    rt_stop(&rt);
     interface_stop();
+    rt_stop(&rt);
 
     for (n = 0; n < decks; n++)
         deck_clear(&deck[n]);
