@@ -62,7 +62,7 @@ static void usage(FILE *fd)
     fprintf(fd, "Usage: xwax [<options>]\n\n");
 
     fprintf(fd, "Program-wide options:\n"
-      "  -k             Lock allocated memory into RAM\n"
+      "  -k             Lock real-time memory into RAM\n"
       "  -h             Display this message to stdout and exit\n\n");
 
     fprintf(fd, "Music library options:\n"
