@@ -35,7 +35,7 @@ static const struct record no_record = {
 /*
  * Initialise a deck
  *
- * A deck is a logical grouping of the varius components which
+ * A deck is a logical grouping of the various components which
  * reflects the user's view on a deck in the system.
  *
  * Pre: deck->device, deck->timecoder, deck->importer are valid
