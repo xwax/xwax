@@ -67,6 +67,7 @@ static void usage(FILE *fd)
       "  -u             Allow all operations when playing\n"
       "  -i <program>   Importer (default '%s')\n"
       "  -s <program>   Library scanner (default '%s')\n"
+      "  -k             Lock allocated memory into RAM\n"
       "  -h             Display this message\n\n",
       DEFAULT_IMPORTER, DEFAULT_SCANNER);
 
@@ -108,7 +109,7 @@ int main(int argc, char *argv[])
     const char *importer, *scanner;
     double speed;
     struct timecode_def *timecode;
-    bool protect;
+    bool protect, use_mlock;
 
     struct deck deck[3];
     struct rt rt;
@@ -143,6 +144,7 @@ int main(int argc, char *argv[])
     timecode = NULL;
     speed = 1.0;
     protect = false;
+    use_mlock = false;
 
 #if defined WITH_OSS || WITH_ALSA
     rate = DEFAULT_RATE;
@@ -381,6 +383,14 @@ int main(int argc, char *argv[])
             argv++;
             argc--;
 
+        } else if (!strcmp(argv[0], "-k")) {
+
+            use_mlock = true;
+            track_use_mlock();
+
+            argv++;
+            argc--;
+
         } else if (!strcmp(argv[0], "-i")) {
 
             /* Importer script for subsequent decks */
@@ -456,7 +466,7 @@ int main(int argc, char *argv[])
     if (rt_start(&rt) == -1)
         return -1;
 
-    if (mlockall(MCL_CURRENT) == -1) {
+    if (use_mlock && mlockall(MCL_CURRENT) == -1) {
         perror("mlockall");
         return -1;
     }

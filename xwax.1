@@ -71,6 +71,14 @@ Use the given importer executable for subsequent decks.
 Use the given scanner executable to scan subsequent music libraries.
 
 .TP
+.B \-k
+Lock into RAM any memory required for real-time use.
+This includes audio tracks held in memory which can be large.
+Use
+.B ulimit \-l
+to raise the kernel's memory limit to allow this.
+
+.TP
 .B \-h
 Display the help message and default values.
 
