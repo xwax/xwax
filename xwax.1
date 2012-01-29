@@ -129,7 +129,24 @@ Set the number of OSS buffers for subsequent decks.
 .B \-f \fIn\fR
 Set the OSS buffer size (2^n bytes).
 
-.SH CONTROLS
+.SH HARDWARE CONTROLLER OPTIONS
+
+.P
+The following options are available only when xwax is compiled
+with ALSA support.
+
+.TP
+.B \-dicer \fIdevice\fR
+Use one or two Dicer controllers connected as the given ALSA device
+(eg. hw:Dicer). See the section
+.B NOVATION DICER CONTROLS
+for more information.
+
+.P
+Adding a hardware controller results in control over subsequent decks,
+up to the limit of the hardware.
+
+.SH KEYBOARD CONTROLS
 
 .P
 The playback of each deck (direction, speed and position) is
@@ -183,6 +200,24 @@ Audio display controls:
 .TP
 +, \-
 Zoom in/out the close-up audio meters for all decks.
+
+.SH NOVATION DICER CONTROLS
+
+.P
+The Novation Dicer provides hardware control of cue points. The controls
+are:
+
+.TP
+cue mode: dice button (1-5)
+Jump to the specified cue point, or set it if unset.
+
+.TP
+cue button + dice button (1-5)
+Clear the specified cue point.
+
+.P
+The dice buttons are lit to show that the corresponding cue point is
+set.
 
 .SH EXAMPLES
 
@@ -247,6 +282,13 @@ Scan a second music library using a custom script:
 .sp
 .RS
 xwax \-l ~/music \-i ./custom-scan \-l ~/sounds \-a hw:0
+.RE
+
+.P
+Control two decks with Dicer hardware:
+.sp
+.RS
+xwax \-dicer hw:Dicer \-a hw:0 \-a hw:1
 .RE
 
 .SH HOMEPAGE

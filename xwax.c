@@ -26,8 +26,10 @@
 #include <SDL.h> /* may override main() */
 
 #include "alsa.h"
+#include "controller.h"
 #include "deck.h"
 #include "device.h"
+#include "dicer.h"
 #include "interface.h"
 #include "jack.h"
 #include "library.h"
@@ -91,6 +93,11 @@ static void usage(FILE *fd)
       "  -j <name>      Create a JACK deck with the given name\n\n");
 #endif
 
+#ifdef WITH_ALSA
+    fprintf(fd, "MIDI control:\n"
+      "  -dicer <dev>   Novation Dicer\n\n");
+#endif
+
     fprintf(fd,
       "The ordering of options is important. Options apply to subsequent\n"
       "music libraries or decks, which can be given multiple times. See the\n"
@@ -105,11 +112,13 @@ int main(int argc, char *argv[])
 {
     int r, n, decks;
     const char *importer, *scanner;
+    size_t nctl;
     double speed;
     struct timecode_def *timecode;
     bool protect;
 
     struct deck deck[3];
+    struct controller ctl[2];
     struct rt rt;
     struct library library;
 
@@ -137,6 +146,7 @@ int main(int argc, char *argv[])
     library_init(&library);
 
     decks = 0;
+    nctl = 0;
     importer = DEFAULT_IMPORTER;
     scanner = DEFAULT_SCANNER;
     timecode = NULL;
@@ -329,6 +339,11 @@ int main(int argc, char *argv[])
             if (r == -1)
                 return -1;
 
+            /* Connect this deck to available controllers */
+
+            for (n = 0; n < nctl; n++)
+                controller_add_deck(&ctl[n], &deck[decks]);
+
             decks++;
 
             argv += 2;
@@ -434,6 +449,32 @@ int main(int argc, char *argv[])
             argv += 2;
             argc -= 2;
 
+#ifdef WITH_ALSA
+        } else if (!strcmp(argv[0], "-dicer")) {
+
+            struct controller *c;
+
+            if (nctl == sizeof ctl) {
+                fprintf(stderr, "Too many controllers; aborting.\n");
+                return -1;
+            }
+
+            c = &ctl[nctl];
+
+            if (argc < 2) {
+                fprintf(stderr, "Dicer requires an ALSA device name.\n");
+                return -1;
+            }
+
+            if (dicer_init(c, &rt, argv[1]) == -1)
+                return -1;
+
+            nctl++;
+
+            argv += 2;
+            argc -= 2;
+#endif
+
         } else {
             fprintf(stderr, "'%s' argument is unknown; try -h.\n", argv[0]);
             return -1;
@@ -448,6 +489,11 @@ int main(int argc, char *argv[])
         fprintf(stderr, "You need to give at least one audio device to use "
                 "as a deck; try -h.\n");
         return -1;
+    }
+
+    for (n = 0; n < nctl; n++) {
+        if (rt_add_controller(&rt, &ctl[n]) == -1)
+            return -1;
     }
 
     if (interface_start(deck, decks, &library) == -1)
@@ -465,6 +511,9 @@ int main(int argc, char *argv[])
 
     for (n = 0; n < decks; n++)
         deck_clear(&deck[n]);
+
+    for (n = 0; n < nctl; n++)
+        controller_clear(&ctl[n]);
 
     timecoder_free_lookup();
     library_clear(&library);

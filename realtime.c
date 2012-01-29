@@ -21,6 +21,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "controller.h"
+#include "debug.h"
 #include "device.h"
 #include "realtime.h"
 
@@ -114,6 +116,8 @@ static void rt_main(struct rt *rt)
     int r;
     size_t n;
 
+    debug("realtime: main\n");
+
     if (raise_priority() == -1)
         rt->finished = true;
 
@@ -130,6 +134,9 @@ static void rt_main(struct rt *rt)
                 return;
             }
         }
+
+        for (n = 0; n < rt->nctl; n++)
+            controller_handle(rt->ctl[n]);
 
         for (n = 0; n < rt->ndv; n++)
             device_handle(rt->dv[n]);
@@ -148,8 +155,11 @@ static void* launch(void *p)
 
 void rt_init(struct rt *rt)
 {
+    debug("realtime: init\n");
+
     rt->finished = false;
     rt->ndv = 0;
+    rt->nctl = 0;
     rt->npt = 0;
 }
 
@@ -172,6 +182,8 @@ int rt_add_device(struct rt *rt, struct device *dv)
 {
     ssize_t z;
 
+    debug("realtime: add_device\n");
+
     if (rt->ndv == sizeof rt->dv) {
         fprintf(stderr, "Too many audio devices\n");
         return -1;
@@ -190,6 +202,29 @@ int rt_add_device(struct rt *rt, struct device *dv)
 
     rt->dv[rt->ndv] = dv;
     rt->ndv++;
+
+    return 0;
+}
+
+/*
+ * Add a controller to the realtime handler
+ *
+ * Return: -1 if the device could not be added, otherwise 0
+ */
+
+int rt_add_controller(struct rt *rt, struct controller *c)
+{
+    debug("realtime: add controller\n");
+
+    if (rt->nctl == sizeof rt->ctl) {
+        fprintf(stderr, "Too many controllers\n");
+        return -1;
+    }
+
+    /* Controllers don't have poll entries; they are polled every
+     * cycle of the audio */
+
+    rt->ctl[rt->nctl++] = c;
 
     return 0;
 }

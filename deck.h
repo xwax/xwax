@@ -20,6 +20,7 @@
 #ifndef DECK_H
 #define DECK_H
 
+#include "cues.h"
 #include "device.h"
 #include "listing.h"
 #include "player.h"
@@ -34,6 +35,12 @@ struct deck {
 
     struct player player;
     const struct record *record;
+    struct cues cues;
+
+    /* A controller adds itself here */
+
+    size_t ncontrol;
+    struct controller *control[4];
 };
 
 int deck_init(struct deck *deck, struct rt *rt);
@@ -45,5 +52,7 @@ void deck_load(struct deck *deck, struct record *record);
 
 void deck_recue(struct deck *deck);
 void deck_clone(struct deck *deck, const struct deck *from);
+void deck_unset_cue(struct deck *deck, unsigned int label);
+void deck_cue(struct deck *deck, unsigned int label);
 
 #endif

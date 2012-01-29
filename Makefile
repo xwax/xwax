@@ -41,7 +41,8 @@ DOCDIR = $(PREFIX)/share/doc
 
 # Core objects and libraries
 
-OBJS = deck.o external.o import.o interface.o library.o listing.o lut.o \
+OBJS = controller.o cues.o deck.o external.o import.o interface.o \
+	library.o listing.o lut.o \
 	player.o realtime.o \
 	rig.o selector.o timecoder.o track.o xwax.o
 DEVICE_OBJS = device.o
@@ -51,7 +52,7 @@ DEVICE_LIBS =
 # Optional device types
 
 ifdef ALSA
-DEVICE_OBJS += alsa.o
+DEVICE_OBJS += alsa.o dicer.o midi.o
 DEVICE_CPPFLAGS += -DWITH_ALSA
 DEVICE_LIBS += $(ALSA_LIBS)
 endif
@@ -120,9 +121,14 @@ dist:		.version
 
 .PHONY:		tests
 
-tests:		test-library test-timecoder test-track
+tests:		test-cues test-library test-timecoder test-track
+
+test-cues:	test-cues.o cues.o
 
 test-library:	test-library.o external.o library.o listing.o
+
+test-midi:	test-midi.o midi.o
+test-midi:	LDLIBS += $(ALSA_LIBS)
 
 test-timecoder:	test-timecoder.o lut.o timecoder.o
 
@@ -133,7 +139,9 @@ test-track:	LDLIBS += -lm
 
 clean:
 		rm -f xwax \
+			test-cues \
 			test-library \
+			test-midi \
 			test-timecoder \
 			test-track \
 			*.o *.d
