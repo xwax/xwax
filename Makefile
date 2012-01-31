@@ -133,8 +133,10 @@ test-midi:	LDLIBS += $(ALSA_LIBS)
 
 test-timecoder:	test-timecoder.o lut.o timecoder.o
 
-test-track:	test-track.o device.o external.o import.o lut.o player.o
-test-track:	realtime.o rig.o timecoder.o track.o
+test-track:	test-track.o external.o import.o rig.o track.o
+# FIXME: Test requires rt_not_allowed() which should not bring in
+# all the dependencies below
+test-track:	realtime.o controller.o device.o lut.o player.o timecoder.o
 test-track:	LDFLAGS += -pthread
 test-track:	LDLIBS += -lm
 
