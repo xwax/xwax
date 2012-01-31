@@ -23,6 +23,8 @@
 #include "deck.h"
 #include "debug.h"
 
+#define ARRAY_SIZE(x) (sizeof(x) / sizeof(*x))
+
 void controller_init(struct controller *c, struct controller_ops *ops)
 {
     debug("controller: init\n");
@@ -47,7 +49,7 @@ void controller_add_deck(struct controller *c, struct deck *d)
     if (c->ops->add_deck(c, d) == 0) {
         debug("controller: one added\n");
 
-        assert(d->ncontrol < sizeof d->control); /* FIXME */
+        assert(d->ncontrol < ARRAY_SIZE(d->control)); /* FIXME: report error */
         d->control[d->ncontrol++] = c; /* for callbacks */
     }
 }
