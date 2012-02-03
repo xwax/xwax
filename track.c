@@ -90,6 +90,9 @@ static int more_space(struct track *tr)
         return -1;
     }
 
+    /* No memory barrier is needed here, because nobody else tries to
+     * access these blocks until tr->length is actually incremented */
+
     tr->block[tr->blocks++] = block;
 
     debug("Allocated new track block (%d blocks, %zu bytes).\n",
