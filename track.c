@@ -177,7 +177,10 @@ static void commit_pcm_samples(struct track *tr, unsigned int samples)
         pcm += TRACK_CHANNELS;
     }
 
-    tr->length += samples; /* other threads; write assumed to be atomic */
+    /* Increment the track length. A memory barrier ensures the
+     * realtime or UI thread does not access garbage audio */
+
+    __sync_fetch_and_add(&tr->length, samples);
 }
 
 /*
