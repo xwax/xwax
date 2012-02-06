@@ -298,18 +298,29 @@ static void event_decoded(struct deck *d, led_t led[NBUTTONS],
         set_led(&led[button], 0, PRESSED);
     }
 
-    if (!on)
-        return;
-
     /* FIXME: We assume that we are the only operator of the cue
      * points; we should change the LEDs via a callback from deck */
 
-    if (shift) {
+    if (shift && on) {
         deck_unset_cue(d, button);
         set_led(&led[button], 0, ON);
-    } else {
+    }
+
+    if (shift)
+        return;
+
+    if (action == CUE && on) {
         deck_cue(d, button);
         set_led(&led[button], ON, 0);
+    }
+
+    if (action == LOOP) {
+        if (on) {
+            deck_punch_in(d, button);
+            set_led(&led[button], ON, 0);
+        } else {
+            deck_punch_out(d, button);
+        }
     }
 }
 

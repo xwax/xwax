@@ -54,6 +54,7 @@ int deck_init(struct deck *deck, struct rt *rt)
 
     deck->ncontrol = 0;
     deck->record = &no_record;
+    deck->punch = NO_PUNCH;
     rate = device_sample_rate(&deck->device);
     player_init(&deck->player, rate, track_get_empty(), &deck->timecoder);
     cues_reset(&deck->cues);
@@ -136,4 +137,42 @@ void deck_cue(struct deck *d, unsigned int label)
         cues_set(&d->cues, label, player_get_elapsed(&d->player));
     else
         player_seek_to(&d->player, p);
+}
+
+/*
+ * Seek to a cue point ready to return from it later
+ */
+
+void deck_punch_in(struct deck *d, unsigned int label)
+{
+    double p, e;
+
+    e = player_get_elapsed(&d->player);
+    p = cues_get(&d->cues, label);
+    if (p == CUE_UNSET) {
+        cues_set(&d->cues, label, e);
+        return;
+    }
+
+    if (d->punch != NO_PUNCH)
+        e -= d->punch;
+
+    player_seek_to(&d->player, p);
+    d->punch = p - e;
+}
+
+/*
+ * Return from a cue point
+ */
+
+void deck_punch_out(struct deck *d, unsigned int label)
+{
+    double e;
+
+    if (d->punch == NO_PUNCH)
+        return;
+
+    e = player_get_elapsed(&d->player);
+    player_seek_to(&d->player, e - d->punch);
+    d->punch = NO_PUNCH;
 }

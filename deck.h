@@ -20,12 +20,16 @@
 #ifndef DECK_H
 #define DECK_H
 
+#include <math.h>
+
 #include "cues.h"
 #include "device.h"
 #include "listing.h"
 #include "player.h"
 #include "realtime.h"
 #include "timecoder.h"
+
+#define NO_PUNCH (HUGE_VAL)
 
 struct deck {
     struct device device;
@@ -36,6 +40,10 @@ struct deck {
     struct player player;
     const struct record *record;
     struct cues cues;
+
+    /* Punch */
+
+    double punch;
 
     /* A controller adds itself here */
 
@@ -54,5 +62,7 @@ void deck_recue(struct deck *deck);
 void deck_clone(struct deck *deck, const struct deck *from);
 void deck_unset_cue(struct deck *deck, unsigned int label);
 void deck_cue(struct deck *deck, unsigned int label);
+void deck_punch_in(struct deck *d, unsigned int label);
+void deck_punch_out(struct deck *d, unsigned int label);
 
 #endif
