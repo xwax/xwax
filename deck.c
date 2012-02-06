@@ -45,7 +45,7 @@ static const struct record no_record = {
 
 int deck_init(struct deck *deck, struct rt *rt)
 {
-    unsigned int sample_rate;
+    unsigned int rate;
 
     assert(deck->importer != NULL);
 
@@ -54,9 +54,8 @@ int deck_init(struct deck *deck, struct rt *rt)
 
     deck->ncontrol = 0;
     deck->record = &no_record;
-    sample_rate = device_sample_rate(&deck->device);
-    player_init(&deck->player, sample_rate, track_get_empty(),
-                &deck->timecoder);
+    rate = device_sample_rate(&deck->device);
+    player_init(&deck->player, rate, track_get_empty(), &deck->timecoder);
     cues_reset(&deck->cues);
 
     /* The timecoder and player are driven by requests from
