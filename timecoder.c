@@ -588,7 +588,7 @@ void timecoder_submit(struct timecoder *tc, signed short *pcm, size_t npcm)
  * read.
  *
  * Return: the known position of the timecode, or -1 if not known
- * Post: if when != -1, *when contains the elapsed time in seconds
+ * Post: if when != NULL, *when is the elapsed time in seconds
  */
 
 signed int timecoder_get_position(struct timecoder *tc, double *when)
