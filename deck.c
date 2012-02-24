@@ -140,7 +140,8 @@ void deck_cue(struct deck *d, unsigned int label)
 }
 
 /*
- * Seek to a cue point ready to return from it later
+ * Seek to a cue point ready to return from it later. Overrides an
+ * existing punch operation.
  */
 
 void deck_punch_in(struct deck *d, unsigned int label)
@@ -165,7 +166,7 @@ void deck_punch_in(struct deck *d, unsigned int label)
  * Return from a cue point
  */
 
-void deck_punch_out(struct deck *d, unsigned int label)
+void deck_punch_out(struct deck *d)
 {
     double e;
 

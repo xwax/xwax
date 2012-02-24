@@ -319,7 +319,7 @@ static void event_decoded(struct deck *d, led_t led[NBUTTONS],
             deck_punch_in(d, button);
             set_led(&led[button], ON, 0);
         } else {
-            deck_punch_out(d, button);
+            deck_punch_out(d);
         }
     }
 }

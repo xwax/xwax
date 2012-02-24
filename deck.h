@@ -63,6 +63,6 @@ void deck_clone(struct deck *deck, const struct deck *from);
 void deck_unset_cue(struct deck *deck, unsigned int label);
 void deck_cue(struct deck *deck, unsigned int label);
 void deck_punch_in(struct deck *d, unsigned int label);
-void deck_punch_out(struct deck *d, unsigned int label);
+void deck_punch_out(struct deck *d);
 
 #endif
