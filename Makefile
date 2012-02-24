@@ -71,14 +71,12 @@ DEPS = $(OBJS:.o=.d)
 
 # Rules
 
-.PHONY:		all clean install
-
+.PHONY:		all
 all:		xwax
 
 # Dynamic versioning
 
 .PHONY:		FORCE
-
 .version:	FORCE
 		./mkversion -r
 
@@ -98,6 +96,7 @@ xwax.o:		.version
 
 # Install to system
 
+.PHONY:		install
 install:
 		$(INSTALL) -d $(BINDIR)
 		$(INSTALL) xwax $(BINDIR)/xwax
@@ -114,14 +113,12 @@ install:
 # Distribution archive from Git source code
 
 .PHONY:		dist
-
 dist:		.version
 		./mkdist $(VERSION)
 
 # Manual tests
 
 .PHONY:		tests
-
 tests:		test-cues test-library test-timecoder test-track
 
 test-cues:	test-cues.o cues.o
@@ -137,6 +134,7 @@ test-track:	test-track.o external.o import.o rig.o thread.o track.o
 test-track:	LDFLAGS += -pthread
 test-track:	LDLIBS += -lm
 
+.PHONY:		clean
 clean:
 		rm -f xwax \
 			test-cues \
