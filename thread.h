@@ -17,38 +17,15 @@
  *
  */
 
-#include <stdio.h>
-
-#include "rig.h"
-#include "thread.h"
-#include "track.h"
-
 /*
- * Self-contained manual test of a track import operation
+ * General helper functions for threads
  */
 
-int main(int argc, char *argv[])
-{
-    struct track *track;
+#ifndef THREAD_H
+#define THREAD_H
 
-    if (argc != 3) {
-        fprintf(stderr, "usage: %s <command> <path>\n", argv[0]);
-        return -1;
-    }
+int thread_global_init(void);
+void thread_to_realtime(void);
+void rt_not_allowed();
 
-    if (thread_global_init() == -1)
-        return -1;
-
-    rig_init();
-
-    track = track_get_by_import(argv[1], argv[2]);
-    if (track == NULL)
-        return -1;
-
-    rig_main();
-
-    track_put(track);
-    rig_clear();
-
-    return 0;
-}
+#endif

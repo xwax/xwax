@@ -44,7 +44,7 @@ DOCDIR = $(PREFIX)/share/doc
 OBJS = controller.o cues.o deck.o device.o external.o import.o interface.o \
 	library.o listing.o lut.o \
 	player.o realtime.o \
-	rig.o selector.o timecoder.o track.o xwax.o
+	rig.o selector.o thread.o timecoder.o track.o xwax.o
 DEVICE_CPPFLAGS =
 DEVICE_LIBS =
 
@@ -133,10 +133,7 @@ test-midi:	LDLIBS += $(ALSA_LIBS)
 
 test-timecoder:	test-timecoder.o lut.o timecoder.o
 
-test-track:	test-track.o external.o import.o rig.o track.o
-# FIXME: Test requires rt_not_allowed() which should not bring in
-# all the dependencies below
-test-track:	realtime.o controller.o device.o lut.o player.o timecoder.o
+test-track:	test-track.o external.o import.o rig.o thread.o track.o
 test-track:	LDFLAGS += -pthread
 test-track:	LDLIBS += -lm
 

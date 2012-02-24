@@ -36,6 +36,7 @@
 #include "library.h"
 #include "oss.h"
 #include "realtime.h"
+#include "thread.h"
 #include "rig.h"
 #include "timecoder.h"
 #include "track.h"
@@ -146,7 +147,7 @@ int main(int argc, char *argv[])
 
     fprintf(stderr, "%s\n\n" NOTICE "\n\n", banner);
 
-    if (rt_global_init() == -1)
+    if (thread_global_init() == -1)
         return -1;
 
     if (rig_init() == -1)

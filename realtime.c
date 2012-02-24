@@ -25,48 +25,9 @@
 #include "debug.h"
 #include "device.h"
 #include "realtime.h"
+#include "thread.h"
 
 #define REALTIME_PRIORITY 80
-
-static pthread_key_t key;
-
-/*
- * Put in place checks for realtime and non-realtime threads
- */
-
-int rt_global_init(void)
-{
-    int r;
-
-    r = pthread_key_create(&key, NULL);
-    if (r != 0) {
-        errno = r;
-        perror("pthread_key_create");
-        return -1;
-    }
-
-    if (pthread_setspecific(key, (void*)false) != 0)
-        abort();
-
-    return 0;
-}
-
-/*
- * Check for programmer error
- *
- * Pre: the current thread is non realtime
- */
-
-void rt_not_allowed()
-{
-    bool rt;
-
-    rt = (bool)pthread_getspecific(key);
-    if (rt) {
-        fprintf(stderr, "Realtime thread called a blocking function\n");
-        abort();
-    }
-}
 
 /*
  * Raise the priority of the current thread
@@ -98,11 +59,7 @@ static int raise_priority()
         return -1;
     }
 
-    /* Set thread local storage to show that this thread is
-     * realtime, for assertions later */
-
-    if (pthread_setspecific(key, (void*)true) != 0)
-        abort();
+    thread_to_realtime();
 
     return 0;
 }
