@@ -72,7 +72,7 @@ DEPS = $(OBJS:.o=.d)
 # Rules
 
 .PHONY:		all
-all:		xwax
+all:		xwax tests
 
 # Dynamic versioning
 
