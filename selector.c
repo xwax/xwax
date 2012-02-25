@@ -190,7 +190,7 @@ static struct listing* initial(struct selector *sel)
     c = sel->library->crate[sel->crates.selected];
     switch (sel->sort) {
     case SORT_ARTIST:
-        return &c->listing;
+        return &c->by_artist;
     case SORT_BPM:
         return &c->by_bpm;
     default:
