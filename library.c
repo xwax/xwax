@@ -90,6 +90,12 @@ static int crate_cmp(const struct crate *a, const struct crate *b)
 
 /*
  * Add a record into a crate and its various indexes
+ *
+ * Be careful with the return of this function. Out-of-memory error
+ * is returned but crate may still have been modified.
+ *
+ * Return: Pointer to existing entry, NULL if out of memory
+ * Post: Record added to zero or more listings (even if NULL is returned)
  */
 
 static struct record* crate_add(struct crate *c, struct record *r)
@@ -105,10 +111,12 @@ static struct record* crate_add(struct crate *c, struct record *r)
     /* FIXME: handle out-of-memory cases below */
 
     x = listing_insert(&c->by_bpm, r, SORT_BPM);
+    if (x == NULL)
+        return NULL;
     assert(x == r);
 
     if (listing_add(&c->by_order, r) != 0)
-        abort(); /* FIXME: out of memory */
+        return NULL;
 
     return r;
 }
