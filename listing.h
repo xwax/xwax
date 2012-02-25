@@ -48,6 +48,7 @@ int listing_match(struct listing *src, struct listing *dest,
 		  const char *match);
 struct record* listing_insert(struct listing *ls, struct record *item,
                               int sort);
+size_t listing_find(struct listing *ls, struct record *item, int sort);
 void listing_debug(struct listing *ls);
 
 #endif

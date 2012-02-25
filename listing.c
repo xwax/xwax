@@ -343,6 +343,19 @@ struct record* listing_insert(struct listing *ls, struct record *item,
 }
 
 /*
+ * Find an identical entry, or the nearest match
+ */
+
+size_t listing_find(struct listing *ls, struct record *item, int sort)
+{
+    bool found;
+    size_t z;
+
+    z = bin_search(ls->record, ls->entries, item, sort, &found);
+    return z;
+}
+
+/*
  * Debug the content of a listing to standard error
  */
 

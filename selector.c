@@ -171,12 +171,24 @@ static void retain_position(struct selector *sel)
 
     l = sel->view_listing;
 
-    for (n = 0; n < l->entries; n++) {
-        if (l->record[n] == sel->target) {
-            scroll_to(&sel->records, n);
-            return;
+    switch (sel->sort) {
+    case SORT_ARTIST:
+    case SORT_BPM:
+        n = listing_find(l, sel->target, sel->sort);
+        break;
+    case SORT_PLAYLIST:
+        /* Linear search */
+        for (n = 0; n < l->entries; n++) {
+            if (l->record[n] == sel->target)
+                break;
         }
+        break;
+    default:
+        abort();
     }
+
+    if (n < l->entries)
+        scroll_to(&sel->records, n);
 }
 
 
