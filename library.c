@@ -177,7 +177,7 @@ struct crate* get_crate(struct library *lib, const char *name)
  * Return: pointer to crate, or NULL on memory allocation failure
  */
 
-struct crate* use_crate(struct library *lib, char *name, bool is_fixed)
+struct crate* use_crate(struct library *lib, char *name)
 {
     struct crate *new_crate;
 
@@ -195,7 +195,7 @@ struct crate* use_crate(struct library *lib, char *name, bool is_fixed)
         return NULL;
     }
 
-    if (crate_init(new_crate, name, is_fixed) == -1)
+    if (crate_init(new_crate, name, false) == -1)
         goto fail;
 
     if (add_crate(lib, new_crate) == -1)
@@ -445,7 +445,7 @@ int library_import(struct library *li, bool sort,
     pathname = strdupa(path);
     cratename = basename(pathname); /* POSIX version, see basename(3) */
     assert(cratename != NULL);
-    crate = use_crate(li, cratename, false);
+    crate = use_crate(li, cratename);
     if (crate == NULL)
         return -1;
 
