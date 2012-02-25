@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011 Mark Hills <mark@pogo.org.uk>
+ * Copyright (C) 2012 Mark Hills <mark@pogo.org.uk>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -261,6 +261,11 @@ double player_get_remain(struct player *pl)
         + pl->offset - pl->position;
 }
 
+bool player_is_active(const struct player *pl)
+{
+    return (fabs(pl->pitch) > 0.01);
+}
+
 /*
  * Cue to the zero position of the track
  */
@@ -290,6 +295,30 @@ void player_set_track(struct player *pl, struct track *track)
     spin_unlock(&pl->lock);
 
     track_put(x); /* discard the old track */
+}
+
+/*
+ * Set the playback of one player to match another, used
+ * for "instant doubles" and beat juggling
+ */
+
+void player_clone(struct player *pl, const struct player *from)
+{
+    double elapsed;
+    struct track *x, *t;
+
+    elapsed = from->position - from->offset;
+    pl->offset = pl->position - elapsed;
+
+    t = from->track;
+    track_get(t);
+
+    spin_lock(&pl->lock);
+    x = pl->track;
+    pl->track = t;
+    spin_unlock(&pl->lock);
+
+    track_put(x);
 }
 
 /*
@@ -369,6 +398,15 @@ void retarget(struct player *pl)
         pl->sync_pitch = pl->pitch / (diff / SYNC_TIME + pl->pitch);
 
     }
+}
+
+/*
+ * Seek to the given position
+ */
+
+void player_seek_to(struct player *pl, double seconds)
+{
+    pl->offset = pl->position - seconds;
 }
 
 /*

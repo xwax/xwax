@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011 Mark Hills <mark@pogo.org.uk>
+ * Copyright (C) 2012 Mark Hills <mark@pogo.org.uk>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -17,6 +17,7 @@
  *
  */
 
+#include <assert.h>
 #include <stdio.h>
 
 #include "timecoder.h"
@@ -35,9 +36,12 @@ int main(int argc, char *argv[])
     unsigned int s;
     signed short sample[STEREO];
     struct timecoder tc;
+    struct timecode_def *def;
 
-    if(timecoder_init(&tc, "serato_2a", 1.0, RATE) != 0)
-        return -1;
+    def = timecoder_find_definition("serato_2a");
+    assert(def != NULL);
+
+    timecoder_init(&tc, def, 1.0, RATE);
 
     s = 0;
 

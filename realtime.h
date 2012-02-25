@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011 Mark Hills <mark@pogo.org.uk>
+ * Copyright (C) 2012 Mark Hills <mark@pogo.org.uk>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -38,6 +38,9 @@ struct rt {
     size_t ndv;
     struct device *dv[3];
 
+    size_t nctl;
+    struct controller *ctl[3];
+
     size_t npt;
     struct pollfd pt[32];
 };
@@ -49,6 +52,7 @@ void rt_init(struct rt *rt);
 void rt_clear(struct rt *rt);
 
 int rt_add_device(struct rt *rt, struct device *dv);
+int rt_add_controller(struct rt *rt, struct controller *c);
 
 int rt_start(struct rt *rt);
 void rt_stop(struct rt *rt);

@@ -1,4 +1,4 @@
-# Copyright (C) 2011 Mark Hills <mark@pogo.org.uk>
+# Copyright (C) 2012 Mark Hills <mark@pogo.org.uk>
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License version 2, as
@@ -41,42 +41,42 @@ DOCDIR = $(PREFIX)/share/doc
 
 # Core objects and libraries
 
-OBJS = deck.o external.o import.o interface.o library.o listing.o lut.o \
+OBJS = controller.o cues.o deck.o device.o external.o import.o interface.o \
+	library.o listing.o lut.o \
 	player.o realtime.o \
-	rig.o selector.o timecoder.o track.o xwax.o
-DEVICE_OBJS = device.o
+	rig.o selector.o thread.o timecoder.o track.o xwax.o
 DEVICE_CPPFLAGS =
 DEVICE_LIBS =
 
 # Optional device types
 
 ifdef ALSA
-DEVICE_OBJS += alsa.o
+OBJS += alsa.o dicer.o midi.o
 DEVICE_CPPFLAGS += -DWITH_ALSA
 DEVICE_LIBS += $(ALSA_LIBS)
 endif
 
 ifdef JACK
-DEVICE_OBJS += jack.o
+OBJS += jack.o
 DEVICE_CPPFLAGS += -DWITH_JACK
 DEVICE_LIBS += $(JACK_LIBS)
 endif
 
 ifdef OSS
-DEVICE_OBJS += oss.o
+OBJS += oss.o
 DEVICE_CPPFLAGS += -DWITH_OSS
 endif
 
+DEPS = $(OBJS:.o=.d)
+
 # Rules
 
-.PHONY:		all clean install
-
-all:		xwax
+.PHONY:		all
+all:		xwax tests
 
 # Dynamic versioning
 
 .PHONY:		FORCE
-
 .version:	FORCE
 		./mkversion -r
 
@@ -84,7 +84,7 @@ VERSION = $(shell ./mkversion)
 
 # Main binary
 
-xwax:		$(OBJS) $(DEVICE_OBJS)
+xwax:		$(OBJS)
 xwax:		LDLIBS += $(SDL_LIBS) $(DEVICE_LIBS) -lm
 xwax:		LDFLAGS += -pthread
 
@@ -96,6 +96,7 @@ xwax.o:		.version
 
 # Install to system
 
+.PHONY:		install
 install:
 		$(INSTALL) -d $(BINDIR)
 		$(INSTALL) xwax $(BINDIR)/xwax
@@ -112,23 +113,35 @@ install:
 # Distribution archive from Git source code
 
 .PHONY:		dist
-
 dist:		.version
 		./mkdist $(VERSION)
 
 # Manual tests
 
+.PHONY:		tests
+tests:		test-cues test-library test-timecoder test-track
+
+test-cues:	test-cues.o cues.o
+
 test-library:	test-library.o external.o library.o listing.o
+
+test-midi:	test-midi.o midi.o
+test-midi:	LDLIBS += $(ALSA_LIBS)
 
 test-timecoder:	test-timecoder.o lut.o timecoder.o
 
-test-track:	test-track.o import.o track.o
+test-track:	test-track.o external.o import.o rig.o thread.o track.o
+test-track:	LDFLAGS += -pthread
+test-track:	LDLIBS += -lm
 
+.PHONY:		clean
 clean:
 		rm -f xwax \
+			test-cues \
 			test-library \
+			test-midi \
 			test-timecoder \
 			test-track \
-			*.o *.d
+			$(OBJS) $(DEPS)
 
--include *.d
+-include $(DEPS)

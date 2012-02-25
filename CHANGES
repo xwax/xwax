@@ -1,8 +1,18 @@
-v1.1 (work in progress)
+v1.2 (work in progress)
 -----------------------
+
+* Scan directories only for known file extensions
+
+Acknowledgements: Olivier Gauthier
+
+v1.1 (2012-01-30)
+-----------------
 
 * Bug fix: incorrect display of track time remaining
 * Instant loading of duplicate tracks
+* Optionally protect decks during playback
+* Improvements to music selector
+* Increase speed building look-up tables
 
 v1.0 (2011-08-01)
 -----------------

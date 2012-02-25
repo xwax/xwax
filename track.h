@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011 Mark Hills <mark@pogo.org.uk>
+ * Copyright (C) 2012 Mark Hills <mark@pogo.org.uk>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -66,6 +66,8 @@ struct track {
     unsigned short ppm;
     unsigned int overview;
 };
+
+void track_use_mlock(void);
 
 /* Tracks are dynamically allocated and reference counted */
 

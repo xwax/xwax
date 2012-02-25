@@ -17,66 +17,62 @@
  *
  */
 
-/*
- * Mutex locking for syncronisation between low priority threads
- */
+#include <errno.h>
+#include <pthread.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
 
-#ifndef MUTEX_H
-#define MUTEX_H
+#include "thread.h"
 
-#include "realtime.h"
-
-typedef pthread_mutex_t mutex;
-
-static inline void mutex_init(mutex *m)
-{
-    if (pthread_mutex_init(m, NULL) != 0)
-        abort();
-}
+static pthread_key_t key;
 
 /*
- * Pre: lock is not held
+ * Put in place checks for realtime and non-realtime threads
+ *
+ * Return: 0 on success, otherwise -1
  */
 
-static inline void mutex_clear(mutex *m)
+int thread_global_init(void)
 {
     int r;
 
-    r = pthread_mutex_destroy(m);
+    r = pthread_key_create(&key, NULL);
     if (r != 0) {
         errno = r;
-        perror("pthread_mutex_destroy");
+        perror("pthread_key_create");
+        return -1;
+    }
+
+    if (pthread_setspecific(key, (void*)false) != 0)
+        abort();
+
+    return 0;
+}
+
+/*
+ * Inform that this thread is a realtime thread, for assertions later
+ */
+
+void thread_to_realtime(void)
+{
+    if (pthread_setspecific(key, (void*)true) != 0)
+        abort();
+}
+
+/*
+ * Check for programmer error
+ *
+ * Pre: the current thread is non realtime
+ */
+
+void rt_not_allowed()
+{
+    bool rt;
+
+    rt = (bool)pthread_getspecific(key);
+    if (rt) {
+        fprintf(stderr, "Realtime thread called a blocking function\n");
         abort();
     }
 }
-
-/*
- * Take a mutex lock
- *
- * Pre: lock is initialised
- * Pre: lock is not held by this thread
- * Post: lock is held by this thread
- */
-
-static inline void mutex_lock(mutex *m)
-{
-    rt_not_allowed();
-
-    if (pthread_mutex_lock(m) != 0)
-        abort();
-}
-
-/*
- * Release a mutex lock
- *
- * Pre: lock is held by this thread
- * Post: lock is not held
- */
-
-static inline void mutex_unlock(mutex *m)
-{
-    if (pthread_mutex_unlock(m) != 0)
-        abort();
-}
-
-#endif

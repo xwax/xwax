@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011 Mark Hills <mark@pogo.org.uk>
+ * Copyright (C) 2012 Mark Hills <mark@pogo.org.uk>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -209,11 +209,11 @@ static int build_lookup(struct timecode_def *def)
 
     for (n = 0; n < def->length; n++) {
         /* timecode must not wrap */
-        assert(lut_lookup(&def->lut, current) == (unsigned)-1);
+        dassert(lut_lookup(&def->lut, current) == (unsigned)-1);
         lut_push(&def->lut, current);
         last = current;
         current = fwd(current, def);
-        assert(rev(current, def) == last);
+        dassert(rev(current, def) == last);
     }
 
     def->lookup = true;
@@ -588,7 +588,7 @@ void timecoder_submit(struct timecoder *tc, signed short *pcm, size_t npcm)
  * read.
  *
  * Return: the known position of the timecode, or -1 if not known
- * Post: if when != -1, *when contains the elapsed time in seconds
+ * Post: if when != NULL, *when is the elapsed time in seconds
  */
 
 signed int timecoder_get_position(struct timecoder *tc, double *when)

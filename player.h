@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011 Mark Hills <mark@pogo.org.uk>
+ * Copyright (C) 2012 Mark Hills <mark@pogo.org.uk>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -59,11 +59,14 @@ void player_set_timecode_control(struct player *pl, bool on);
 bool player_toggle_timecode_control(struct player *pl);
 
 void player_set_track(struct player *pl, struct track *track);
+void player_clone(struct player *pl, const struct player *from);
 
 double player_get_position(struct player *pl);
 double player_get_elapsed(struct player *pl);
 double player_get_remain(struct player *pl);
+bool player_is_active(const struct player *pl);
 
+void player_seek_to(struct player *pl, double seconds);
 void player_recue(struct player *pl);
 
 void player_collect(struct player *pl, signed short *pcm, unsigned samples);

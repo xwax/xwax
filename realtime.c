@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011 Mark Hills <mark@pogo.org.uk>
+ * Copyright (C) 2012 Mark Hills <mark@pogo.org.uk>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -21,50 +21,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "controller.h"
+#include "debug.h"
 #include "device.h"
 #include "realtime.h"
+#include "thread.h"
 
 #define REALTIME_PRIORITY 80
-
-static pthread_key_t key;
-
-/*
- * Put in place checks for realtime and non-realtime threads
- */
-
-int rt_global_init(void)
-{
-    int r;
-
-    r = pthread_key_create(&key, NULL);
-    if (r != 0) {
-        errno = r;
-        perror("pthread_key_create");
-        return -1;
-    }
-
-    if (pthread_setspecific(key, (void*)false) != 0)
-        abort();
-
-    return 0;
-}
-
-/*
- * Check for programmer error
- *
- * Pre: the current thread is non realtime
- */
-
-void rt_not_allowed()
-{
-    bool rt;
-
-    rt = (bool)pthread_getspecific(key);
-    if (rt) {
-        fprintf(stderr, "Realtime thread called a blocking function\n");
-        abort();
-    }
-}
 
 /*
  * Raise the priority of the current thread
@@ -96,11 +59,7 @@ static int raise_priority()
         return -1;
     }
 
-    /* Set thread local storage to show that this thread is
-     * realtime, for assertions later */
-
-    if (pthread_setspecific(key, (void*)true) != 0)
-        abort();
+    thread_to_realtime();
 
     return 0;
 }
@@ -113,6 +72,8 @@ static void rt_main(struct rt *rt)
 {
     int r;
     size_t n;
+
+    debug("realtime: main\n");
 
     if (raise_priority() == -1)
         rt->finished = true;
@@ -131,6 +92,9 @@ static void rt_main(struct rt *rt)
             }
         }
 
+        for (n = 0; n < rt->nctl; n++)
+            controller_handle(rt->ctl[n]);
+
         for (n = 0; n < rt->ndv; n++)
             device_handle(rt->dv[n]);
     }
@@ -148,8 +112,11 @@ static void* launch(void *p)
 
 void rt_init(struct rt *rt)
 {
+    debug("realtime: init\n");
+
     rt->finished = false;
     rt->ndv = 0;
+    rt->nctl = 0;
     rt->npt = 0;
 }
 
@@ -172,6 +139,8 @@ int rt_add_device(struct rt *rt, struct device *dv)
 {
     ssize_t z;
 
+    debug("realtime: add_device\n");
+
     if (rt->ndv == sizeof rt->dv) {
         fprintf(stderr, "Too many audio devices\n");
         return -1;
@@ -190,6 +159,29 @@ int rt_add_device(struct rt *rt, struct device *dv)
 
     rt->dv[rt->ndv] = dv;
     rt->ndv++;
+
+    return 0;
+}
+
+/*
+ * Add a controller to the realtime handler
+ *
+ * Return: -1 if the device could not be added, otherwise 0
+ */
+
+int rt_add_controller(struct rt *rt, struct controller *c)
+{
+    debug("realtime: add controller\n");
+
+    if (rt->nctl == sizeof rt->ctl) {
+        fprintf(stderr, "Too many controllers\n");
+        return -1;
+    }
+
+    /* Controllers don't have poll entries; they are polled every
+     * cycle of the audio */
+
+    rt->ctl[rt->nctl++] = c;
 
     return 0;
 }

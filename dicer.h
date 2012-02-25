@@ -1,15 +1,15 @@
 /*
- * Copyright (C) 2012 Mark Hills <mark@pogo.org.uk>
+ * Copyright (C) 2011 Mark Hills <mark@pogo.org.uk>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * version 2, as published by the Free Software Foundation.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * General Public License version 2 for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * version 2 along with this program; if not, write to the Free
  * Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
@@ -17,14 +17,12 @@
  *
  */
 
-#ifndef ALSA_H
-#define ALSA_H
+#ifndef DICER_H
+#define DICER_H
 
-#include "device.h"
+struct controller;
+struct rt;
 
-int alsa_init(struct device *dv, const char *name,
-              int rate, int buffer_time);
-
-void alsa_clear_config_cache(void);
+int dicer_init(struct controller *c, struct rt *rt, const char *hw);
 
 #endif

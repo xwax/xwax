@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011 Mark Hills <mark@pogo.org.uk>
+ * Copyright (C) 2012 Mark Hills <mark@pogo.org.uk>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -18,8 +18,9 @@
  */
 
 #include <stdio.h>
-#include <sys/poll.h>
 
+#include "rig.h"
+#include "thread.h"
 #include "track.h"
 
 /*
@@ -28,35 +29,26 @@
 
 int main(int argc, char *argv[])
 {
-    struct pollfd pe;
-    struct track track;
+    struct track *track;
 
     if (argc != 3) {
         fprintf(stderr, "usage: %s <command> <path>\n", argv[0]);
         return -1;
     }
 
-    track_init(&track, argv[1]);
-
-    if (track_import(&track, argv[2]) == -1)
+    if (thread_global_init() == -1)
         return -1;
 
-    for (;;) {
-        ssize_t nfds;
+    rig_init();
 
-        nfds = track_pollfd(&track, &pe);
-        if (nfds == 0)
-            break;
+    track = track_get_by_import(argv[1], argv[2]);
+    if (track == NULL)
+        return -1;
 
-        if (poll(&pe, nfds, -1) == -1) {
-            perror("poll");
-            break;
-        }
+    rig_main();
 
-        track_handle(&track);
-    }
-
-    track_clear(&track);
+    track_put(track);
+    rig_clear();
 
     return 0;
 }

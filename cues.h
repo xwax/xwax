@@ -1,15 +1,15 @@
 /*
- * Copyright (C) 2012 Mark Hills <mark@pogo.org.uk>
+ * Copyright (C) 2011 Mark Hills <mark@pogo.org.uk>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * version 2, as published by the Free Software Foundation.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * General Public License version 2 for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * version 2 along with this program; if not, write to the Free
  * Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
@@ -17,14 +17,28 @@
  *
  */
 
-#ifndef ALSA_H
-#define ALSA_H
+#ifndef CUES_H
+#define CUES_H
 
-#include "device.h"
+#include <math.h>
 
-int alsa_init(struct device *dv, const char *name,
-              int rate, int buffer_time);
+#define MAX_CUES 16
+#define CUE_UNSET (HUGE_VAL)
 
-void alsa_clear_config_cache(void);
+/*
+ * A set of cue points
+ */
+
+struct cues {
+    double position[MAX_CUES];
+};
+
+void cues_reset(struct cues *q);
+
+void cues_unset(struct cues *q, unsigned int label);
+void cues_set(struct cues *q, unsigned int label, double position);
+double cues_get(const struct cues *q, unsigned int label);
+double cues_prev(const struct cues *q, double current);
+double cues_next(const struct cues *q, double current);
 
 #endif

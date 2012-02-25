@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011 Mark Hills <mark@pogo.org.uk>
+ * Copyright (C) 2012 Mark Hills <mark@pogo.org.uk>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -22,17 +22,21 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/mman.h> /* mlockall() */
 
 #include <SDL.h> /* may override main() */
 
 #include "alsa.h"
+#include "controller.h"
 #include "deck.h"
 #include "device.h"
+#include "dicer.h"
 #include "interface.h"
 #include "jack.h"
 #include "library.h"
 #include "oss.h"
 #include "realtime.h"
+#include "thread.h"
 #include "rig.h"
 #include "timecoder.h"
 #include "track.h"
@@ -49,21 +53,33 @@
 #define DEFAULT_SCANNER EXECDIR "/xwax-scan"
 #define DEFAULT_TIMECODE "serato_2a"
 
+#define ARRAY_SIZE(x) (sizeof(x) / sizeof(*x))
+
 char *banner = "xwax " VERSION \
-    " (C) Copyright 2011 Mark Hills <mark@pogo.org.uk>";
+    " (C) Copyright 2012 Mark Hills <mark@pogo.org.uk>";
 
 static void usage(FILE *fd)
 {
-    fprintf(fd, "Usage: xwax [<options>]\n\n"
+    fprintf(fd, "Usage: xwax [<options>]\n\n");
+
+    fprintf(fd, "Program-wide options:\n"
+      "  -k             Lock real-time memory into RAM\n"
+      "  -h             Display this message to stdout and exit\n\n");
+
+    fprintf(fd, "Music library options:\n"
       "  -l <path>      Location to scan for audio tracks\n"
       "  -p <path>      Ordered playlist for audio tracks\n"
+      "  -s <program>   Library scanner (default '%s')\n\n",
+      DEFAULT_SCANNER);
+
+    fprintf(fd, "Deck options:\n"
       "  -t <name>      Timecode name\n"
       "  -33            Use timecode at 33.3RPM (default)\n"
       "  -45            Use timecode at 45RPM\n"
-      "  -i <program>   Importer (default '%s')\n"
-      "  -s <program>   Library scanner (default '%s')\n"
-      "  -h             Display this message\n\n",
-      DEFAULT_IMPORTER, DEFAULT_SCANNER);
+      "  -c             Protect against certain operations while playing\n"
+      "  -u             Allow all operations when playing\n"
+      "  -i <program>   Importer (default '%s')\n\n",
+      DEFAULT_IMPORTER);
 
 #ifdef WITH_OSS
     fprintf(fd, "OSS device options:\n"
@@ -87,6 +103,11 @@ static void usage(FILE *fd)
       "  -j <name>      Create a JACK deck with the given name\n\n");
 #endif
 
+#ifdef WITH_ALSA
+    fprintf(fd, "MIDI control:\n"
+      "  -dicer <dev>   Novation Dicer\n\n");
+#endif
+
     fprintf(fd,
       "The ordering of options is important. Options apply to subsequent\n"
       "music libraries or decks, which can be given multiple times. See the\n"
@@ -101,12 +122,14 @@ int main(int argc, char *argv[])
 {
     int r, n, decks;
     const char *importer, *scanner;
+    size_t nctl;
     double speed;
     struct timecode_def *timecode;
+    bool protect, use_mlock;
 
     struct deck deck[3];
+    struct controller ctl[2];
     struct rt rt;
-    struct interface iface;
     struct library library;
 
 #if defined WITH_OSS || WITH_ALSA
@@ -124,7 +147,7 @@ int main(int argc, char *argv[])
 
     fprintf(stderr, "%s\n\n" NOTICE "\n\n", banner);
 
-    if (rt_global_init() == -1)
+    if (thread_global_init() == -1)
         return -1;
 
     if (rig_init() == -1)
@@ -133,10 +156,13 @@ int main(int argc, char *argv[])
     library_init(&library);
 
     decks = 0;
+    nctl = 0;
     importer = DEFAULT_IMPORTER;
     scanner = DEFAULT_SCANNER;
     timecode = NULL;
     speed = 1.0;
+    protect = false;
+    use_mlock = false;
 
 #if defined WITH_OSS || WITH_ALSA
     rate = DEFAULT_RATE;
@@ -265,7 +291,7 @@ int main(int argc, char *argv[])
                 return -1;
             }
 
-            if (decks == sizeof deck) {
+            if (decks == ARRAY_SIZE(deck)) {
                 fprintf(stderr, "Too many decks; aborting.\n");
                 return -1;
             }
@@ -276,6 +302,7 @@ int main(int argc, char *argv[])
             device = &ld->device;
             timecoder = &ld->timecoder;
             ld->importer = importer;
+            ld->protect = protect;
 
             /* Work out which device type we are using, and initialise
              * an appropriate device. */
@@ -323,6 +350,11 @@ int main(int argc, char *argv[])
             if (r == -1)
                 return -1;
 
+            /* Connect this deck to available controllers */
+
+            for (n = 0; n < nctl; n++)
+                controller_add_deck(&ctl[n], &deck[decks]);
+
             decks++;
 
             argv += 2;
@@ -356,6 +388,28 @@ int main(int argc, char *argv[])
         } else if (!strcmp(argv[0], "-45")) {
 
             speed = 1.35;
+
+            argv++;
+            argc--;
+
+        } else if (!strcmp(argv[0], "-c")) {
+
+            protect = true;
+
+            argv++;
+            argc--;
+
+        } else if (!strcmp(argv[0], "-u")) {
+
+            protect = false;
+
+            argv++;
+            argc--;
+
+        } else if (!strcmp(argv[0], "-k")) {
+
+            use_mlock = true;
+            track_use_mlock();
 
             argv++;
             argc--;
@@ -414,6 +468,32 @@ int main(int argc, char *argv[])
             argv += 2;
             argc -= 2;
 
+#ifdef WITH_ALSA
+        } else if (!strcmp(argv[0], "-dicer")) {
+
+            struct controller *c;
+
+            if (nctl == sizeof ctl) {
+                fprintf(stderr, "Too many controllers; aborting.\n");
+                return -1;
+            }
+
+            c = &ctl[nctl];
+
+            if (argc < 2) {
+                fprintf(stderr, "Dicer requires an ALSA device name.\n");
+                return -1;
+            }
+
+            if (dicer_init(c, &rt, argv[1]) == -1)
+                return -1;
+
+            nctl++;
+
+            argv += 2;
+            argc -= 2;
+#endif
+
         } else {
             fprintf(stderr, "'%s' argument is unknown; try -h.\n", argv[0]);
             return -1;
@@ -430,9 +510,22 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    if (interface_start(&iface, deck, decks, &library) == -1)
-        return -1;
+    for (n = 0; n < nctl; n++) {
+        if (rt_add_controller(&rt, &ctl[n]) == -1)
+            return -1;
+    }
+
+    /* Order is important: launch realtime thread first, then mlock */
+
     if (rt_start(&rt) == -1)
+        return -1;
+
+    if (use_mlock && mlockall(MCL_CURRENT) == -1) {
+        perror("mlockall");
+        return -1;
+    }
+
+    if (interface_start(deck, decks, &library) == -1)
         return -1;
 
     if (rig_main() == -1)
@@ -440,11 +533,14 @@ int main(int argc, char *argv[])
 
     fprintf(stderr, "Exiting cleanly...\n");
 
+    interface_stop();
     rt_stop(&rt);
-    interface_stop(&iface);
 
     for (n = 0; n < decks; n++)
         deck_clear(&deck[n]);
+
+    for (n = 0; n < nctl; n++)
+        controller_clear(&ctl[n]);
 
     timecoder_free_lookup();
     library_clear(&library);
