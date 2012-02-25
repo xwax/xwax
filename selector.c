@@ -193,6 +193,8 @@ static struct listing* initial(struct selector *sel)
         return &c->by_artist;
     case SORT_BPM:
         return &c->by_bpm;
+    case SORT_PLAYLIST:
+        return &c->by_order;
     default:
         abort();
     }

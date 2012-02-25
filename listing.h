@@ -22,9 +22,10 @@
 
 #include <stddef.h>
 
-#define SORT_ARTIST 0
-#define SORT_BPM    1
-#define SORT_END    2
+#define SORT_ARTIST   0
+#define SORT_BPM      1
+#define SORT_PLAYLIST 2
+#define SORT_END      3
 
 struct record {
     char *pathname, *artist, *title;

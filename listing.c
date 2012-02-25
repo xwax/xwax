@@ -295,6 +295,7 @@ static size_t bin_search(struct record **base, size_t n,
     case SORT_BPM:
         r = record_cmp_bpm(item, x);
         break;
+    case SORT_PLAYLIST:
     default:
         abort();
     }

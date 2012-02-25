@@ -1221,6 +1221,10 @@ static void draw_crates(SDL_Surface *surface, const struct rect *rect,
                 draw_token(surface, &right, "BPM", text_col,
                            bpm_col, selected_col);
                 break;
+            case SORT_PLAYLIST:
+                draw_token(surface, &right, "PLS", text_col,
+                           selected_col, selected_col);
+                break;
             default:
                 abort();
             }
