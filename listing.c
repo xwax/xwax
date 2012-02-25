@@ -114,7 +114,7 @@ int listing_add(struct listing *ls, struct record *lr)
  * Standard comparison function between two records
  */
 
-static int record_cmp(const struct record *a, const struct record *b)
+static int record_cmp_artist(const struct record *a, const struct record *b)
 {
     int r;
 
@@ -146,7 +146,7 @@ static int record_cmp_bpm(const struct record *a, const struct record *b)
     if (a->bpm > b->bpm)
         return -1;
 
-    return record_cmp(a, b);
+    return record_cmp_artist(a, b);
 }
 
 /*
@@ -290,7 +290,7 @@ static size_t bin_search(struct record **base, size_t n,
 
     switch (sort) {
     case SORT_ARTIST:
-        r = record_cmp(item, x);
+        r = record_cmp_artist(item, x);
         break;
     case SORT_BPM:
         r = record_cmp_bpm(item, x);
