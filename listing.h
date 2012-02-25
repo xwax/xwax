@@ -48,6 +48,5 @@ int listing_match(struct listing *src, struct listing *dest,
 struct record* listing_insert(struct listing *ls, struct record *item,
                               int sort);
 void listing_debug(struct listing *ls);
-void listing_sort(struct listing *ls);
 
 #endif

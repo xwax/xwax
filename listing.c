@@ -150,24 +150,6 @@ static int record_cmp_bpm(const struct record *a, const struct record *b)
 }
 
 /*
- * Comparison function, see qsort(3)
- */
-
-static int qcompar(const void *a, const void *b)
-{
-    return record_cmp(*(struct record **)a, *(struct record **)b);
-}
-
-/*
- * Post: listing is sorted
- */
-
-void listing_sort(struct listing *ls)
-{
-    qsort(ls->record, ls->entries, sizeof(struct record*), qcompar);
-}
-
-/*
  * Check if a record matches the given string. This function is the
  * definitive code which defines what constitutes a 'match'.
  *
