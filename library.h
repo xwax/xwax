@@ -28,9 +28,9 @@
 /* A single crate of records */
 
 struct crate {
-    bool is_fixed;
+    bool is_fixed, is_ordered;
     char *name;
-    struct listing by_artist, by_bpm;
+    struct listing by_artist, by_bpm, by_order;
 };
 
 /* The complete music library, which consists of multiple crates */
