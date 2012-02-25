@@ -546,6 +546,7 @@ int main(int argc, char *argv[])
     library_clear(&library);
     rt_clear(&rt);
     rig_clear();
+    thread_global_clear();
 
     fprintf(stderr, "Done.\n");
 

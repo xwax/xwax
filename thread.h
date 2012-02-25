@@ -25,6 +25,7 @@
 #define THREAD_H
 
 int thread_global_init(void);
+void thread_global_clear(void);
 void thread_to_realtime(void);
 void rt_not_allowed();
 
