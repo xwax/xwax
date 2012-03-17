@@ -438,8 +438,19 @@ static int realtime(struct controller *c)
 static void clear(struct controller *c)
 {
     struct dicer *d = c->local;
+    size_t n;
 
     debug("dicer: clear\n");
+
+    /* FIXME: Uses non-blocking functionality really intended
+     * for realtime; no guarantee buffer is emptied */
+
+    for (n = 0; n < NBUTTONS; n++) {
+        set_led(&d->left_led[n], 0, ON);
+        set_led(&d->right_led[n], 0, ON);
+    }
+    sync_all_leds(d);
+
     midi_close(&d->midi);
     free(c->local);
 }
