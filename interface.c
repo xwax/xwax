@@ -1248,10 +1248,17 @@ static void draw_listing(SDL_Surface *surface, const struct rect *rect,
                          const struct scroll *scroll)
 {
     size_t n;
+    int width;
     struct rect left, bottom;
 
     split_left(rect, &left, &bottom, SCROLLBAR_SIZE, SPACER);
     draw_scroll_bar(surface, &left, scroll);
+
+    /* Choose the width of the 'artist' column */
+
+    width = bottom.w / 2;
+    if (width > RESULTS_ARTIST_WIDTH)
+        width = RESULTS_ARTIST_WIDTH;
 
     n = scroll->offset;
 
@@ -1284,7 +1291,7 @@ static void draw_listing(SDL_Surface *surface, const struct rect *rect,
         split_left(&right, &left, &right, SPACER, 0);
         draw_rect(surface, &left, col);
 
-        split_left(&right, &left, &right, RESULTS_ARTIST_WIDTH, 0);
+        split_left(&right, &left, &right, width, 0);
         draw_text(surface, &left, record->artist, font, text_col, col);
 
         split_left(&right, &left, &right, SPACER, 0);
