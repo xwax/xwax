@@ -35,9 +35,9 @@ EOF
 # Set some defaults and parse the command line
 
 PREFIX=
-ALSA=0
-JACK=0
-OSS=0
+ALSA=false
+JACK=false
+OSS=false
 
 while [ $# -ge 1 ]; do
 	case $1 in
@@ -46,13 +46,13 @@ while [ $# -ge 1 ]; do
 		exit 0
 		;;
 	--enable-alsa)
-		ALSA=1
+		ALSA=true
 		;;
 	--enable-jack)
-		JACK=1
+		JACK=true
 		;;
 	--enable-oss)
-		OSS=1
+		OSS=true
 		;;
 	--prefix)
 		if [ -z "$2" ]; then
@@ -61,6 +61,7 @@ while [ $# -ge 1 ]; do
 		fi
 		PREFIX=$2
 		shift
+		;;
 	esac
 
 	shift
@@ -75,21 +76,21 @@ if [ -n "$PREFIX" ]; then
 	echo "PREFIX = $PREFIX" >> $OUTPUT
 fi
 
-if [ $ALSA = 1 ]; then
+if $ALSA; then
 	echo "ALSA enabled"
 	echo "ALSA = yes" >> $OUTPUT
 else
 	echo "ALSA disabled"
 fi
 
-if [ $JACK = 1 ]; then
+if $JACK; then
 	echo "JACK enabled"
 	echo "JACK = yes" >> $OUTPUT
 else
 	echo "JACK disabled"
 fi
 
-if [ $OSS = 1 ]; then
+if $OSS; then
 	echo "OSS enabled"
 	echo "OSS = yes" >> $OUTPUT
 else
