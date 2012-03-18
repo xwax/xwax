@@ -19,6 +19,19 @@
 
 OUTPUT=.config
 
+usage()
+{
+cat <<EOF
+Usage: configure [options]
+
+Options:
+  --prefix <dir>   Set the install prefix
+  --enable-alsa    Enable ALSA audio device
+  --enable-jack    Enable JACK audio device
+  --enable-oss     Enable OSS audio device
+EOF
+}
+
 # Set some defaults and parse the command line
 
 PREFIX=
@@ -29,12 +42,7 @@ OSS=0
 while [ $# -ge 1 ]; do
 	case $1 in
 	--help)
-		echo -n "Usage: configure"
-		echo -n " [--prefix <dir>]"
-		echo -n " [--enable-alsa]"
-		echo -n " [--enable-jack]"
-		echo -n " [--enable-oss]"
-		echo
+		usage
 		exit 0
 		;;
 	--enable-alsa)
