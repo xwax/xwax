@@ -29,6 +29,8 @@ Options:
   --enable-alsa    Enable ALSA audio device
   --enable-jack    Enable JACK audio device
   --enable-oss     Enable OSS audio device
+  --debug          Debug build
+  --profile        Profile build
 EOF
 }
 
@@ -38,6 +40,8 @@ PREFIX=
 ALSA=false
 JACK=false
 OSS=false
+DEBUG=false
+PROFILE=false
 
 while [ $# -ge 1 ]; do
 	case $1 in
@@ -61,6 +65,12 @@ while [ $# -ge 1 ]; do
 		fi
 		PREFIX=$2
 		shift
+		;;
+	--debug)
+		DEBUG=true
+		;;
+	--profile)
+		PROFILE=true
 		;;
 	esac
 
@@ -95,6 +105,21 @@ if $OSS; then
 	echo "OSS = yes" >> $OUTPUT
 else
 	echo "OSS disabled"
+fi
+
+if $DEBUG && $PROFILE; then
+	echo "Debug and profile build cannot be used together" >&2
+	exit 1
+fi
+
+if $DEBUG; then
+	echo "Debug build"
+	echo "CFLAGS += -O0 -g" >> $OUTPUT
+fi
+
+if $PROFILE; then
+	echo "Profile build"
+	echo "CFLAGS += -g -fno-inline-functions -fno-inline-functions-called-once -fno-optimize-sibling-calls" >> $OUTPUT
 fi
 
 # Explain the next step
