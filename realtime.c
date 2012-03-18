@@ -59,8 +59,6 @@ static int raise_priority()
         return -1;
     }
 
-    thread_to_realtime();
-
     return 0;
 }
 
@@ -74,6 +72,8 @@ static void rt_main(struct rt *rt)
     size_t n;
 
     debug("realtime: main\n");
+
+    thread_to_realtime();
 
     if (raise_priority() == -1)
         rt->finished = true;
