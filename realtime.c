@@ -17,6 +17,7 @@
  *
  */
 
+#include <assert.h>
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -27,15 +28,13 @@
 #include "realtime.h"
 #include "thread.h"
 
-#define REALTIME_PRIORITY 80
-
 /*
  * Raise the priority of the current thread
  *
  * Return: -1 if priority could not be satisfactorily raised, otherwise 0
  */
 
-static int raise_priority()
+static int raise_priority(int priority)
 {
     int max_pri;
     struct sched_param sp;
@@ -46,7 +45,7 @@ static int raise_priority()
     }
 
     max_pri = sched_get_priority_max(SCHED_FIFO);
-    sp.sched_priority = REALTIME_PRIORITY;
+    sp.sched_priority = priority;
 
     if (sp.sched_priority > max_pri) {
         fprintf(stderr, "Invalid scheduling priority (maximum %d).\n", max_pri);
@@ -75,8 +74,10 @@ static void rt_main(struct rt *rt)
 
     thread_to_realtime();
 
-    if (raise_priority() == -1)
-        rt->finished = true;
+    if (rt->priority != 0) {
+        if (raise_priority(rt->priority) == -1)
+            rt->finished = true;
+    }
 
     if (sem_post(&rt->sem) == -1)
         abort(); /* under our control; see sem_post(3) */
@@ -195,9 +196,12 @@ int rt_add_controller(struct rt *rt, struct controller *c)
  * Return: -1 on error, otherwise 0
  */
 
-int rt_start(struct rt *rt)
+int rt_start(struct rt *rt, int priority)
 {
     size_t n;
+
+    assert(priority >= 0);
+    rt->priority = priority;
 
     /* If there are any devices which returned file descriptors for
      * poll() then launch the realtime thread to handle them */
