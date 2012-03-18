@@ -39,18 +39,19 @@ static int raise_priority(int priority)
     int max_pri;
     struct sched_param sp;
 
+    max_pri = sched_get_priority_max(SCHED_FIFO);
+
+    if (priority > max_pri) {
+        fprintf(stderr, "Invalid scheduling priority (maximum %d).\n", max_pri);
+        return -1;
+    }
+
     if (sched_getparam(0, &sp)) {
         perror("sched_getparam");
         return -1;
     }
 
-    max_pri = sched_get_priority_max(SCHED_FIFO);
     sp.sched_priority = priority;
-
-    if (sp.sched_priority > max_pri) {
-        fprintf(stderr, "Invalid scheduling priority (maximum %d).\n", max_pri);
-        return -1;
-    }
 
     if (sched_setscheduler(0, SCHED_FIFO, &sp)) {
         perror("sched_setscheduler");
