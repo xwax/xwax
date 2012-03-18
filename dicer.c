@@ -481,8 +481,10 @@ int dicer_init(struct controller *c, struct rt *rt, const char *hw)
     d->right = NULL;
     d->ofill = 0;
 
-    for (n = 0; n < NBUTTONS; n++)
+    for (n = 0; n < NBUTTONS; n++) {
         d->left_led[n] = 0;
+        d->right_led[n] = 0;
+    }
 
     controller_init(c, &dicer_ops);
     c->local = d;
