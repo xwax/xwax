@@ -361,6 +361,9 @@ static void event(struct dicer *d, unsigned char buf[3])
         abort();
     }
 
+    if (deck == NULL) /* no deck assigned to this unit */
+        return;
+
     switch (buf[1]) {
     case 0x3c:
     case 0x3d:
