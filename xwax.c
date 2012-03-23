@@ -125,6 +125,7 @@ int main(int argc, char *argv[])
 {
     int r, n, decks, priority;
     const char *importer, *scanner;
+    char *endptr;
     size_t nctl;
     double speed;
     struct timecode_def *timecode;
@@ -136,7 +137,6 @@ int main(int argc, char *argv[])
     struct library library;
 
 #if defined WITH_OSS || WITH_ALSA
-    char *endptr;
     int rate;
 #endif
 
