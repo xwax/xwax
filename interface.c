@@ -51,6 +51,10 @@
 
 #define EM_FONT "DejaVuSans-Oblique.ttf"
 
+#define BIG_FONT "DejaVuSans-Bold.ttf"
+#define BIG_FONT_SIZE 14
+#define BIG_FONT_SPACE 19
+
 #define CLOCK_FONT FONT
 #define CLOCK_FONT_SIZE 32
 
@@ -64,6 +68,7 @@
 
 #define BORDER 12
 #define SPACER 8
+#define HALF_SPACER 4
 
 #define CURSOR_WIDTH 4
 
@@ -134,7 +139,8 @@ static const char *font_dirs[] = {
     NULL
 };
 
-static TTF_Font *clock_font, *deci_font, *detail_font, *font, *em_font;
+static TTF_Font *clock_font, *deci_font, *detail_font,
+    *font, *em_font, *big_font;
 
 static SDL_Color background_col = {0, 0, 0, 255},
     text_col = {224, 224, 224, 255},
@@ -390,6 +396,10 @@ static int load_fonts(void)
     if (!em_font)
         return -1;
 
+    big_font = open_font(BIG_FONT, BIG_FONT_SIZE);
+    if (!big_font)
+        return -1;
+
     detail_font = open_font(DETAIL_FONT, DETAIL_FONT_SIZE);
     if (!detail_font)
         return -1;
@@ -407,6 +417,7 @@ static void clear_fonts(void)
     TTF_CloseFont(deci_font);
     TTF_CloseFont(font);
     TTF_CloseFont(em_font);
+    TTF_CloseFont(big_font);
     TTF_CloseFont(detail_font);
 }
 
@@ -612,13 +623,14 @@ static void draw_record(SDL_Surface *surface, const struct rect *rect,
 {
     struct rect top, bottom, left, right;
 
-    split_top(rect, &top, &bottom, FONT_SPACE, 0);
-    split_left(&top, &left, &right, BPM_WIDTH, SPACER);
+    split_top(rect, &top, &bottom, BIG_FONT_SPACE, 0);
+    split_left(&bottom, &left, &right, BPM_WIDTH, HALF_SPACER);
+
+    draw_text(surface, &top, record->artist,
+              big_font, text_col, background_col);
 
     draw_bpm(surface, &left, record->bpm, background_col);
-    draw_text(surface, &right, record->artist,
-              font, text_col, background_col);
-    draw_text(surface, &bottom, record->title,
+    draw_text(surface, &right, record->title,
               em_font, text_col, background_col);
 }
 
@@ -1041,7 +1053,7 @@ static void draw_deck(SDL_Surface *surface, const struct rect *rect,
 
     position = player_get_elapsed(pl) * t->rate;
 
-    split_top(rect, &track, &rest, FONT_SPACE * 2, 0);
+    split_top(rect, &track, &rest, FONT_SPACE + BIG_FONT_SPACE, 0);
     if (rest.h < 160)
         rest = *rect;
     else
