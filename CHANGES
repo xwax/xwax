@@ -1,5 +1,5 @@
-v1.2 (work in progress)
------------------------
+v1.2 (2012-03-23)
+-----------------
 
 * Scan directories only for known file extensions
 * Support Novation 'Dicer' controller
