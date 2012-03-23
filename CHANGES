@@ -1,9 +1,12 @@
-v1.2 (work in progress)
------------------------
+v1.2 (2012-03-23)
+-----------------
 
 * Scan directories only for known file extensions
+* Support Novation 'Dicer' controller
+* Cue points, including 'punch' feature
+* Extra protection against skips: optionally lock memory into RAM
 
-Acknowledgements: Olivier Gauthier
+Acknowledgements: Novation, Olivier Gauthier, Christoph Krapp, Mitchell Smith
 
 v1.1 (2012-01-30)
 -----------------

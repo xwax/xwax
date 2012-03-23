@@ -79,6 +79,11 @@ Use
 to raise the kernel's memory limit to allow this.
 
 .TP
+.B \-q \fIn\fR
+Change the real-time priority of the process. A priority of 0 gives
+the process no priority, and is used for testing only.
+
+.TP
 .B \-h
 Display the help message and default values.
 
@@ -220,7 +225,12 @@ cue mode: dice button (1-5)
 Jump to the specified cue point, or set it if unset.
 
 .TP
-cue button + dice button (1-5)
+loop-roll mode: dicer button (1-5)
+"Punch" to the specified cue point, or set it if unset. Returns playback
+to normal when the button is released.
+
+.TP
+mode button + dice button (1-5)
 Clear the specified cue point.
 
 .P
@@ -300,7 +310,7 @@ xwax \-dicer hw:Dicer \-a hw:0 \-a hw:1
 .RE
 
 .SH HOMEPAGE
-http://www.xwax.co.uk/
+http://xwax.org/
 
 .SH AUTHOR
 Mark Hills <mark@pogo.org.uk>

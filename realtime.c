@@ -17,6 +17,7 @@
  *
  */
 
+#include <assert.h>
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -27,39 +28,36 @@
 #include "realtime.h"
 #include "thread.h"
 
-#define REALTIME_PRIORITY 80
-
 /*
  * Raise the priority of the current thread
  *
  * Return: -1 if priority could not be satisfactorily raised, otherwise 0
  */
 
-static int raise_priority()
+static int raise_priority(int priority)
 {
     int max_pri;
     struct sched_param sp;
+
+    max_pri = sched_get_priority_max(SCHED_FIFO);
+
+    if (priority > max_pri) {
+        fprintf(stderr, "Invalid scheduling priority (maximum %d).\n", max_pri);
+        return -1;
+    }
 
     if (sched_getparam(0, &sp)) {
         perror("sched_getparam");
         return -1;
     }
 
-    max_pri = sched_get_priority_max(SCHED_FIFO);
-    sp.sched_priority = REALTIME_PRIORITY;
-
-    if (sp.sched_priority > max_pri) {
-        fprintf(stderr, "Invalid scheduling priority (maximum %d).\n", max_pri);
-        return -1;
-    }
+    sp.sched_priority = priority;
 
     if (sched_setscheduler(0, SCHED_FIFO, &sp)) {
         perror("sched_setscheduler");
         fprintf(stderr, "Failed to get realtime priorities\n");
         return -1;
     }
-
-    thread_to_realtime();
 
     return 0;
 }
@@ -75,8 +73,12 @@ static void rt_main(struct rt *rt)
 
     debug("realtime: main\n");
 
-    if (raise_priority() == -1)
-        rt->finished = true;
+    thread_to_realtime();
+
+    if (rt->priority != 0) {
+        if (raise_priority(rt->priority) == -1)
+            rt->finished = true;
+    }
 
     if (sem_post(&rt->sem) == -1)
         abort(); /* under our control; see sem_post(3) */
@@ -195,9 +197,12 @@ int rt_add_controller(struct rt *rt, struct controller *c)
  * Return: -1 on error, otherwise 0
  */
 
-int rt_start(struct rt *rt)
+int rt_start(struct rt *rt, int priority)
 {
     size_t n;
+
+    assert(priority >= 0);
+    rt->priority = priority;
 
     /* If there are any devices which returned file descriptors for
      * poll() then launch the realtime thread to handle them */

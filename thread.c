@@ -50,6 +50,12 @@ int thread_global_init(void)
     return 0;
 }
 
+void thread_global_clear(void)
+{
+    if (pthread_key_delete(key) != 0)
+        abort();
+}
+
 /*
  * Inform that this thread is a realtime thread, for assertions later
  */

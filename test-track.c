@@ -49,6 +49,7 @@ int main(int argc, char *argv[])
 
     track_put(track);
     rig_clear();
+    thread_global_clear();
 
     return 0;
 }

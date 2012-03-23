@@ -361,6 +361,9 @@ static void event(struct dicer *d, unsigned char buf[3])
         abort();
     }
 
+    if (deck == NULL) /* no deck assigned to this unit */
+        return;
+
     switch (buf[1]) {
     case 0x3c:
     case 0x3d:
@@ -438,8 +441,19 @@ static int realtime(struct controller *c)
 static void clear(struct controller *c)
 {
     struct dicer *d = c->local;
+    size_t n;
 
     debug("dicer: clear\n");
+
+    /* FIXME: Uses non-blocking functionality really intended
+     * for realtime; no guarantee buffer is emptied */
+
+    for (n = 0; n < NBUTTONS; n++) {
+        set_led(&d->left_led[n], 0, ON);
+        set_led(&d->right_led[n], 0, ON);
+    }
+    sync_all_leds(d);
+
     midi_close(&d->midi);
     free(c->local);
 }
@@ -470,8 +484,10 @@ int dicer_init(struct controller *c, struct rt *rt, const char *hw)
     d->right = NULL;
     d->ofill = 0;
 
-    for (n = 0; n < NBUTTONS; n++)
+    for (n = 0; n < NBUTTONS; n++) {
         d->left_led[n] = 0;
+        d->right_led[n] = 0;
+    }
 
     controller_init(c, &dicer_ops);
     c->local = d;

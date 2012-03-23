@@ -34,6 +34,7 @@ struct rt {
     pthread_t ph;
     sem_t sem;
     bool finished;
+    int priority;
 
     size_t ndv;
     struct device *dv[3];
@@ -54,7 +55,7 @@ void rt_clear(struct rt *rt);
 int rt_add_device(struct rt *rt, struct device *dv);
 int rt_add_controller(struct rt *rt, struct controller *c);
 
-int rt_start(struct rt *rt);
+int rt_start(struct rt *rt, int priority);
 void rt_stop(struct rt *rt);
 
 #endif

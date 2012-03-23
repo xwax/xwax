@@ -48,6 +48,7 @@
 #define DEFAULT_ALSA_BUFFER 8 /* milliseconds */
 
 #define DEFAULT_RATE 44100
+#define DEFAULT_PRIORITY 80
 
 #define DEFAULT_IMPORTER EXECDIR "/xwax-import"
 #define DEFAULT_SCANNER EXECDIR "/xwax-scan"
@@ -64,7 +65,9 @@ static void usage(FILE *fd)
 
     fprintf(fd, "Program-wide options:\n"
       "  -k             Lock real-time memory into RAM\n"
-      "  -h             Display this message to stdout and exit\n\n");
+      "  -q <n>         Real-time priority (0 for no priority, default %d)\n"
+      "  -h             Display this message to stdout and exit\n\n",
+      DEFAULT_PRIORITY);
 
     fprintf(fd, "Music library options:\n"
       "  -l <path>      Location to scan for audio tracks\n"
@@ -120,8 +123,9 @@ static void usage(FILE *fd)
 
 int main(int argc, char *argv[])
 {
-    int r, n, decks;
+    int r, n, decks, priority;
     const char *importer, *scanner;
+    char *endptr;
     size_t nctl;
     double speed;
     struct timecode_def *timecode;
@@ -133,7 +137,6 @@ int main(int argc, char *argv[])
     struct library library;
 
 #if defined WITH_OSS || WITH_ALSA
-    char *endptr;
     int rate;
 #endif
 
@@ -157,6 +160,7 @@ int main(int argc, char *argv[])
 
     decks = 0;
     nctl = 0;
+    priority = DEFAULT_PRIORITY;
     importer = DEFAULT_IMPORTER;
     scanner = DEFAULT_SCANNER;
     timecode = NULL;
@@ -414,6 +418,28 @@ int main(int argc, char *argv[])
             argv++;
             argc--;
 
+        } else if (!strcmp(argv[0], "-q")) {
+
+            if (argc < 2) {
+                fprintf(stderr, "-q requires an integer argument.\n");
+                return -1;
+            }
+
+            priority = strtol(argv[1], &endptr, 10);
+            if (*endptr != '\0') {
+                fprintf(stderr, "-q requires an integer argument.\n");
+                return -1;
+            }
+
+            if (priority < 0) {
+                fprintf(stderr, "Priority (%d) must be zero or positive.\n",
+                        priority);
+                return -1;
+            }
+
+            argv += 2;
+            argc -= 2;
+
         } else if (!strcmp(argv[0], "-i")) {
 
             /* Importer script for subsequent decks */
@@ -517,7 +543,7 @@ int main(int argc, char *argv[])
 
     /* Order is important: launch realtime thread first, then mlock */
 
-    if (rt_start(&rt) == -1)
+    if (rt_start(&rt, priority) == -1)
         return -1;
 
     if (use_mlock && mlockall(MCL_CURRENT) == -1) {
@@ -546,6 +572,7 @@ int main(int argc, char *argv[])
     library_clear(&library);
     rt_clear(&rt);
     rig_clear();
+    thread_global_clear();
 
     fprintf(stderr, "Done.\n");
 
