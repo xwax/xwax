@@ -631,7 +631,7 @@ static void draw_record(SDL_Surface *surface, const struct rect *rect,
 
     draw_bpm(surface, &left, record->bpm, background_col);
     draw_text(surface, &right, record->title,
-              em_font, text_col, background_col);
+              font, text_col, background_col);
 }
 
 /*
