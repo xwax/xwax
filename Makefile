@@ -90,7 +90,8 @@ xwax:		LDFLAGS += -pthread
 
 interface.o:	CFLAGS += $(SDL_CFLAGS)
 
-xwax.o:		CFLAGS += $(SDL_CFLAGS) $(DEVICE_CPPFLAGS)
+xwax.o:		CFLAGS += $(SDL_CFLAGS)
+xwax.o:		CPPFLAGS += $(DEVICE_CPPFLAGS)
 xwax.o:		CPPFLAGS += -DEXECDIR=\"$(EXECDIR)\" -DVERSION=\"$(VERSION)\"
 xwax.o:		.version
 
