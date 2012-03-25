@@ -98,13 +98,13 @@ xwax.o:		.version
 
 .PHONY:		install
 install:
-		$(INSTALL) -D xwax $(BINDIR)/xwax
-		$(INSTALL) -D scan $(EXECDIR)/xwax-scan
-		$(INSTALL) -D import $(EXECDIR)/xwax-import
-		$(INSTALL) -D -m 0644 xwax.1 $(MANDIR)/man1/xwax.1
-		$(INSTALL) -D -m 0644 CHANGES $(DOCDIR)/xwax/CHANGES
-		$(INSTALL) -D -m 0644 COPYING $(DOCDIR)/xwax/COPYING
-		$(INSTALL) -D -m 0644 README $(DOCDIR)/xwax/README
+		$(INSTALL) -D xwax $(DESTDIR)$(BINDIR)/xwax
+		$(INSTALL) -D scan $(DESTDIR)$(EXECDIR)/xwax-scan
+		$(INSTALL) -D import $(DESTDIR)$(EXECDIR)/xwax-import
+		$(INSTALL) -D -m 0644 xwax.1 $(DESTDIR)$(MANDIR)/man1/xwax.1
+		$(INSTALL) -D -m 0644 CHANGES $(DESTDIR)$(DOCDIR)/xwax/CHANGES
+		$(INSTALL) -D -m 0644 COPYING $(DESTDIR)$(DOCDIR)/xwax/COPYING
+		$(INSTALL) -D -m 0644 README $(DESTDIR)$(DOCDIR)/xwax/README
 
 # Distribution archive from Git source code
 
