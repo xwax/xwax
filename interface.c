@@ -73,8 +73,6 @@
 #define LIBRARY_MIN_WIDTH 64
 #define LIBRARY_MIN_HEIGHT 64
 
-#define DEFAULT_WIDTH 960
-#define DEFAULT_HEIGHT 720
 #define DEFAULT_METER_SCALE 8
 
 #define MAX_METER_SCALE 11
@@ -144,6 +142,7 @@ static SDL_Color background_col = {0, 0, 0, 255},
 
 static int spinner_angle[SPINNER_SIZE * SPINNER_SIZE];
 
+static int width, height;
 static pthread_t ph;
 static struct deck *deck;
 static size_t ndeck;
@@ -1357,7 +1356,7 @@ static int interface_main(void)
 
     meter_scale = DEFAULT_METER_SCALE;
 
-    surface = set_size(DEFAULT_WIDTH, DEFAULT_HEIGHT, &rworkspace);
+    surface = set_size(width, height, &rworkspace);
     if (!surface)
         return -1;
 
@@ -1489,7 +1488,8 @@ static void* launch(void *p)
  * error
  */
 
-int interface_start(struct deck ldeck[], size_t lndeck, struct library *lib)
+int interface_start(struct deck ldeck[], size_t lndeck, struct library *lib,
+                    int w, int h)
 {
     size_t n;
 
@@ -1512,6 +1512,9 @@ int interface_start(struct deck ldeck[], size_t lndeck, struct library *lib)
     }
     SDL_WM_SetCaption(banner, NULL);
     SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
+
+    width = w;
+    height = h;
 
     /* Initialise the fonts */
 
