@@ -642,23 +642,23 @@ static void draw_bpm_field(SDL_Surface *surface, const struct rect *rect,
 static void draw_record(SDL_Surface *surface, const struct rect *rect,
                         const struct record *record)
 {
-    struct rect top, bottom, left, right;
+    struct rect artist, title, left, right;
 
-    split_top(rect, &top, &bottom, BIG_FONT_SPACE, 0);
-    draw_text(surface, &top, record->artist,
+    split_top(rect, &artist, &title, BIG_FONT_SPACE, 0);
+    draw_text(surface, &artist, record->artist,
               big_font, text_col, background_col);
 
     /* Layout changes slightly if BPM is known */
 
     if (show_bpm(record->bpm)) {
-        split_left(&bottom, &left, &right, BPM_WIDTH, 0);
+        split_left(&title, &left, &right, BPM_WIDTH, 0);
         draw_bpm(surface, &left, record->bpm, background_col);
 
-        split_left(&right, &left, &bottom, HALF_SPACER, 0);
+        split_left(&right, &left, &title, HALF_SPACER, 0);
         draw_rect(surface, &left, background_col);
     }
 
-    draw_text(surface, &bottom, record->title, font, text_col, background_col);
+    draw_text(surface, &title, record->title, font, text_col, background_col);
 }
 
 /*
