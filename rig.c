@@ -106,7 +106,7 @@ int rig_main()
 
         pe = &pt[1];
 
-        /* Fetch file descriptors to monitor from each track */
+        /* Do our best if we run out of poll entries */
 
         list_for_each(track, &tracks, rig) {
             if (pe == px)
@@ -159,8 +159,6 @@ int rig_main()
         }
 
         mutex_lock(&lock);
-
-        /* Do any reading and writing on all tracks */
 
         list_for_each_safe(track, xtrack, &tracks, rig) {
             if (track_handle(track)) {
