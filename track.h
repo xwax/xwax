@@ -27,7 +27,6 @@
 #include "list.h"
 
 #define TRACK_CHANNELS 2
-#define TRACK_RATE 44100
 
 #define TRACK_MAX_BLOCKS 64
 #define TRACK_BLOCK_SAMPLES (2048 * 1024)

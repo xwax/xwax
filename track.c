@@ -34,8 +34,13 @@
 #include "rig.h"
 #include "track.h"
 
+#define RATE 44100
+
 #define SAMPLE (sizeof(signed short) * TRACK_CHANNELS) /* bytes per sample */
 #define TRACK_BLOCK_PCM_BYTES (TRACK_BLOCK_SAMPLES * SAMPLE)
+
+#define _STR(tok) #tok
+#define STR(tok) _STR(tok)
 
 struct list tracks = LIST_INIT(tracks);
 bool use_mlock = false;
@@ -48,7 +53,7 @@ bool use_mlock = false;
 static struct track empty = {
     .refcount = 1,
 
-    .rate = TRACK_RATE,
+    .rate = RATE,
     .bytes = 0,
     .length = 0,
     .blocks = 0,
@@ -211,14 +216,11 @@ static void commit(struct track *tr, size_t len)
 
 static int track_init(struct track *t, const char *importer, const char *path)
 {
-    char rate[16];
     pid_t pid;
 
     fprintf(stderr, "Importing '%s'...\n", path);
 
-    sprintf(rate, "%d", TRACK_RATE);
-
-    pid = fork_pipe_nb(&t->fd, importer, "import", path, rate, NULL);
+    pid = fork_pipe_nb(&t->fd, importer, "import", path, STR(RATE), NULL);
     if (pid == -1)
         return -1;
 
@@ -228,7 +230,7 @@ static int track_init(struct track *t, const char *importer, const char *path)
     t->refcount = 0;
 
     t->blocks = 0;
-    t->rate = TRACK_RATE;
+    t->rate = RATE;
 
     t->bytes = 0;
     t->length = 0;
