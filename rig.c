@@ -101,7 +101,7 @@ int rig_main()
     for (;;) { /* exit via EVENT_QUIT */
         int r;
         struct pollfd *pe;
-        struct track *track;
+        struct track *track, *xtrack;
 
         pe = &pt[1];
 
@@ -165,7 +165,7 @@ int rig_main()
 
         /* Do any reading and writing on all tracks */
 
-        list_for_each(track, &tracks, rig) {
+        list_for_each_safe(track, xtrack, &tracks, rig) {
             if (track_handle(track)) {
                 list_del(&track->rig);
                 track_put(track);
