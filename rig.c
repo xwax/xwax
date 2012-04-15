@@ -89,6 +89,7 @@ void rig_clear()
 int rig_main()
 {
     struct pollfd pt[4];
+    const struct pollfd *px = pt + ARRAY_SIZE(pt);
 
     /* Monitor event pipe from external threads */
 
@@ -101,21 +102,17 @@ int rig_main()
     for (;;) { /* exit via EVENT_QUIT */
         int r;
         struct pollfd *pe;
-        struct track *track;
+        struct track *track, *xtrack;
 
         pe = &pt[1];
 
-        /* Fetch file descriptors to monitor from each track */
+        /* Do our best if we run out of poll entries */
 
         list_for_each(track, &tracks, rig) {
+            if (pe == px)
+                break;
             track_pollfd(track, pe);
             pe++;
-
-            /* If we ran out of file descriptors, ignore the
-             * oldest until we have space in the poll table */
-
-            if (pe >= pt + ARRAY_SIZE(pt))
-                break;
         }
 
         mutex_unlock(&lock);
@@ -163,9 +160,7 @@ int rig_main()
 
         mutex_lock(&lock);
 
-        /* Do any reading and writing on all tracks */
-
-        list_for_each(track, &tracks, rig) {
+        list_for_each_safe(track, xtrack, &tracks, rig) {
             if (track_handle(track)) {
                 list_del(&track->rig);
                 track_put(track);
@@ -202,6 +197,16 @@ int rig_quit()
     return post_event(EVENT_QUIT);
 }
 
+void rig_lock(void)
+{
+    mutex_lock(&lock);
+}
+
+void rig_unlock(void)
+{
+    mutex_unlock(&lock);
+}
+
 /*
  * Add a track to be handled until import has completed
  */
@@ -209,10 +214,6 @@ int rig_quit()
 void rig_post_track(struct track *t)
 {
     track_get(t);
-
-    mutex_lock(&lock);
     list_add(&t->rig, &tracks);
-    mutex_unlock(&lock);
-
     post_event(EVENT_WAKE);
 }

@@ -41,7 +41,7 @@ DOCDIR = $(PREFIX)/share/doc
 
 # Core objects and libraries
 
-OBJS = controller.o cues.o deck.o device.o external.o import.o interface.o \
+OBJS = controller.o cues.o deck.o device.o external.o interface.o \
 	library.o listing.o lut.o \
 	player.o realtime.o \
 	rig.o selector.o thread.o timecoder.o track.o xwax.o
@@ -90,7 +90,8 @@ xwax:		LDFLAGS += -pthread
 
 interface.o:	CFLAGS += $(SDL_CFLAGS)
 
-xwax.o:		CFLAGS += $(SDL_CFLAGS) $(DEVICE_CPPFLAGS)
+xwax.o:		CFLAGS += $(SDL_CFLAGS)
+xwax.o:		CPPFLAGS += $(DEVICE_CPPFLAGS)
 xwax.o:		CPPFLAGS += -DEXECDIR=\"$(EXECDIR)\" -DVERSION=\"$(VERSION)\"
 xwax.o:		.version
 
@@ -98,17 +99,13 @@ xwax.o:		.version
 
 .PHONY:		install
 install:
-		$(INSTALL) -d $(BINDIR)
-		$(INSTALL) xwax $(BINDIR)/xwax
-		$(INSTALL) -d $(EXECDIR)
-		$(INSTALL) scan $(EXECDIR)/xwax-scan
-		$(INSTALL) import $(EXECDIR)/xwax-import
-		$(INSTALL) -d $(MANDIR)/man1
-		$(INSTALL) -m 0644 xwax.1 $(MANDIR)/man1/xwax.1
-		$(INSTALL) -d $(DOCDIR)/xwax
-		$(INSTALL) -m 0644 CHANGES $(DOCDIR)/xwax/CHANGES
-		$(INSTALL) -m 0644 COPYING $(DOCDIR)/xwax/COPYING
-		$(INSTALL) -m 0644 README $(DOCDIR)/xwax/README
+		$(INSTALL) -D xwax $(DESTDIR)$(BINDIR)/xwax
+		$(INSTALL) -D scan $(DESTDIR)$(EXECDIR)/xwax-scan
+		$(INSTALL) -D import $(DESTDIR)$(EXECDIR)/xwax-import
+		$(INSTALL) -D -m 0644 xwax.1 $(DESTDIR)$(MANDIR)/man1/xwax.1
+		$(INSTALL) -D -m 0644 CHANGES $(DESTDIR)$(DOCDIR)/xwax/CHANGES
+		$(INSTALL) -D -m 0644 COPYING $(DESTDIR)$(DOCDIR)/xwax/COPYING
+		$(INSTALL) -D -m 0644 README $(DESTDIR)$(DOCDIR)/xwax/README
 
 # Distribution archive from Git source code
 
@@ -130,7 +127,7 @@ test-midi:	LDLIBS += $(ALSA_LIBS)
 
 test-timecoder:	test-timecoder.o lut.o timecoder.o
 
-test-track:	test-track.o external.o import.o rig.o thread.o track.o
+test-track:	test-track.o external.o rig.o thread.o track.o
 test-track:	LDFLAGS += -pthread
 test-track:	LDLIBS += -lm
 

@@ -448,12 +448,9 @@ int library_import(struct library *li, bool sort,
     char *cratename, *pathname;
     pid_t pid;
     FILE *fp;
-    struct crate *crate, *all_crate;
+    struct crate *crate;
 
     fprintf(stderr, "Scanning '%s'...\n", path);
-
-    all_crate = get_crate(li, CRATE_ALL);
-    assert(all_crate != NULL);
 
     pathname = strdupa(path);
     cratename = basename(pathname); /* POSIX version, see basename(3) */
@@ -483,7 +480,7 @@ int library_import(struct library *li, bool sort,
 
         /* Add to the crate of all records */
 
-        x = crate_add(all_crate, d);
+        x = crate_add(&li->all, d);
         if (x == NULL)
             return -1;
 

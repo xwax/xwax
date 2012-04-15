@@ -28,6 +28,10 @@ void rig_clear();
 int rig_main();
 
 int rig_quit();
+
+void rig_lock();
+void rig_unlock();
+
 void rig_post_track(struct track *t);
 
 #endif
