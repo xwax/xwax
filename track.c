@@ -135,9 +135,6 @@ static void* access_pcm(struct track *tr, size_t *len)
  *
  * The parameter is the number of stereo samples which have been
  * placed in the buffer.
- *
- * Pre: the number of samples does not overflow the size of the buffer,
- * given by access_pcm()
  */
 
 static void commit_pcm_samples(struct track *tr, unsigned int samples)
@@ -196,9 +193,6 @@ static void commit_pcm_samples(struct track *tr, unsigned int samples)
  *
  * This function passes any whole samples to commit_pcm_samples()
  * and leaves the residual in the buffer ready for next time.
- *
- * Pre: len is not greater than the size of the buffer, available
- * from access_pcm()
  */
 
 static void commit(struct track *tr, size_t len)
@@ -212,6 +206,7 @@ static void commit(struct track *tr, size_t len)
  * importing the data
  *
  * Post: track is initialised
+ * Post: track is importing
  */
 
 static int track_init(struct track *t, const char *importer, const char *path)
@@ -255,6 +250,7 @@ static int track_init(struct track *t, const char *importer, const char *path)
  * Terminates any import processes and frees any memory allocated by
  * this object.
  *
+ * Pre: track is not importing
  * Pre: track is initialised
  */
 
@@ -323,7 +319,7 @@ struct track* track_get_by_import(const char *importer, const char *path)
 /*
  * Get a pointer to a static track containing no audio
  *
- * Return: pointer
+ * Return: pointer, not NULL
  */
 
 struct track* track_get_empty(void)
@@ -374,8 +370,8 @@ void track_put(struct track *t)
 /*
  * Get entry for use by poll()
  *
- * Return: number of file descriptors placed in *pe
- * Post: *pe contains 0 or 1 file descriptors
+ * Pre: track is importing
+ * Post: *pe contains poll entry
  */
 
 void track_pollfd(struct track *t, struct pollfd *pe)
