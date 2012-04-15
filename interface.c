@@ -591,6 +591,11 @@ static SDL_Color hsv(double h, double s, double v)
     }
 }
 
+static bool show_bpm(double bpm)
+{
+    return (bpm > 20.0 && bpm < 400.0);
+}
+
 /*
  * Draw the beats-per-minute indicator
  */
@@ -602,17 +607,7 @@ static void draw_bpm(SDL_Surface *surface, const struct rect *rect, double bpm,
     char buf[32];
     double f, h;
 
-    if (bpm <= 0.0) {
-        draw_rect(surface, rect, bg_col);
-        return;
-    }
-
     sprintf(buf, "%5.1f", bpm);
-    if (strlen(buf) > 5) {
-        draw_rect(surface, rect, bg_col);
-        return;
-    }
-
     f = (bpm - min) / (max - min);
 
     if (f < 0.0 || f > 1.0) {
@@ -628,6 +623,19 @@ static void draw_bpm(SDL_Surface *surface, const struct rect *rect, double bpm,
 }
 
 /*
+ * Draw the BPM field, or a gap
+ */
+
+static void draw_bpm_field(SDL_Surface *surface, const struct rect *rect,
+                           double bpm, SDL_Color bg_col)
+{
+    if (show_bpm(bpm))
+        draw_bpm(surface, rect, bpm, bg_col);
+    else
+        draw_rect(surface, rect, bg_col);
+}
+
+/*
  * Draw the record information in the deck
  */
 
@@ -637,14 +645,20 @@ static void draw_record(SDL_Surface *surface, const struct rect *rect,
     struct rect top, bottom, left, right;
 
     split_top(rect, &top, &bottom, BIG_FONT_SPACE, 0);
-    split_left(&bottom, &left, &right, BPM_WIDTH, HALF_SPACER);
-
     draw_text(surface, &top, record->artist,
               big_font, text_col, background_col);
 
-    draw_bpm(surface, &left, record->bpm, background_col);
-    draw_text(surface, &right, record->title,
-              font, text_col, background_col);
+    /* Layout changes slightly if BPM is known */
+
+    if (show_bpm(record->bpm)) {
+        split_left(&bottom, &left, &right, BPM_WIDTH, 0);
+        draw_bpm(surface, &left, record->bpm, background_col);
+
+        split_left(&right, &left, &bottom, HALF_SPACER, 0);
+        draw_rect(surface, &left, background_col);
+    }
+
+    draw_text(surface, &bottom, record->title, font, text_col, background_col);
 }
 
 /*
@@ -1261,6 +1275,8 @@ static void draw_crates(SDL_Surface *surface, const struct rect *rect,
     draw_rect(surface, &bottom, background_col);
 }
 
+
+
 /*
  * Display a record library listing, with scrollbar and current
  * selection
@@ -1311,7 +1327,7 @@ static void draw_listing(SDL_Surface *surface, const struct rect *rect,
         }
 
         split_left(&top, &left, &right, BPM_WIDTH, 0);
-        draw_bpm(surface, &left, record->bpm, col);
+        draw_bpm_field(surface, &left, record->bpm, col);
 
         split_left(&right, &left, &right, SPACER, 0);
         draw_rect(surface, &left, col);
