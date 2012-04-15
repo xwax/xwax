@@ -24,7 +24,6 @@
 #include <sys/poll.h>
 #include <sys/types.h>
 
-#include "import.h"
 #include "list.h"
 
 #define TRACK_CHANNELS 2
@@ -58,8 +57,9 @@ struct track {
     /* State of audio import */
 
     struct list rig;
-    bool importing, has_poll;
-    struct import import;
+    pid_t pid;
+    int fd;
+    struct pollfd *pe;
 
     /* Current value of audio meters when loading */
     
@@ -76,11 +76,6 @@ struct track* track_get_empty(void);
 void track_get(struct track *t);
 void track_put(struct track *t);
 
-/* Functions used by the import operation */
-
-void* track_access_pcm(struct track *tr, size_t *len);
-void track_commit(struct track *tr, size_t len);
-
 /* Functions used by the rig and main thread */
 
 void track_pollfd(struct track *tr, struct pollfd *pe);
@@ -90,7 +85,7 @@ bool track_handle(struct track *tr);
 
 static inline bool track_is_importing(struct track *tr)
 {
-    return tr->importing;
+    return tr->pid != 0;
 }
 
 /* Return the pseudo-PPM meter value for the given sample */

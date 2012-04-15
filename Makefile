@@ -41,7 +41,7 @@ DOCDIR = $(PREFIX)/share/doc
 
 # Core objects and libraries
 
-OBJS = controller.o cues.o deck.o device.o external.o import.o interface.o \
+OBJS = controller.o cues.o deck.o device.o external.o interface.o \
 	library.o listing.o lut.o \
 	player.o realtime.o \
 	rig.o selector.o thread.o timecoder.o track.o xwax.o
@@ -127,7 +127,7 @@ test-midi:	LDLIBS += $(ALSA_LIBS)
 
 test-timecoder:	test-timecoder.o lut.o timecoder.o
 
-test-track:	test-track.o external.o import.o rig.o thread.o track.o
+test-track:	test-track.o external.o rig.o thread.o track.o
 test-track:	LDFLAGS += -pthread
 test-track:	LDLIBS += -lm
 
