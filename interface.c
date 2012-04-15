@@ -1368,7 +1368,16 @@ static int interface_main(void)
 
     timer = SDL_AddTimer(REFRESH, ticker, NULL);
 
-    while (SDL_WaitEvent(&event) >= 0) {
+    rig_lock();
+
+    for (;;) {
+
+        rig_unlock();
+
+        if (SDL_WaitEvent(&event) < 0)
+            break;
+
+        rig_lock();
 
         switch(event.type) {
         case SDL_QUIT: /* user request to quit application; eg. window close */
@@ -1470,6 +1479,8 @@ static int interface_main(void)
     } /* main loop */
 
  finish:
+    rig_unlock();
+
     SDL_RemoveTimer(timer);
 
     return 0;

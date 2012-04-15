@@ -197,6 +197,16 @@ int rig_quit()
     return post_event(EVENT_QUIT);
 }
 
+void rig_lock(void)
+{
+    mutex_lock(&lock);
+}
+
+void rig_unlock(void)
+{
+    mutex_unlock(&lock);
+}
+
 /*
  * Add a track to be handled until import has completed
  */
@@ -204,10 +214,6 @@ int rig_quit()
 void rig_post_track(struct track *t)
 {
     track_get(t);
-
-    mutex_lock(&lock);
     list_add(&t->rig, &tracks);
-    mutex_unlock(&lock);
-
     post_event(EVENT_WAKE);
 }
