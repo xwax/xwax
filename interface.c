@@ -1505,10 +1505,30 @@ static void* launch(void *p)
 
 static int parse_geometry(const char *s)
 {
-    if (sscanf(s, "%dx%d", &width, &height) != 2)
+    int n, x, y;
+    char buf[128];
+
+    n = sscanf(s, "%dx%d+%d+%d", &width, &height, &x, &y);
+
+    switch (n) {
+    case 2:
+        break;
+
+    case 4:
+        /* FIXME: Not a desirable way to get geometry information to
+         * SDL, but it seems to be the only way */
+
+        sprintf(buf, "SDL_VIDEO_WINDOW_POS=%d,%d", x, y);
+        if (putenv(buf) != 0)
+            return -1;
+
+        break;
+
+    default:
         return -1;
-    else
-        return 0;
+    }
+
+    return 0;
 }
 
 /*
