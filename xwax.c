@@ -54,9 +54,6 @@
 #define DEFAULT_SCANNER EXECDIR "/xwax-scan"
 #define DEFAULT_TIMECODE "serato_2a"
 
-#define DEFAULT_WIDTH 960
-#define DEFAULT_HEIGHT 720
-
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof(*x))
 
 char *banner = "xwax " VERSION \
@@ -69,9 +66,9 @@ static void usage(FILE *fd)
     fprintf(fd, "Program-wide options:\n"
       "  -k             Lock real-time memory into RAM\n"
       "  -q <n>         Real-time priority (0 for no priority, default %d)\n"
-      "  -g <n>x<n>     Set display geometry (default %dx%d)\n"
+      "  -g <n>x<n>     Set display geometry\n"
       "  -h             Display this message to stdout and exit\n\n",
-      DEFAULT_PRIORITY, DEFAULT_WIDTH, DEFAULT_HEIGHT);
+      DEFAULT_PRIORITY);
 
     fprintf(fd, "Music library options:\n"
       "  -l <path>      Location to scan for audio tracks\n"
@@ -125,26 +122,10 @@ static void usage(FILE *fd)
       "See the xwax(1) man page for full information and examples.\n");
 }
 
-/*
- * Parse the given string into width and height. String format is
- * "960x720"
- *
- * Return: -1 if string could not be parsed, otherwise 0
- * Post: if 0 is returned, w and h are set
- */
-
-static int parse_geometry(const char *s, int *w, int *h)
-{
-    if (sscanf(s, "%dx%d", w, h) != 2)
-        return -1;
-    else
-        return 0;
-}
-
 int main(int argc, char *argv[])
 {
-    int r, n, decks, priority, width, height;
-    const char *importer, *scanner;
+    int r, n, decks, priority;
+    const char *importer, *scanner, *geo;
     char *endptr;
     size_t nctl;
     double speed;
@@ -179,8 +160,7 @@ int main(int argc, char *argv[])
     library_init(&library);
 
     decks = 0;
-    width = DEFAULT_WIDTH;
-    height = DEFAULT_HEIGHT;
+    geo = "";
     nctl = 0;
     priority = DEFAULT_PRIORITY;
     importer = DEFAULT_IMPORTER;
@@ -469,11 +449,7 @@ int main(int argc, char *argv[])
                 return -1;
             }
 
-            if (parse_geometry(argv[1], &width, &height) == -1) {
-                fprintf(stderr, "Window geometry ('%s') is not valid.\n",
-                        argv[1]);
-                return -1;
-            }
+            geo = argv[1];
 
             argv += 2;
             argc -= 2;
@@ -589,7 +565,7 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    if (interface_start(deck, decks, &library, width, height) == -1)
+    if (interface_start(deck, decks, &library, geo) == -1)
         return -1;
 
     if (rig_main() == -1)
