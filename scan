@@ -19,8 +19,8 @@ else
 	cat "$PATHNAME"
 fi | sed -n '
 {
-# /[<num>[.]] <artist> - <title>.ext
-s:/\([0-9]\+.\? \+\)\?\([^/]*\) \+- \+\([^/]*\)\.[A-Z0-9]*$:\0\t\2\t\3:pi
+# /[<ABnum>[.]] <artist> - <title>.ext
+s:/\([A-H]\?[A0-9]\?[0-9].\? \+\)\?\([^/]*\) \+- \+\([^/]*\)\.[A-Z0-9]*$:\0\t\2\t\3:pi
 t
 
 # /<artist> - <album>[/(Disc|Side) <name>]/[<ABnum>[.]] <title>.ext
