@@ -1,3 +1,11 @@
+v1.3 (work in progress)
+-----------------------
+
+* Allow initial X window size and position to be set by the user
+* Makefile modifications for packagers
+
+Acknowledgements: Engine, Lukas Fleischer, Matej Laitl
+
 v1.2 (2012-03-23)
 -----------------
 

@@ -24,7 +24,7 @@
 #include "library.h"
 
 int interface_start(struct deck deck[], size_t ndeck, struct library *lib,
-                    int w, int h);
+                    const char *geo);
 void interface_stop();
 
 #endif

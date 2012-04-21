@@ -66,6 +66,9 @@
 
 /* Screen dimensions */
 
+#define DEFAULT_WIDTH 960
+#define DEFAULT_HEIGHT 720
+
 #define BORDER 12
 #define SPACER 8
 #define HALF_SPACER 4
@@ -154,7 +157,7 @@ static SDL_Color background_col = {0, 0, 0, 255},
 
 static int spinner_angle[SPINNER_SIZE * SPINNER_SIZE];
 
-static int width, height;
+static int width = DEFAULT_WIDTH, height = DEFAULT_HEIGHT;
 static pthread_t ph;
 static struct deck *deck;
 static size_t ndeck;
@@ -1703,6 +1706,44 @@ static void* launch(void *p)
 }
 
 /*
+ * Parse and action the given geometry string. Format is "960x720" or
+ * "970x720+20+20"
+ *
+ * Return: -1 if string could not be actioned, otherwise 0
+ */
+
+static int parse_geometry(const char *s)
+{
+    int n, x, y;
+    char buf[128];
+
+    n = sscanf(s, "%dx%d+%d+%d", &width, &height, &x, &y);
+
+    switch (n) {
+    case EOF: /* empty string */
+        break;
+
+    case 2:
+        break;
+
+    case 4:
+        /* FIXME: Not a desirable way to get geometry information to
+         * SDL, but it seems to be the only way */
+
+        sprintf(buf, "SDL_VIDEO_WINDOW_POS=%d,%d", x, y);
+        if (putenv(buf) != 0)
+            return -1;
+
+        break;
+
+    default:
+        return -1;
+    }
+
+    return 0;
+}
+
+/*
  * Start the SDL interface
  *
  * FIXME: There are multiple points where resources are leaked on
@@ -1710,12 +1751,17 @@ static void* launch(void *p)
  */
 
 int interface_start(struct deck ldeck[], size_t lndeck, struct library *lib,
-                    int w, int h)
+                    const char *geo)
 {
     size_t n;
 
     deck = ldeck;
     ndeck = lndeck;
+
+    if (parse_geometry(geo) == -1) {
+        fprintf(stderr, "Window geometry ('%s') is not valid.\n", geo);
+        return -1;
+    }
 
     for (n = 0; n < ndeck; n++) {
         if (timecoder_monitor_init(&deck[n].timecoder, SCOPE_SIZE) == -1)
@@ -1733,9 +1779,6 @@ int interface_start(struct deck ldeck[], size_t lndeck, struct library *lib,
     }
     SDL_WM_SetCaption(banner, NULL);
     SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
-
-    width = w;
-    height = h;
 
     /* Initialise the fonts */
 
