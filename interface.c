@@ -1496,11 +1496,10 @@ static void* launch(void *p)
 }
 
 /*
- * Parse the given string into width and height. String format is
- * "960x720"
+ * Parse and action the given geometry string. Format is "960x720" or
+ * "970x720+20+20"
  *
- * Return: -1 if string could not be parsed, otherwise 0
- * Post: if 0 is returned, w and h are set
+ * Return: -1 if string could not be actioned, otherwise 0
  */
 
 static int parse_geometry(const char *s)
