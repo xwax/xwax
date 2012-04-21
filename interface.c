@@ -1510,6 +1510,9 @@ static int parse_geometry(const char *s)
     n = sscanf(s, "%dx%d+%d+%d", &width, &height, &x, &y);
 
     switch (n) {
+    case EOF: /* empty string */
+        break;
+
     case 2:
         break;
 
