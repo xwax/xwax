@@ -144,8 +144,6 @@ static int spinner_angle[SPINNER_SIZE * SPINNER_SIZE];
 
 static int width, height;
 static pthread_t ph;
-static struct deck *deck;
-static size_t ndeck;
 static struct selector selector;
 
 struct rect {
@@ -1499,13 +1497,9 @@ static void* launch(void *p)
  * error
  */
 
-int interface_start(struct deck ldeck[], size_t lndeck, struct library *lib,
-                    int w, int h)
+int interface_start(struct library *lib, int w, int h)
 {
     size_t n;
-
-    deck = ldeck;
-    ndeck = lndeck;
 
     for (n = 0; n < ndeck; n++) {
         if (timecoder_monitor_init(&deck[n].timecoder, SCOPE_SIZE) == -1)

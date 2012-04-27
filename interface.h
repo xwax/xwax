@@ -23,8 +23,7 @@
 #include "deck.h"
 #include "library.h"
 
-int interface_start(struct deck deck[], size_t ndeck, struct library *lib,
-                    int w, int h);
+int interface_start(struct library *lib, int w, int h);
 void interface_stop();
 
 #endif

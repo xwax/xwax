@@ -28,7 +28,6 @@
 
 #include "alsa.h"
 #include "controller.h"
-#include "deck.h"
 #include "device.h"
 #include "dicer.h"
 #include "interface.h"
@@ -591,7 +590,7 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    if (interface_start(deck, ndeck, &library, width, height) == -1)
+    if (interface_start(&library, width, height) == -1)
         return -1;
 
     if (rig_main() == -1)
