@@ -62,6 +62,9 @@
 char *banner = "xwax " VERSION \
     " (C) Copyright 2012 Mark Hills <mark@pogo.org.uk>";
 
+int decks;
+struct deck deck[3];
+
 static void usage(FILE *fd)
 {
     fprintf(fd, "Usage: xwax [<options>]\n\n");
@@ -143,7 +146,7 @@ static int parse_geometry(const char *s, int *w, int *h)
 
 int main(int argc, char *argv[])
 {
-    int r, n, decks, priority, width, height;
+    int r, n, priority, width, height;
     const char *importer, *scanner;
     char *endptr;
     size_t nctl;
@@ -151,7 +154,6 @@ int main(int argc, char *argv[])
     struct timecode_def *timecode;
     bool protect, use_mlock;
 
-    struct deck deck[3];
     struct controller ctl[2];
     struct rt rt;
     struct library library;
