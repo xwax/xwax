@@ -62,7 +62,7 @@
 char *banner = "xwax " VERSION \
     " (C) Copyright 2012 Mark Hills <mark@pogo.org.uk>";
 
-int decks;
+size_t ndeck;
 struct deck deck[3];
 
 static void usage(FILE *fd)
@@ -180,7 +180,7 @@ int main(int argc, char *argv[])
     rt_init(&rt);
     library_init(&library);
 
-    decks = 0;
+    ndeck = 0;
     width = DEFAULT_WIDTH;
     height = DEFAULT_HEIGHT;
     nctl = 0;
@@ -319,14 +319,14 @@ int main(int argc, char *argv[])
                 return -1;
             }
 
-            if (decks == ARRAY_SIZE(deck)) {
+            if (ndeck == ARRAY_SIZE(deck)) {
                 fprintf(stderr, "Too many decks; aborting.\n");
                 return -1;
             }
 
-            fprintf(stderr, "Initialising deck %d (%s)...\n", decks, argv[1]);
+            fprintf(stderr, "Initialising deck %d (%s)...\n", ndeck, argv[1]);
 
-            ld = &deck[decks];
+            ld = &deck[ndeck];
             device = &ld->device;
             timecoder = &ld->timecoder;
             ld->importer = importer;
@@ -381,9 +381,9 @@ int main(int argc, char *argv[])
             /* Connect this deck to available controllers */
 
             for (n = 0; n < nctl; n++)
-                controller_add_deck(&ctl[n], &deck[decks]);
+                controller_add_deck(&ctl[n], &deck[ndeck]);
 
-            decks++;
+            ndeck++;
 
             argv += 2;
             argc -= 2;
@@ -570,7 +570,7 @@ int main(int argc, char *argv[])
     alsa_clear_config_cache();
 #endif
 
-    if (decks == 0) {
+    if (ndeck == 0) {
         fprintf(stderr, "You need to give at least one audio device to use "
                 "as a deck; try -h.\n");
         return -1;
@@ -591,7 +591,7 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    if (interface_start(deck, decks, &library, width, height) == -1)
+    if (interface_start(deck, ndeck, &library, width, height) == -1)
         return -1;
 
     if (rig_main() == -1)
@@ -602,7 +602,7 @@ int main(int argc, char *argv[])
     interface_stop();
     rt_stop(&rt);
 
-    for (n = 0; n < decks; n++)
+    for (n = 0; n < ndeck; n++)
         deck_clear(&deck[n]);
 
     for (n = 0; n < nctl; n++)
