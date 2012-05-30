@@ -15,29 +15,33 @@
 # MA 02110-1301, USA.
 #
 
-INSTALL = install
-
-PREFIX = $(HOME)
-
-CFLAGS += -Wall -O3
-CPPFLAGS += -MMD
-LDFLAGS += -O3
-
-SDL_CFLAGS = `sdl-config --cflags`
-SDL_LIBS = `sdl-config --libs` -lSDL_ttf
-ALSA_LIBS = -lasound
-JACK_LIBS = -ljack
-
 # Import the optional configuration
 
 -include .config
 
+# Libraries and dependencies
+
+INSTALL ?= install
+
+SDL_CFLAGS ?= `sdl-config --cflags`
+SDL_LIBS ?= `sdl-config --libs` -lSDL_ttf
+ALSA_LIBS ?= -lasound
+JACK_LIBS ?= -ljack
+
 # Installation paths
 
-BINDIR = $(PREFIX)/bin
-EXECDIR = $(PREFIX)/libexec
-MANDIR = $(PREFIX)/share/man
-DOCDIR = $(PREFIX)/share/doc
+PREFIX ?= $(HOME)
+
+BINDIR ?= $(PREFIX)/bin
+EXECDIR ?= $(PREFIX)/libexec
+MANDIR ?= $(PREFIX)/share/man
+DOCDIR ?= $(PREFIX)/share/doc
+
+# Build flags
+
+CFLAGS += -Wall -O3
+CPPFLAGS += -MMD
+LDFLAGS += -O3
 
 # Core objects and libraries
 
