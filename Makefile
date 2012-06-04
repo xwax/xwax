@@ -120,7 +120,7 @@ dist:		.version
 # Manual tests
 
 .PHONY:		tests
-tests:		test-cues test-library test-timecoder test-track
+tests:		test-cues test-library test-status test-timecoder test-track
 
 test-cues:	test-cues.o cues.o
 
@@ -128,6 +128,8 @@ test-library:	test-library.o external.o library.o listing.o
 
 test-midi:	test-midi.o midi.o
 test-midi:	LDLIBS += $(ALSA_LIBS)
+
+test-status:	test-status.o status.o
 
 test-timecoder:	test-timecoder.o lut.o timecoder.o
 
@@ -141,6 +143,7 @@ clean:
 			test-cues \
 			test-library \
 			test-midi \
+			test-status \
 			test-timecoder \
 			test-track \
 			$(OBJS) $(DEPS)
