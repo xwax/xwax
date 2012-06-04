@@ -48,7 +48,7 @@ LDFLAGS += -O3
 OBJS = controller.o cues.o deck.o device.o external.o interface.o \
 	library.o listing.o lut.o \
 	player.o realtime.o \
-	rig.o selector.o thread.o timecoder.o track.o xwax.o
+	rig.o selector.o status.o thread.o timecoder.o track.o xwax.o
 DEVICE_CPPFLAGS =
 DEVICE_LIBS =
 

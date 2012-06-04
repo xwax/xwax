@@ -36,6 +36,7 @@
 #include "player.h"
 #include "rig.h"
 #include "selector.h"
+#include "status.h"
 #include "timecoder.h"
 #include "xwax.h"
 
@@ -109,6 +110,7 @@
 
 #define EVENT_TICKER 0
 #define EVENT_QUIT 1
+#define EVENT_STATUS 2
 
 /* Macro functions */
 
@@ -966,10 +968,9 @@ static void draw_decks(SDL_Surface *surface, const struct rect *rect,
  * Draw the status bar
  */
 
-static void draw_status(SDL_Surface *sf, const struct rect *rect,
-                        const char *text)
+static void draw_status(SDL_Surface *sf, const struct rect *rect)
 {
-    draw_text(sf, rect, text, detail_font, detail_col, background_col);
+    draw_text(sf, rect, status(), detail_font, detail_col, background_col);
 }
 
 /*
@@ -1343,13 +1344,25 @@ static Uint32 ticker(Uint32 interval, void *p)
 }
 
 /*
+ * Callback to tell the interface that status has changed
+ */
+
+static void status_change(void)
+{
+    SDL_Event e;
+
+    e.type = SDL_USEREVENT;
+    e.user.code = EVENT_STATUS;
+    SDL_PushEvent(&e);
+}
+
+/*
  * The SDL interface thread
  */
 
 static int interface_main(void)
 {
     int meter_scale, library_update, decks_update, status_update;
-    const char *status = banner;
 
     SDL_Event event;
     SDL_TimerID timer;
@@ -1408,6 +1421,10 @@ static int interface_main(void)
             case EVENT_QUIT: /* internal request to finish this thread */
                 goto finish;
 
+            case EVENT_STATUS:
+                status_update = UPDATE_REDRAW;
+                break;
+
             default:
                 abort();
             }
@@ -1446,9 +1463,9 @@ static int interface_main(void)
         if (library_update == UPDATE_REDRAW) {
 
             if (selector_current(&selector) != NULL)
-                status = selector_current(&selector)->pathname;
+                status_set(selector_current(&selector)->pathname);
             else
-                status = "No search results found";
+                status_set("No search results found");
             status_update = UPDATE_REDRAW;
 
             LOCK(surface);
@@ -1462,7 +1479,7 @@ static int interface_main(void)
 
         if (status_update == UPDATE_REDRAW) {
             LOCK(surface);
-            draw_status(surface, &rstatus, status);
+            draw_status(surface, &rstatus);
             UNLOCK(surface);
             UPDATE(surface, &rstatus);
             status_update = UPDATE_NONE;
@@ -1560,6 +1577,7 @@ int interface_start(struct deck ldeck[], size_t lndeck, struct library *lib,
 
     selector_init(&selector, lib);
     calculate_spinner_lookup(spinner_angle, NULL, SPINNER_SIZE);
+    status_notify(status_change);
 
     fprintf(stderr, "Initialising SDL...\n");
 
