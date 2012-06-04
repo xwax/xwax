@@ -1462,34 +1462,30 @@ static int interface_main(void)
         if (rplayers.h < 0 || rplayers.w < 0)
             decks_update = false;
 
-        /* If there's been a change to the library search results,
-         * check them over and display them. */
+        LOCK(surface);
+
+        if (library_update)
+            draw_library(surface, &rlibrary, &selector);
+
+        if (status_update)
+            draw_status(surface, &rstatus);
+
+        if (decks_update)
+            draw_decks(surface, &rplayers, deck, ndeck, meter_scale);
+
+        UNLOCK(surface);
 
         if (library_update) {
-            LOCK(surface);
-            draw_library(surface, &rlibrary, &selector);
-            UNLOCK(surface);
             UPDATE(surface, &rlibrary);
             library_update = false;
         }
 
-        /* If there's been a change to status, redisplay it */
-
         if (status_update) {
-            LOCK(surface);
-            draw_status(surface, &rstatus);
-            UNLOCK(surface);
             UPDATE(surface, &rstatus);
             status_update = false;
         }
 
-        /* If it's due, redraw the players. This is triggered by the
-         * timer event. */
-
         if (decks_update) {
-            LOCK(surface);
-            draw_decks(surface, &rplayers, deck, ndeck, meter_scale);
-            UNLOCK(surface);
             UPDATE(surface, &rplayers);
             decks_update = false;
         }
