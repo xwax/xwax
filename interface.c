@@ -1461,13 +1461,6 @@ static int interface_main(void)
          * check them over and display them. */
 
         if (library_update == UPDATE_REDRAW) {
-
-            if (selector_current(&selector) != NULL)
-                status_set(selector_current(&selector)->pathname);
-            else
-                status_set("No search results found");
-            status_update = UPDATE_REDRAW;
-
             LOCK(surface);
             draw_library(surface, &rlibrary, &selector);
             UNLOCK(surface);
