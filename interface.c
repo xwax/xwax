@@ -101,11 +101,6 @@
 #define FUNC_RECUE 1
 #define FUNC_TIMECODE 2
 
-/* State variables used to trigger certain actions */
-
-#define UPDATE_NONE 0
-#define UPDATE_REDRAW 1
-
 /* Types of SDL_USEREVENT */
 
 #define EVENT_TICKER 0
@@ -1362,7 +1357,8 @@ static void status_change(void)
 
 static int interface_main(void)
 {
-    int meter_scale, library_update, decks_update, status_update;
+    int meter_scale;
+    bool library_update, decks_update, status_update;
 
     SDL_Event event;
     SDL_TimerID timer;
@@ -1376,9 +1372,9 @@ static int interface_main(void)
     if (!surface)
         return -1;
 
-    decks_update = UPDATE_REDRAW;
-    status_update = UPDATE_REDRAW;
-    library_update = UPDATE_REDRAW;
+    decks_update = true;
+    status_update = true;
+    library_update = true;
 
     /* The final action is to add the timer which triggers refresh */
 
@@ -1406,23 +1402,23 @@ static int interface_main(void)
             if (!surface)
                 return -1;
 
-            library_update = UPDATE_REDRAW;
-            decks_update = UPDATE_REDRAW;
-            status_update = UPDATE_REDRAW;
+            library_update = true;
+            decks_update = true;
+            status_update = true;
 
             break;
 
         case SDL_USEREVENT:
             switch (event.user.code) {
             case EVENT_TICKER: /* request to poll the clocks */
-                decks_update = UPDATE_REDRAW;
+                decks_update = true;
                 break;
 
             case EVENT_QUIT: /* internal request to finish this thread */
                 goto finish;
 
             case EVENT_STATUS:
-                status_update = UPDATE_REDRAW;
+                status_update = true;
                 break;
 
             default:
@@ -1443,7 +1439,7 @@ static int interface_main(void)
                     status_set("No search results found");
                 }
 
-                library_update = UPDATE_REDRAW;
+                library_update = true;
             }
 
         } /* switch(event.type) */
@@ -1454,48 +1450,48 @@ static int interface_main(void)
         split_bottom(&rworkspace, &rtmp, &rstatus, STATUS_HEIGHT, SPACER);
         if (rtmp.h < 128 || rtmp.w < 0) {
             rtmp = rworkspace;
-            status_update = UPDATE_NONE;
+            status_update = false;
         }
 
         split_top(&rtmp, &rplayers, &rlibrary, PLAYER_HEIGHT, SPACER);
         if (rlibrary.h < LIBRARY_MIN_HEIGHT || rlibrary.w < LIBRARY_MIN_WIDTH) {
             rplayers = rtmp;
-            library_update = UPDATE_NONE;
+            library_update = false;
         }
 
         if (rplayers.h < 0 || rplayers.w < 0)
-            decks_update = UPDATE_NONE;
+            decks_update = false;
 
         /* If there's been a change to the library search results,
          * check them over and display them. */
 
-        if (library_update == UPDATE_REDRAW) {
+        if (library_update) {
             LOCK(surface);
             draw_library(surface, &rlibrary, &selector);
             UNLOCK(surface);
             UPDATE(surface, &rlibrary);
-            library_update = UPDATE_NONE;
+            library_update = false;
         }
 
         /* If there's been a change to status, redisplay it */
 
-        if (status_update == UPDATE_REDRAW) {
+        if (status_update) {
             LOCK(surface);
             draw_status(surface, &rstatus);
             UNLOCK(surface);
             UPDATE(surface, &rstatus);
-            status_update = UPDATE_NONE;
+            status_update = false;
         }
 
         /* If it's due, redraw the players. This is triggered by the
          * timer event. */
 
-        if (decks_update == UPDATE_REDRAW) {
+        if (decks_update) {
             LOCK(surface);
             draw_decks(surface, &rplayers, deck, ndeck, meter_scale);
             UNLOCK(surface);
             UPDATE(surface, &rplayers);
-            decks_update = UPDATE_NONE;
+            decks_update = false;
         }
 
     } /* main loop */
