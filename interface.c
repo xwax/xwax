@@ -1434,6 +1434,15 @@ static int interface_main(void)
             if (handle_key(deck, ndeck, &selector, &meter_scale,
                            event.key.keysym.sym, event.key.keysym.mod))
             {
+                struct record *r;
+
+                r = selector_current(&selector);
+                if (r != NULL) {
+                    status_set(r->pathname);
+                } else {
+                    status_set("No search results found");
+                }
+
                 library_update = UPDATE_REDRAW;
             }
 
@@ -1571,6 +1580,7 @@ int interface_start(struct deck ldeck[], size_t lndeck, struct library *lib,
     selector_init(&selector, lib);
     calculate_spinner_lookup(spinner_angle, NULL, SPINNER_SIZE);
     status_notify(status_change);
+    status_set(banner);
 
     fprintf(stderr, "Initialising SDL...\n");
 
