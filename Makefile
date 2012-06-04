@@ -117,6 +117,11 @@ install:
 dist:		.version
 		./mkdist $(VERSION)
 
+# Editor tags files
+
+TAGS:		$(OBJS:.o=.c)
+		etags $^
+
 # Manual tests
 
 .PHONY:		tests
@@ -143,6 +148,7 @@ clean:
 			test-midi \
 			test-timecoder \
 			test-track \
-			$(OBJS) $(DEPS)
+			$(OBJS) $(DEPS) \
+			TAGS
 
 -include $(DEPS)
