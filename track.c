@@ -227,6 +227,7 @@ static int track_init(struct track *t, const char *importer, const char *path)
 
     t->pid = pid;
     t->pe = NULL;
+    t->terminated = false;
 
     t->refcount = 0;
 
@@ -346,6 +347,8 @@ static void terminate(struct track *t)
 
     if (kill(t->pid, SIGTERM) == -1)
         abort();
+
+    t->terminated = true;
 }
 
 /*
@@ -444,9 +447,11 @@ static void stop_import(struct track *t)
         abort();
 
     if (WIFEXITED(status) && WEXITSTATUS(status) == EXIT_SUCCESS) {
-        status_printf(STATUS_INFO, "Track import completed");
+        fprintf(stderr, "Track import completed\n");
     } else {
-        status_printf(STATUS_ERROR, "Track import did not complete successfully");
+        fprintf(stderr, "Track import completed with status %d\n", status);
+        if (!t->terminated)
+            status_printf(STATUS_ERROR, "Error importing %s", t->path);
     }
 
     t->pid = 0;

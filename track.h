@@ -59,6 +59,7 @@ struct track {
     pid_t pid;
     int fd;
     struct pollfd *pe;
+    bool terminated;
 
     /* Current value of audio meters when loading */
     
