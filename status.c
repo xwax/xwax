@@ -23,7 +23,7 @@
 
 static void no_notify(void) {}
 
-static const char *current = "";
+static const char *message = "";
 static void (*notify)(void) = &no_notify;
 
 /*
@@ -32,7 +32,7 @@ static void (*notify)(void) = &no_notify;
 
 const char* status(void)
 {
-    return current;
+    return message;
 }
 
 /*
@@ -43,7 +43,7 @@ const char* status(void)
 
 void status_set(const char *s)
 {
-    current = s;
+    message = s;
     fputs(s, stderr);
     fputc('\n', stderr);
     notify();
