@@ -363,7 +363,8 @@ void track_put(struct track *t)
         return;
     }
 
-    if (t->refcount == 0 && t != &empty) {
+    if (t->refcount == 0) {
+        assert(t != &empty);
         track_clear(t);
         free(t);
     }
