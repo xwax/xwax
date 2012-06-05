@@ -444,9 +444,9 @@ static void stop_import(struct track *t)
         abort();
 
     if (WIFEXITED(status) && WEXITSTATUS(status) == EXIT_SUCCESS) {
-        status_printf("Track import completed");
+        status_printf(STATUS_INFO, "Track import completed");
     } else {
-        status_printf("Track import did not complete successfully");
+        status_printf(STATUS_ERROR, "Track import did not complete successfully");
     }
 
     t->pid = 0;

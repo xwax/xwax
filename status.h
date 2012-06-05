@@ -26,10 +26,15 @@
 
 #include <stdarg.h>
 
-const char* status(void);
+#define STATUS_VERBOSE 0
+#define STATUS_INFO    1
+#define STATUS_ERROR   2
 
-void status_set(const char *s);
-void status_printf(const char *s, ...);
+const char* status(void);
+int status_level(void);
+
+void status_set(int level, const char *s);
+void status_printf(int level, const char *s, ...);
 
 void status_notify(void (*f)(void));
 

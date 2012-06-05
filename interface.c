@@ -971,7 +971,10 @@ static void draw_decks(SDL_Surface *surface, const struct rect *rect,
 
 static void draw_status(SDL_Surface *sf, const struct rect *rect)
 {
-    draw_text(sf, rect, status(), detail_font, detail_col, background_col);
+    if (status_level() >= STATUS_ERROR)
+        draw_text(sf, rect, status(), detail_font, text_col, dim(warn_col, 2));
+    else
+        draw_text(sf, rect, status(), detail_font, detail_col, background_col);
 }
 
 /*
@@ -1437,9 +1440,9 @@ static int interface_main(void)
 
                 r = selector_current(&selector);
                 if (r != NULL) {
-                    status_set(r->pathname);
+                    status_set(STATUS_VERBOSE, r->pathname);
                 } else {
-                    status_set("No search results found");
+                    status_set(STATUS_VERBOSE, "No search results found");
                 }
 
                 library_update = true;
@@ -1575,7 +1578,7 @@ int interface_start(struct deck ldeck[], size_t lndeck, struct library *lib,
     selector_init(&selector, lib);
     calculate_spinner_lookup(spinner_angle, NULL, SPINNER_SIZE);
     status_notify(status_change);
-    status_set(banner);
+    status_set(STATUS_VERBOSE, banner);
 
     fprintf(stderr, "Initialising SDL...\n");
 

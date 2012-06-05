@@ -24,6 +24,7 @@
 static void no_notify(void) {}
 
 static const char *message = "";
+static int level = 0;
 static void (*notify)(void) = &no_notify;
 
 /*
@@ -35,17 +36,27 @@ const char* status(void)
     return message;
 }
 
+int status_level(void)
+{
+    return level;
+}
+
 /*
  * Set status to reference a static string
  *
  * Post: reference on s is held
  */
 
-void status_set(const char *s)
+void status_set(int l, const char *s)
 {
     message = s;
-    fputs(s, stderr);
-    fputc('\n', stderr);
+    level = l;
+
+    if (l >= STATUS_INFO) {
+        fputs(s, stderr);
+        fputc('\n', stderr);
+    }
+
     notify();
 }
 
@@ -53,7 +64,7 @@ void status_set(const char *s)
  * Set status to a formatted string
  */
 
-void status_printf(const char *t, ...)
+void status_printf(int lvl, const char *t, ...)
 {
     static char buf[256];
     va_list l;
@@ -62,7 +73,7 @@ void status_printf(const char *t, ...)
     vsnprintf(buf, sizeof buf, t, l);
     va_end(l);
 
-    status_set(buf);
+    status_set(lvl, buf);
 }
 
 /*
