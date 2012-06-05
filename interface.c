@@ -60,6 +60,7 @@
 
 #define DETAIL_FONT "DejaVuSansMono.ttf"
 #define DETAIL_FONT_SIZE 9
+#define DETAIL_FONT_SPACE 12
 
 /* Screen dimensions */
 
@@ -82,7 +83,7 @@
 #define MAX_METER_SCALE 11
 
 #define SEARCH_HEIGHT (FONT_SPACE)
-#define STATUS_HEIGHT (FONT_SPACE)
+#define STATUS_HEIGHT (DETAIL_FONT_SPACE)
 
 #define RESULTS_ARTIST_WIDTH 200
 
