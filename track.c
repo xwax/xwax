@@ -32,6 +32,7 @@
 #include "list.h"
 #include "realtime.h"
 #include "rig.h"
+#include "status.h"
 #include "track.h"
 
 #define RATE 44100
@@ -443,9 +444,9 @@ static void stop_import(struct track *t)
         abort();
 
     if (WIFEXITED(status) && WEXITSTATUS(status) == EXIT_SUCCESS) {
-        fputs("Track import completed.\n", stderr);
+        status_printf("Track import completed");
     } else {
-        fputs("Track import did not complete successfully.\n", stderr);
+        status_printf("Track import did not complete successfully");
     }
 
     t->pid = 0;

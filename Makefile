@@ -133,7 +133,7 @@ test-status:	test-status.o status.o
 
 test-timecoder:	test-timecoder.o lut.o timecoder.o
 
-test-track:	test-track.o external.o rig.o thread.o track.o
+test-track:	test-track.o external.o rig.o status.o thread.o track.o
 test-track:	LDFLAGS += -pthread
 test-track:	LDLIBS += -lm
 
