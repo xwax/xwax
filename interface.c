@@ -482,6 +482,21 @@ static void draw_rect(SDL_Surface *surface, const struct rect *rect,
 }
 
 /*
+ * Dim a colour for display
+ */
+
+static SDL_Color dim(const SDL_Color x, int n)
+{
+    SDL_Color c;
+
+    c.r = x.r >> n;
+    c.g = x.g >> n;
+    c.b = x.b >> n;
+
+    return c;
+}
+
+/*
  * Draw the record information in the deck
  */
 
@@ -643,11 +658,8 @@ static void draw_deck_clocks(SDL_Surface *surface, const struct rect *rect,
     else
         col = text_col;
 
-    if (track_is_importing(track)) {
-        col.r >>= 2;
-        col.g >>= 2;
-        col.b >>= 2;
-    }
+    if (track_is_importing(track))
+        col = dim(col, 2);
 
     draw_clock(surface, &lower, -remain, col);
 }
@@ -706,17 +718,11 @@ static void draw_overview(SDL_Surface *surface, const struct rect *rect,
             fade = 3;
         }
 
-        if (track_is_importing(tr)) {
-            col.b >>= 1;
-            col.g >>= 1;
-            col.r >>= 1;
-        }
+        if (track_is_importing(tr))
+            col = dim(col, 1);
 
-        if (c < current_position) {
-            col.b >>= 1;
-            col.g >>= 1;
-            col.r >>= 1;
-        }
+        if (c < current_position)
+            col = dim(col, 1);
 
         /* Store a pointer to this column of the framebuffer */
 
@@ -1021,10 +1027,7 @@ static void draw_scroll_bar(SDL_Surface *surface, const struct rect *rect,
     SDL_Rect box;
     SDL_Color bg;
 
-    bg = selected_col;
-    bg.r >>= 1;
-    bg.g >>= 1;
-    bg.b >>= 1;
+    bg = dim(selected_col, 1);
 
     box.x = rect->x;
     box.y = rect->y;
