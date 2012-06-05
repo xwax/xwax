@@ -458,7 +458,7 @@ static void stop_import(struct track *t)
  * Return: true if import has completed, otherwise false
  */
 
-bool track_handle(struct track *tr)
+void track_handle(struct track *tr)
 {
     assert(tr->pid != 0);
 
@@ -466,15 +466,15 @@ bool track_handle(struct track *tr)
      * in which case it has no return data from poll */
 
     if (tr->pe == NULL)
-        return false;
+        return;
 
     if (tr->pe->revents == 0)
-        return false;
+        return;
 
-    if (read_from_pipe(tr) == -1) {
-        stop_import(tr);
-        return true;
-    }
+    if (read_from_pipe(tr) != -1)
+        return;
 
-    return false;
+    stop_import(tr);
+    list_del(&tr->rig);
+    track_put(tr); /* may delete the track */
 }

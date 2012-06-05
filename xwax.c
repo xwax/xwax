@@ -28,7 +28,6 @@
 
 #include "alsa.h"
 #include "controller.h"
-#include "deck.h"
 #include "device.h"
 #include "dicer.h"
 #include "interface.h"
@@ -58,6 +57,9 @@
 
 char *banner = "xwax " VERSION \
     " (C) Copyright 2012 Mark Hills <mark@pogo.org.uk>";
+
+size_t ndeck;
+struct deck deck[3];
 
 static void usage(FILE *fd)
 {
@@ -124,7 +126,7 @@ static void usage(FILE *fd)
 
 int main(int argc, char *argv[])
 {
-    int r, n, decks, priority;
+    int r, n, priority;
     const char *importer, *scanner, *geo;
     char *endptr;
     size_t nctl;
@@ -132,7 +134,6 @@ int main(int argc, char *argv[])
     struct timecode_def *timecode;
     bool protect, use_mlock;
 
-    struct deck deck[3];
     struct controller ctl[2];
     struct rt rt;
     struct library library;
@@ -159,7 +160,7 @@ int main(int argc, char *argv[])
     rt_init(&rt);
     library_init(&library);
 
-    decks = 0;
+    ndeck = 0;
     geo = "";
     nctl = 0;
     priority = DEFAULT_PRIORITY;
@@ -297,14 +298,14 @@ int main(int argc, char *argv[])
                 return -1;
             }
 
-            if (decks == ARRAY_SIZE(deck)) {
+            if (ndeck == ARRAY_SIZE(deck)) {
                 fprintf(stderr, "Too many decks; aborting.\n");
                 return -1;
             }
 
-            fprintf(stderr, "Initialising deck %d (%s)...\n", decks, argv[1]);
+            fprintf(stderr, "Initialising deck %d (%s)...\n", ndeck, argv[1]);
 
-            ld = &deck[decks];
+            ld = &deck[ndeck];
             device = &ld->device;
             timecoder = &ld->timecoder;
             ld->importer = importer;
@@ -359,9 +360,9 @@ int main(int argc, char *argv[])
             /* Connect this deck to available controllers */
 
             for (n = 0; n < nctl; n++)
-                controller_add_deck(&ctl[n], &deck[decks]);
+                controller_add_deck(&ctl[n], &deck[ndeck]);
 
-            decks++;
+            ndeck++;
 
             argv += 2;
             argc -= 2;
@@ -544,7 +545,7 @@ int main(int argc, char *argv[])
     alsa_clear_config_cache();
 #endif
 
-    if (decks == 0) {
+    if (ndeck == 0) {
         fprintf(stderr, "You need to give at least one audio device to use "
                 "as a deck; try -h.\n");
         return -1;
@@ -565,7 +566,7 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    if (interface_start(deck, decks, &library, geo) == -1)
+    if (interface_start(&library, geo) == -1)
         return -1;
 
     if (rig_main() == -1)
@@ -576,7 +577,7 @@ int main(int argc, char *argv[])
     interface_stop();
     rt_stop(&rt);
 
-    for (n = 0; n < decks; n++)
+    for (n = 0; n < ndeck; n++)
         deck_clear(&deck[n]);
 
     for (n = 0; n < nctl; n++)

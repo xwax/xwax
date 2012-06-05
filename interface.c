@@ -147,8 +147,6 @@ static int spinner_angle[SPINNER_SIZE * SPINNER_SIZE];
 
 static int width = DEFAULT_WIDTH, height = DEFAULT_HEIGHT;
 static pthread_t ph;
-static struct deck *deck;
-static size_t ndeck;
 static struct selector selector;
 
 struct rect {
@@ -1540,13 +1538,9 @@ static int parse_geometry(const char *s)
  * error
  */
 
-int interface_start(struct deck ldeck[], size_t lndeck, struct library *lib,
-                    const char *geo)
+int interface_start(struct library *lib, const char *geo)
 {
     size_t n;
-
-    deck = ldeck;
-    ndeck = lndeck;
 
     if (parse_geometry(geo) == -1) {
         fprintf(stderr, "Window geometry ('%s') is not valid.\n", geo);
