@@ -42,8 +42,8 @@
 #define _STR(tok) #tok
 #define STR(tok) _STR(tok)
 
-struct list tracks = LIST_INIT(tracks);
-bool use_mlock = false;
+static struct list tracks = LIST_INIT(tracks);
+static bool use_mlock = false;
 
 /*
  * An empty track is used rarely, and is easier than
