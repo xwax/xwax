@@ -44,6 +44,8 @@ const char* status(void)
 void status_set(const char *s)
 {
     current = s;
+    fputs(s, stderr);
+    fputc('\n', stderr);
     notify();
 }
 
@@ -60,7 +62,7 @@ void status_printf(const char *t, ...)
     vsnprintf(buf, sizeof buf, t, l);
     va_end(l);
 
-    current = buf;
+    status_set(buf);
 }
 
 /*
