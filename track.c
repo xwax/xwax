@@ -43,8 +43,8 @@
 #define _STR(tok) #tok
 #define STR(tok) _STR(tok)
 
-struct list tracks = LIST_INIT(tracks);
-bool use_mlock = false;
+static struct list tracks = LIST_INIT(tracks);
+static bool use_mlock = false;
 
 /*
  * An empty track is used rarely, and is easier than
@@ -367,7 +367,8 @@ void track_put(struct track *t)
         return;
     }
 
-    if (t->refcount == 0 && t != &empty) {
+    if (t->refcount == 0) {
+        assert(t != &empty);
         track_clear(t);
         free(t);
     }
@@ -463,7 +464,7 @@ static void stop_import(struct track *t)
  * Return: true if import has completed, otherwise false
  */
 
-bool track_handle(struct track *tr)
+void track_handle(struct track *tr)
 {
     assert(tr->pid != 0);
 
@@ -471,15 +472,15 @@ bool track_handle(struct track *tr)
      * in which case it has no return data from poll */
 
     if (tr->pe == NULL)
-        return false;
+        return;
 
     if (tr->pe->revents == 0)
-        return false;
+        return;
 
-    if (read_from_pipe(tr) == -1) {
-        stop_import(tr);
-        return true;
-    }
+    if (read_from_pipe(tr) != -1)
+        return;
 
-    return false;
+    stop_import(tr);
+    list_del(&tr->rig);
+    track_put(tr); /* may delete the track */
 }

@@ -79,7 +79,7 @@ void track_put(struct track *t);
 /* Functions used by the rig and main thread */
 
 void track_pollfd(struct track *tr, struct pollfd *pe);
-bool track_handle(struct track *tr);
+void track_handle(struct track *tr);
 
 /* Return true if the track importer is running, otherwise false */
 

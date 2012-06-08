@@ -160,12 +160,8 @@ int rig_main()
 
         mutex_lock(&lock);
 
-        list_for_each_safe(track, xtrack, &tracks, rig) {
-            if (track_handle(track)) {
-                list_del(&track->rig);
-                track_put(track);
-            }
-        }
+        list_for_each_safe(track, xtrack, &tracks, rig)
+            track_handle(track);
     }
  finish:
 

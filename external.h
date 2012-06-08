@@ -25,6 +25,7 @@
 #define EXTERNAL_H
 
 #include <stdarg.h>
+#include <unistd.h>
 
 pid_t fork_pipe(int *fd, const char *path, char *arg, ...);
 pid_t fork_pipe_nb(int *fd, const char *path, char *arg, ...);

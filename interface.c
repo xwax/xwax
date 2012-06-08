@@ -143,10 +143,9 @@ static SDL_Color background_col = {0, 0, 0, 255},
 
 static int spinner_angle[SPINNER_SIZE * SPINNER_SIZE];
 
-static int width = DEFAULT_WIDTH, height = DEFAULT_HEIGHT;
+static int width = DEFAULT_WIDTH, height = DEFAULT_HEIGHT,
+    meter_scale = DEFAULT_METER_SCALE;
 static pthread_t ph;
-static struct deck *deck;
-static size_t ndeck;
 static struct selector selector;
 
 struct rect {
@@ -1177,10 +1176,10 @@ static void draw_library(SDL_Surface *surface, const struct rect *rect,
  * Return: true if the selector needs to be redrawn, otherwise false
  */
 
-static bool handle_key(struct deck deck[], size_t ndeck,
-                       struct selector *sel, int *meter_scale,
-                       SDLKey key, SDLMod mod)
+static bool handle_key(SDLKey key, SDLMod mod)
 {
+    struct selector *sel = &selector;
+
     if (key >= SDLK_a && key <= SDLK_z) {
         selector_search_refine(sel, (key - SDLK_a) + 'a');
         return true;
@@ -1238,20 +1237,20 @@ static bool handle_key(struct deck deck[], size_t ndeck,
         return true;
 
     } else if ((key == SDLK_EQUALS) || (key == SDLK_PLUS)) {
-        (*meter_scale)--;
+        meter_scale--;
 
-        if (*meter_scale < 0)
-            *meter_scale = 0;
+        if (meter_scale < 0)
+            meter_scale = 0;
 
-        fprintf(stderr, "Meter scale decreased to %d\n", *meter_scale);
+        fprintf(stderr, "Meter scale decreased to %d\n", meter_scale);
 
     } else if (key == SDLK_MINUS) {
-        (*meter_scale)++;
+        meter_scale++;
 
-        if (*meter_scale > MAX_METER_SCALE)
-            *meter_scale = MAX_METER_SCALE;
+        if (meter_scale > MAX_METER_SCALE)
+            meter_scale = MAX_METER_SCALE;
 
-        fprintf(stderr, "Meter scale increased to %d\n", *meter_scale);
+        fprintf(stderr, "Meter scale increased to %d\n", meter_scale);
 
     } else if (key >= SDLK_F1 && key <= SDLK_F12) {
         size_t d;
@@ -1364,7 +1363,6 @@ static void status_change(void)
 
 static int interface_main(void)
 {
-    int meter_scale;
     bool library_update, decks_update, status_update;
 
     SDL_Event event;
@@ -1372,8 +1370,6 @@ static int interface_main(void)
     SDL_Surface *surface;
 
     struct rect rworkspace, rplayers, rlibrary, rstatus, rtmp;
-
-    meter_scale = DEFAULT_METER_SCALE;
 
     surface = set_size(width, height, &rworkspace);
     if (!surface)
@@ -1434,8 +1430,7 @@ static int interface_main(void)
             break;
 
         case SDL_KEYDOWN:
-            if (handle_key(deck, ndeck, &selector, &meter_scale,
-                           event.key.keysym.sym, event.key.keysym.mod))
+            if (handle_key(event.key.keysym.sym, event.key.keysym.mod))
             {
                 struct record *r;
 
@@ -1558,13 +1553,9 @@ static int parse_geometry(const char *s)
  * error
  */
 
-int interface_start(struct deck ldeck[], size_t lndeck, struct library *lib,
-                    const char *geo)
+int interface_start(struct library *lib, const char *geo)
 {
     size_t n;
-
-    deck = ldeck;
-    ndeck = lndeck;
 
     if (parse_geometry(geo) == -1) {
         fprintf(stderr, "Window geometry ('%s') is not valid.\n", geo);
