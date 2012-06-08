@@ -145,7 +145,8 @@ static SDL_Color background_col = {0, 0, 0, 255},
 
 static int spinner_angle[SPINNER_SIZE * SPINNER_SIZE];
 
-static int width = DEFAULT_WIDTH, height = DEFAULT_HEIGHT;
+static int width = DEFAULT_WIDTH, height = DEFAULT_HEIGHT,
+    meter_scale = DEFAULT_METER_SCALE;
 static pthread_t ph;
 static struct selector selector;
 
@@ -1172,7 +1173,7 @@ static void draw_library(SDL_Surface *surface, const struct rect *rect,
  * Return: true if the selector needs to be redrawn, otherwise false
  */
 
-static bool handle_key(int *meter_scale, SDLKey key, SDLMod mod)
+static bool handle_key(SDLKey key, SDLMod mod)
 {
     struct selector *sel = &selector;
 
@@ -1233,20 +1234,20 @@ static bool handle_key(int *meter_scale, SDLKey key, SDLMod mod)
         return true;
 
     } else if ((key == SDLK_EQUALS) || (key == SDLK_PLUS)) {
-        (*meter_scale)--;
+        meter_scale--;
 
-        if (*meter_scale < 0)
-            *meter_scale = 0;
+        if (meter_scale < 0)
+            meter_scale = 0;
 
-        fprintf(stderr, "Meter scale decreased to %d\n", *meter_scale);
+        fprintf(stderr, "Meter scale decreased to %d\n", meter_scale);
 
     } else if (key == SDLK_MINUS) {
-        (*meter_scale)++;
+        meter_scale++;
 
-        if (*meter_scale > MAX_METER_SCALE)
-            *meter_scale = MAX_METER_SCALE;
+        if (meter_scale > MAX_METER_SCALE)
+            meter_scale = MAX_METER_SCALE;
 
-        fprintf(stderr, "Meter scale increased to %d\n", *meter_scale);
+        fprintf(stderr, "Meter scale increased to %d\n", meter_scale);
 
     } else if (key >= SDLK_F1 && key <= SDLK_F12) {
         size_t d;
@@ -1346,7 +1347,7 @@ static Uint32 ticker(Uint32 interval, void *p)
 
 static int interface_main(void)
 {
-    int meter_scale, library_update, decks_update, status_update;
+    int library_update, decks_update, status_update;
     const char *status = banner;
 
     SDL_Event event;
@@ -1354,8 +1355,6 @@ static int interface_main(void)
     SDL_Surface *surface;
 
     struct rect rworkspace, rplayers, rlibrary, rstatus, rtmp;
-
-    meter_scale = DEFAULT_METER_SCALE;
 
     surface = set_size(width, height, &rworkspace);
     if (!surface)
@@ -1412,8 +1411,7 @@ static int interface_main(void)
             break;
 
         case SDL_KEYDOWN:
-            if (handle_key(&meter_scale,
-                           event.key.keysym.sym, event.key.keysym.mod))
+            if (handle_key(event.key.keysym.sym, event.key.keysym.mod))
             {
                 library_update = UPDATE_REDRAW;
             }
