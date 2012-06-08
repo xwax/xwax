@@ -1172,9 +1172,10 @@ static void draw_library(SDL_Surface *surface, const struct rect *rect,
  * Return: true if the selector needs to be redrawn, otherwise false
  */
 
-static bool handle_key(struct selector *sel, int *meter_scale,
-                       SDLKey key, SDLMod mod)
+static bool handle_key(int *meter_scale, SDLKey key, SDLMod mod)
 {
+    struct selector *sel = &selector;
+
     if (key >= SDLK_a && key <= SDLK_z) {
         selector_search_refine(sel, (key - SDLK_a) + 'a');
         return true;
@@ -1411,7 +1412,7 @@ static int interface_main(void)
             break;
 
         case SDL_KEYDOWN:
-            if (handle_key(&selector, &meter_scale,
+            if (handle_key(&meter_scale,
                            event.key.keysym.sym, event.key.keysym.mod))
             {
                 library_update = UPDATE_REDRAW;
