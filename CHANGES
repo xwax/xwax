@@ -1,6 +1,7 @@
 v1.3 (work in progress)
 -----------------------
 
+* Tempo (BPM) field, and sorting and changing of sort modes
 * Allow initial X window size and position to be set by the user
 * Makefile modifications for packagers
 * Report errors to the main interface
