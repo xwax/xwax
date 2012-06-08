@@ -5,7 +5,7 @@
 #
 # The output format is repeated sequences of:
 #
-#   <pathname>\t<artist>\t<title>\n
+#   <pathname>\t<artist>\t<title>[\t<bpm>]\n
 #
 # If the tab (\t) or newline (\n) characters appear in a filename,
 # unexpected things will happen.
@@ -17,7 +17,11 @@ if [ -d "$PATHNAME" ]; then
 		grep -iE '\.(ogg|oga|aac|cdaudio|mp3|flac|wav|aif|aiff|m4a|wma)$'
 else
 	cat "$PATHNAME"
-fi | sed -n '
+fi |
+
+# Parse artist and title information from matching filenames
+
+sed -n '
 {
 # /[<ABnum>[.]] <artist> - <title>.ext
 s:/\([A-H]\?[A0-9]\?[0-9].\? \+\)\?\([^/]*\) \+- \+\([^/]*\)\.[A-Z0-9]*$:\0\t\2\t\3:pi
@@ -29,5 +33,12 @@ t
 
 # /[<ABnum>[.]] <name>.ext
 s:/\([A-H]\?[A0-9]\?[0-9].\? \+\)\?\([^/]*\)\.[A-Z0-9]*$:\0\t\t\2:pi
-}
-'
+}' |
+
+# Extract BPM metadata from title (eg. "Ghostbusters (115.6 BPM)")
+
+sed '
+{
+# BPM
+s:\(.*\) *(\([0-9]\+\.\?[0-9]\+\) *BPM)$:\1\t\2:
+}'

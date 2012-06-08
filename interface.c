@@ -52,6 +52,10 @@
 
 #define EM_FONT "DejaVuSans-Oblique.ttf"
 
+#define BIG_FONT "DejaVuSans-Bold.ttf"
+#define BIG_FONT_SIZE 14
+#define BIG_FONT_SPACE 19
+
 #define CLOCK_FONT FONT
 #define CLOCK_FONT_SIZE 32
 
@@ -69,6 +73,7 @@
 
 #define BORDER 12
 #define SPACER 8
+#define HALF_SPACER 4
 
 #define CURSOR_WIDTH 4
 
@@ -85,7 +90,11 @@
 #define SEARCH_HEIGHT (FONT_SPACE)
 #define STATUS_HEIGHT (DETAIL_FONT_SPACE)
 
+#define BPM_WIDTH 32
+#define SORT_WIDTH 22
 #define RESULTS_ARTIST_WIDTH 200
+
+#define TOKEN_SPACE 2
 
 #define CLOCKS_WIDTH 160
 
@@ -129,7 +138,8 @@ static const char *font_dirs[] = {
     NULL
 };
 
-static TTF_Font *clock_font, *deci_font, *detail_font, *font, *em_font;
+static TTF_Font *clock_font, *deci_font, *detail_font,
+    *font, *em_font, *big_font;
 
 static SDL_Color background_col = {0, 0, 0, 255},
     text_col = {224, 224, 224, 255},
@@ -139,7 +149,9 @@ static SDL_Color background_col = {0, 0, 0, 255},
     cursor_col = {192, 0, 0, 255},
     selected_col = {0, 48, 64, 255},
     detail_col = {128, 128, 128, 255},
-    needle_col = {255, 255, 255, 255};
+    needle_col = {255, 255, 255, 255},
+    artist_col = {16, 64, 0, 255},
+    bpm_col = {64, 16, 0, 255};
 
 static int spinner_angle[SPINNER_SIZE * SPINNER_SIZE];
 
@@ -225,6 +237,29 @@ static void split_right(const struct rect *source, struct rect *left,
                         struct rect *right, int v, int space)
 {
     split_left(source, left, right, source->w - v - space, space);
+}
+
+/*
+ * Shrink a rectangle to leave a small border of standard size
+ */
+
+static void shrink(const struct rect *in, struct rect *out)
+{
+    if (TOKEN_SPACE * 2 >= in->w) {
+        out->x = in->x;
+        out->w = in->w;
+    } else {
+        out->x = in->x + TOKEN_SPACE;
+        out->w = in->w - TOKEN_SPACE * 2;
+    }
+
+    if (TOKEN_SPACE * 2 >= in->h) {
+        out->y = in->y;
+        out->h = in->h;
+    } else {
+        out->y = in->y + TOKEN_SPACE;
+        out->h = in->h - TOKEN_SPACE * 2;
+    }
 }
 
 /*
@@ -383,6 +418,10 @@ static int load_fonts(void)
     if (!em_font)
         return -1;
 
+    big_font = open_font(BIG_FONT, BIG_FONT_SIZE);
+    if (!big_font)
+        return -1;
+
     detail_font = open_font(DETAIL_FONT, DETAIL_FONT_SIZE);
     if (!detail_font)
         return -1;
@@ -400,6 +439,7 @@ static void clear_fonts(void)
     TTF_CloseFont(deci_font);
     TTF_CloseFont(font);
     TTF_CloseFont(em_font);
+    TTF_CloseFont(big_font);
     TTF_CloseFont(detail_font);
 }
 
@@ -482,6 +522,21 @@ static void draw_rect(SDL_Surface *surface, const struct rect *rect,
 }
 
 /*
+ * Draw some text in a box
+ */
+
+static void draw_token(SDL_Surface *surface, const struct rect *rect,
+                       const char *buf,
+                       SDL_Color text_col, SDL_Color col, SDL_Color bg_col)
+{
+    struct rect b;
+
+    draw_rect(surface, rect, bg_col);
+    shrink(rect, &b);
+    draw_text(surface, &b, buf, detail_font, text_col, col);
+}
+
+/*
  * Dim a colour for display
  */
 
@@ -497,20 +552,128 @@ static SDL_Color dim(const SDL_Color x, int n)
 }
 
 /*
+ * Get a colour from RGB values
+ */
+
+static SDL_Color rgb(double r, double g, double b)
+{
+    SDL_Color c;
+
+    c.r = r * 255;
+    c.g = g * 255;
+    c.b = b * 255;
+
+    return c;
+}
+
+/*
+ * Get a colour from HSV values
+ *
+ * Pre: h is in degrees, in the range 0.0 to 360.0
+ */
+
+static SDL_Color hsv(double h, double s, double v)
+{
+    int i;
+    double f, p, q, t;
+
+    if (s == 0.0)
+        return rgb(v, v, v);
+
+    h /= 60;
+    i = floor(h);
+    f = h - i;
+    p = v * (1 - s);
+    q = v * (1 - s * f);
+    t = v * (1 - s * (1 - f));
+
+    switch (i) {
+    case 0:
+        return rgb(v, t, p);
+    case 1:
+        return rgb(q, v, p);
+    case 2:
+        return rgb(p, v, t);
+    case 3:
+        return rgb(p, q, v);
+    case 4:
+        return rgb(t, p, v);
+    case 5:
+    case 6:
+        return rgb(v, p, q);
+    default:
+        abort();
+    }
+}
+
+static bool show_bpm(double bpm)
+{
+    return (bpm > 20.0 && bpm < 400.0);
+}
+
+/*
+ * Draw the beats-per-minute indicator
+ */
+
+static void draw_bpm(SDL_Surface *surface, const struct rect *rect, double bpm,
+                     SDL_Color bg_col)
+{
+    static const double min = 76.0, max = 164.0;
+    char buf[32];
+    double f, h;
+
+    sprintf(buf, "%5.1f", bpm);
+    f = (bpm - min) / (max - min);
+
+    if (f < 0.0 || f > 1.0) {
+        draw_token(surface, rect, buf, detail_col, bg_col, bg_col);
+        return;
+    }
+
+    h = 60.0 + f * 300.0; /* degrees */
+    if (h > 360.0)
+        h -= 360.0;
+
+    draw_token(surface, rect, buf, text_col, hsv(h, 1.0, 0.3), bg_col);
+}
+
+/*
+ * Draw the BPM field, or a gap
+ */
+
+static void draw_bpm_field(SDL_Surface *surface, const struct rect *rect,
+                           double bpm, SDL_Color bg_col)
+{
+    if (show_bpm(bpm))
+        draw_bpm(surface, rect, bpm, bg_col);
+    else
+        draw_rect(surface, rect, bg_col);
+}
+
+/*
  * Draw the record information in the deck
  */
 
 static void draw_record(SDL_Surface *surface, const struct rect *rect,
                         const struct record *record)
 {
-    struct rect top, bottom;
+    struct rect artist, title, left, right;
 
-    split_top(rect, &top, &bottom, FONT_SPACE, 0);
+    split_top(rect, &artist, &title, BIG_FONT_SPACE, 0);
+    draw_text(surface, &artist, record->artist,
+              big_font, text_col, background_col);
 
-    draw_text(surface, &top, record->artist,
-              font, text_col, background_col);
-    draw_text(surface, &bottom, record->title,
-              em_font, text_col, background_col);
+    /* Layout changes slightly if BPM is known */
+
+    if (show_bpm(record->bpm)) {
+        split_left(&title, &left, &right, BPM_WIDTH, 0);
+        draw_bpm(surface, &left, record->bpm, background_col);
+
+        split_left(&right, &left, &title, HALF_SPACER, 0);
+        draw_rect(surface, &left, background_col);
+    }
+
+    draw_text(surface, &title, record->title, font, text_col, background_col);
 }
 
 /*
@@ -923,7 +1086,7 @@ static void draw_deck(SDL_Surface *surface, const struct rect *rect,
 
     position = player_get_elapsed(pl) * t->rate;
 
-    split_top(rect, &track, &rest, FONT_SPACE * 2, 0);
+    split_top(rect, &track, &rest, FONT_SPACE + BIG_FONT_SPACE, 0);
     if (rest.h < 160)
         rest = *rect;
     else
@@ -1055,7 +1218,8 @@ static void draw_scroll_bar(SDL_Surface *surface, const struct rect *rect,
 
 static void draw_crates(SDL_Surface *surface, const struct rect *rect,
                         const struct library *library,
-                        const struct scroll *scroll)
+                        const struct scroll *scroll,
+                        int sort)
 {
     size_t n;
     struct rect left, bottom;
@@ -1066,7 +1230,8 @@ static void draw_crates(SDL_Surface *surface, const struct rect *rect,
     n = scroll->offset;
 
     for (;;) {
-        SDL_Color col_text, col_bg;
+        bool selected;
+        SDL_Color col;
         struct rect top;
         const struct crate *crate;
 
@@ -1079,17 +1244,43 @@ static void draw_crates(SDL_Surface *surface, const struct rect *rect,
         split_top(&bottom, &top, &bottom, FONT_SPACE, 0);
 
         crate = library->crate[n];
+        selected = (n == scroll->selected);
 
-        col_text = crate->is_fixed ? detail_col: text_col;
-        col_bg = (n == scroll->selected) ? selected_col : background_col;
+        col = crate->is_fixed ? detail_col: text_col;
 
-        draw_text(surface, &top, crate->name, font, col_text, col_bg);
+        if (!selected) {
+            draw_text(surface, &top, crate->name, font, col, background_col);
+        } else {
+            struct rect left, right;
+
+            split_right(&top, &left, &right, SORT_WIDTH, 0);
+            draw_text(surface, &left, crate->name, font, col, selected_col);
+
+            switch (sort) {
+            case SORT_ARTIST:
+                draw_token(surface, &right, "ART", text_col,
+                           artist_col, selected_col);
+                break;
+            case SORT_BPM:
+                draw_token(surface, &right, "BPM", text_col,
+                           bpm_col, selected_col);
+                break;
+            case SORT_PLAYLIST:
+                draw_token(surface, &right, "PLS", text_col,
+                           selected_col, selected_col);
+                break;
+            default:
+                abort();
+            }
+        }
 
         n++;
     }
 
     draw_rect(surface, &bottom, background_col);
 }
+
+
 
 /*
  * Display a record library listing, with scrollbar and current
@@ -1103,10 +1294,17 @@ static void draw_listing(SDL_Surface *surface, const struct rect *rect,
                          const struct scroll *scroll)
 {
     size_t n;
+    int width;
     struct rect left, bottom;
 
     split_left(rect, &left, &bottom, SCROLLBAR_SIZE, SPACER);
     draw_scroll_bar(surface, &left, scroll);
+
+    /* Choose the width of the 'artist' column */
+
+    width = bottom.w / 2;
+    if (width > RESULTS_ARTIST_WIDTH)
+        width = RESULTS_ARTIST_WIDTH;
 
     n = scroll->offset;
 
@@ -1114,6 +1312,7 @@ static void draw_listing(SDL_Surface *surface, const struct rect *rect,
         SDL_Color col;
         struct rect top, left, right;
         const struct record *record;
+        bool selected;
 
         if (n >= listing->entries)
             break;
@@ -1124,14 +1323,21 @@ static void draw_listing(SDL_Surface *surface, const struct rect *rect,
         split_top(&bottom, &top, &bottom, FONT_SPACE, 0);
 
         record = listing->record[n];
+        selected = (n == scroll->selected);
 
-        if (n == scroll->selected) {
+        if (selected) {
             col = selected_col;
         } else {
             col = background_col;
         }
 
-        split_left(&top, &left, &right, RESULTS_ARTIST_WIDTH, 0);
+        split_left(&top, &left, &right, BPM_WIDTH, 0);
+        draw_bpm_field(surface, &left, record->bpm, col);
+
+        split_left(&right, &left, &right, SPACER, 0);
+        draw_rect(surface, &left, col);
+
+        split_left(&right, &left, &right, width, 0);
         draw_text(surface, &left, record->artist, font, text_col, col);
 
         split_left(&right, &left, &right, SPACER, 0);
@@ -1164,7 +1370,7 @@ static void draw_library(SDL_Surface *surface, const struct rect *rect,
     split_left(&rlists, &rcrates, &rrecords, (rlists.w / 4), SPACER);
     if (rcrates.w > LIBRARY_MIN_WIDTH) {
         draw_listing(surface, &rrecords, sel->view_listing, &sel->records);
-        draw_crates(surface, &rcrates, sel->library, &sel->crates);
+        draw_crates(surface, &rcrates, sel->library, &sel->crates, sel->sort);
     } else {
         draw_listing(surface, rect, sel->view_listing, &sel->records);
     }
@@ -1233,7 +1439,11 @@ static bool handle_key(SDLKey key, SDLMod mod)
         return true;
 
     } else if (key == SDLK_TAB) {
-        selector_toggle(sel);
+        if (mod & KMOD_CTRL) {
+            selector_toggle_order(sel);
+        } else {
+            selector_toggle(sel);
+        }
         return true;
 
     } else if ((key == SDLK_EQUALS) || (key == SDLK_PLUS)) {

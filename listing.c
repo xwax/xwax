@@ -114,7 +114,7 @@ int listing_add(struct listing *ls, struct record *lr)
  * Standard comparison function between two records
  */
 
-static int record_cmp(const struct record *a, const struct record *b)
+static int record_cmp_artist(const struct record *a, const struct record *b)
 {
     int r;
 
@@ -134,21 +134,19 @@ static int record_cmp(const struct record *a, const struct record *b)
 }
 
 /*
- * Comparison function, see qsort(3)
+ * Compare two records principally by BPM, fastest to slowest
+ * followed by unknown
  */
 
-static int qcompar(const void *a, const void *b)
+static int record_cmp_bpm(const struct record *a, const struct record *b)
 {
-    return record_cmp(*(struct record **)a, *(struct record **)b);
-}
+    if (a->bpm < b->bpm)
+        return 1;
 
-/*
- * Post: listing is sorted
- */
+    if (a->bpm > b->bpm)
+        return -1;
 
-void listing_sort(struct listing *ls)
-{
-    qsort(ls->record, ls->entries, sizeof(struct record*), qcompar);
+    return record_cmp_artist(a, b);
 }
 
 /*
@@ -273,10 +271,12 @@ int listing_match(struct listing *src, struct listing *dest,
  */
 
 static size_t bin_search(struct record **base, size_t n,
-                         struct record *item, bool *found)
+                         struct record *item, int sort,
+                         bool *found)
 {
     int r;
     size_t mid;
+    struct record *x;
 
     /* Return the first entry ordered after this one */
 
@@ -286,12 +286,26 @@ static size_t bin_search(struct record **base, size_t n,
     }
 
     mid = n / 2;
-    r = record_cmp(item, base[mid]);
+    x = base[mid];
+
+    switch (sort) {
+    case SORT_ARTIST:
+        r = record_cmp_artist(item, x);
+        break;
+    case SORT_BPM:
+        r = record_cmp_bpm(item, x);
+        break;
+    case SORT_PLAYLIST:
+    default:
+        abort();
+    }
 
     if (r < 0)
-        return bin_search(base, mid, item, found);
-    if (r > 0)
-        return mid + 1 + bin_search(base + mid + 1, n - mid - 1, item, found);
+        return bin_search(base, mid, item, sort, found);
+    if (r > 0) {
+        return mid + 1
+            + bin_search(base + mid + 1, n - mid - 1, item, sort, found);
+    }
 
     *found = true;
     return mid;
@@ -305,12 +319,13 @@ static size_t bin_search(struct record **base, size_t n,
  * Post: listing is sorted and contains item or a matching item
  */
 
-struct record* listing_insert(struct listing *ls, struct record *item)
+struct record* listing_insert(struct listing *ls, struct record *item,
+                              int sort)
 {
     bool found;
     size_t z;
 
-    z = bin_search(ls->record, ls->entries, item, &found);
+    z = bin_search(ls->record, ls->entries, item, sort, &found);
     if (found)
         return ls->record[z];
 
@@ -325,6 +340,19 @@ struct record* listing_insert(struct listing *ls, struct record *item)
     ls->entries++;
 
     return item;
+}
+
+/*
+ * Find an identical entry, or the nearest match
+ */
+
+size_t listing_find(struct listing *ls, struct record *item, int sort)
+{
+    bool found;
+    size_t z;
+
+    z = bin_search(ls->record, ls->entries, item, sort, &found);
+    return z;
 }
 
 /*

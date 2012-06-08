@@ -158,22 +158,37 @@ static int scroll_current(struct scroll *s)
 }
 
 
-/* Scroll to an entry if it can be found, otherwise leave our position
- * unchanged */
+/* Scroll to our target entry if it can be found, otherwise leave our
+ * position unchanged */
 
-static void retain_position(struct selector *sel, struct record *x)
+static void retain_position(struct selector *sel)
 {
     size_t n;
     struct listing *l;
 
+    if (sel->target == NULL)
+        return;
+
     l = sel->view_listing;
 
-    for (n = 0; n < l->size; n++) {
-        if (l->record[n] == x) {
-            scroll_to(&sel->records, n);
-            return;
+    switch (sel->sort) {
+    case SORT_ARTIST:
+    case SORT_BPM:
+        n = listing_find(l, sel->target, sel->sort);
+        break;
+    case SORT_PLAYLIST:
+        /* Linear search */
+        for (n = 0; n < l->entries; n++) {
+            if (l->record[n] == sel->target)
+                break;
         }
+        break;
+    default:
+        abort();
     }
+
+    if (n < l->entries)
+        scroll_to(&sel->records, n);
 }
 
 
@@ -182,7 +197,19 @@ static void retain_position(struct selector *sel, struct record *x)
 
 static struct listing* initial(struct selector *sel)
 {
-    return &sel->library->crate[sel->crates.selected]->listing;
+    struct crate *c;
+
+    c = sel->library->crate[sel->crates.selected];
+    switch (sel->sort) {
+    case SORT_ARTIST:
+        return &c->by_artist;
+    case SORT_BPM:
+        return &c->by_bpm;
+    case SORT_PLAYLIST:
+        return &c->by_order;
+    default:
+        abort();
+    }
 }
 
 
@@ -196,6 +223,7 @@ void selector_init(struct selector *sel, struct library *lib)
     scroll_set_entries(&sel->crates, lib->crates);
 
     sel->toggled = false;
+    sel->sort = SORT_ARTIST;
     sel->search[0] = '\0';
     sel->search_len = 0;
 
@@ -222,42 +250,9 @@ void selector_set_lines(struct selector *sel, unsigned int lines)
     scroll_set_lines(&sel->records, lines);
 }
 
-
-void selector_up(struct selector *sel)
-{
-    scroll_up(&sel->records, 1);
-}
-
-
-void selector_down(struct selector *sel)
-{
-    scroll_down(&sel->records, 1);
-}
-
-
-void selector_page_up(struct selector *sel)
-{
-    scroll_up(&sel->records, sel->records.lines);
-}
-
-
-void selector_page_down(struct selector *sel)
-{
-    scroll_down(&sel->records, sel->records.lines);
-}
-
-
-void selector_top(struct selector *sel)
-{
-    scroll_first(&sel->records);
-}
-
-
-void selector_bottom(struct selector *sel)
-{
-    scroll_last(&sel->records);
-}
-
+/*
+ * Return: the currently selected record, or NULL if none selected
+ */
 
 struct record* selector_current(struct selector *sel)
 {
@@ -272,6 +267,61 @@ struct record* selector_current(struct selector *sel)
 }
 
 
+/* Make a note of the current selected record, and make it the
+ * position we will try and retain if the crate is changed etc. */
+
+static void set_target(struct selector *sel)
+{
+    struct record *x;
+
+    x = selector_current(sel);
+    if (x != NULL)
+        sel->target = x;
+}
+
+
+void selector_up(struct selector *sel)
+{
+    scroll_up(&sel->records, 1);
+    set_target(sel);
+}
+
+
+void selector_down(struct selector *sel)
+{
+    scroll_down(&sel->records, 1);
+    set_target(sel);
+}
+
+
+void selector_page_up(struct selector *sel)
+{
+    scroll_up(&sel->records, sel->records.lines);
+    set_target(sel);
+}
+
+
+void selector_page_down(struct selector *sel)
+{
+    scroll_down(&sel->records, sel->records.lines);
+    set_target(sel);
+}
+
+
+void selector_top(struct selector *sel)
+{
+    scroll_first(&sel->records);
+    set_target(sel);
+}
+
+
+void selector_bottom(struct selector *sel)
+{
+    scroll_last(&sel->records);
+    set_target(sel);
+}
+
+
 /* When the crate has changed, update the current listing to reflect
  * the crate and the search criteria */
 
@@ -279,6 +329,7 @@ static void crate_has_changed(struct selector *sel)
 {
     (void)listing_match(initial(sel), sel->view_listing, sel->search);
     scroll_set_entries(&sel->records, sel->view_listing->entries);
+    retain_position(sel);
 }
 
 
@@ -302,6 +353,10 @@ void selector_next(struct selector *sel)
 
 void selector_toggle(struct selector *sel)
 {
+    struct record *c;
+
+    c = selector_current(sel);
+
     if (!sel->toggled) {
         sel->toggle_back = scroll_current(&sel->crates);
         scroll_first(&sel->crates);
@@ -310,6 +365,17 @@ void selector_toggle(struct selector *sel)
         scroll_to(&sel->crates, sel->toggle_back);
         sel->toggled = false;
     }
+
+    crate_has_changed(sel);
+}
+
+
+/* Toggle between sort order */
+
+void selector_toggle_order(struct selector *sel)
+{
+    set_target(sel);
+    sel->sort = (sel->sort + 1) % SORT_END;
     crate_has_changed(sel);
 }
 
@@ -319,20 +385,11 @@ void selector_toggle(struct selector *sel)
 
 void selector_search_expand(struct selector *sel)
 {
-    struct record *c;
-
     if (sel->search_len == 0)
         return;
 
     sel->search[--sel->search_len] = '\0';
-
-    c = selector_current(sel);
-
-    (void)listing_match(initial(sel), sel->view_listing, sel->search);
-    scroll_set_entries(&sel->records, sel->view_listing->entries);
-
-    if (c != NULL)
-        retain_position(sel, c);
+    crate_has_changed(sel);
 }
 
 
@@ -356,4 +413,5 @@ void selector_search_refine(struct selector *sel, char key)
     sel->swap_listing = tmp;
 
     scroll_set_entries(&sel->records, sel->view_listing->entries);
+    set_target(sel);
 }

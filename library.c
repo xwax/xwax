@@ -19,7 +19,9 @@
 
 #define _GNU_SOURCE /* getdelim(), strdupa() */
 #include <assert.h>
+#include <errno.h>
 #include <libgen.h> /*  basename() */
+#include <math.h> /* isfinite() */
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -50,7 +52,9 @@ static int crate_init(struct crate *c, const char *name, bool is_fixed)
     }
 
     c->is_fixed = is_fixed;
-    listing_init(&c->listing);
+    listing_init(&c->by_artist);
+    listing_init(&c->by_bpm);
+    listing_init(&c->by_order);
 
     return 0;
 }
@@ -64,7 +68,9 @@ static int crate_init(struct crate *c, const char *name, bool is_fixed)
 
 static void crate_clear(struct crate *c)
 {
-    listing_clear(&c->listing);
+    listing_clear(&c->by_artist);
+    listing_clear(&c->by_bpm);
+    listing_clear(&c->by_order);
     free(c->name);
 }
 
@@ -80,6 +86,39 @@ static int crate_cmp(const struct crate *a, const struct crate *b)
         return 1;
 
     return strcmp(a->name, b->name);
+}
+
+/*
+ * Add a record into a crate and its various indexes
+ *
+ * Be careful with the return of this function. Out-of-memory error
+ * is returned but crate may still have been modified.
+ *
+ * Return: Pointer to existing entry, NULL if out of memory
+ * Post: Record added to zero or more listings (even if NULL is returned)
+ */
+
+static struct record* crate_add(struct crate *c, struct record *r)
+{
+    struct record *x;
+
+    assert(r != NULL);
+
+    x = listing_insert(&c->by_artist, r, SORT_ARTIST);
+    if (x != r) /* may be NULL */
+        return x;
+
+    /* FIXME: handle out-of-memory cases below */
+
+    x = listing_insert(&c->by_bpm, r, SORT_BPM);
+    if (x == NULL)
+        return NULL;
+    assert(x == r);
+
+    if (listing_add(&c->by_order, r) != 0)
+        return NULL;
+
+    return r;
 }
 
 /*
@@ -151,7 +190,7 @@ struct crate* get_crate(struct library *lib, const char *name)
  * Return: pointer to crate, or NULL on memory allocation failure
  */
 
-struct crate* use_crate(struct library *lib, char *name, bool is_fixed)
+struct crate* use_crate(struct library *lib, char *name)
 {
     struct crate *new_crate;
 
@@ -169,7 +208,7 @@ struct crate* use_crate(struct library *lib, char *name, bool is_fixed)
         return NULL;
     }
 
-    if (crate_init(new_crate, name, is_fixed) == -1)
+    if (crate_init(new_crate, name, false) == -1)
         goto fail;
 
     if (add_crate(lib, new_crate) == -1)
@@ -225,10 +264,10 @@ void library_clear(struct library *li)
 
     /* This object is responsible for all the record pointers */
 
-    for (n = 0; n < li->all.listing.entries; n++) {
+    for (n = 0; n < li->all.by_artist.entries; n++) {
         struct record *re;
 
-        re = li->all.listing.record[n];
+        re = li->all.by_artist.record[n];
         record_clear(re);
         free(re);
     }
@@ -306,11 +345,12 @@ done:
 static int get_record(FILE *f, struct record **r)
 {
     struct record x, *y;
-    char delim;
+    char delim, *s, *endptr;
 
     x.pathname = NULL;
     x.artist = NULL;
     x.title = NULL;
+    x.bpm = 0.0;
 
     x.pathname = get_field(f, &delim);
     if (x.pathname == NULL)
@@ -342,11 +382,37 @@ static int get_record(FILE *f, struct record **r)
     if (x.title == NULL)
         goto fail;
 
+    if (delim == '\n') /* other fields are optional */
+        goto done;
+
+    if (delim != '\t') {
+        fprintf(stderr, "Malformed record '%s'\n", x.pathname);
+        goto fail;
+    }
+
+    /* Beats-per-minute (BPM) */
+
+    s = get_field(f, &delim);
+    if (s == NULL)
+        goto fail;
+
+    errno = 0;
+    x.bpm = strtod(s, &endptr);
+    if (errno == ERANGE || *endptr != '\0'
+        || !isfinite(x.bpm) || x.bpm <= 0.0)
+    {
+        fprintf(stderr, "%s: Ignoring malformed BPM '%s'\n", x.pathname, s);
+        x.bpm = 0.0;
+    }
+
+    free(s);
+
     if (delim != '\n') {
         fprintf(stderr, "Malformed record '%s'\n", x.pathname);
         goto fail;
     }
 
+done:
     y = malloc(sizeof *y);
     if (y == NULL) {
         perror("malloc");
@@ -389,7 +455,7 @@ int library_import(struct library *li, bool sort,
     pathname = strdupa(path);
     cratename = basename(pathname); /* POSIX version, see basename(3) */
     assert(cratename != NULL);
-    crate = use_crate(li, cratename, false);
+    crate = use_crate(li, cratename);
     if (crate == NULL)
         return -1;
 
@@ -414,7 +480,7 @@ int library_import(struct library *li, bool sort,
 
         /* Add to the crate of all records */
 
-        x = listing_insert(&li->all.listing, d);
+        x = crate_add(&li->all, d);
         if (x == NULL)
             return -1;
 
@@ -428,13 +494,8 @@ int library_import(struct library *li, bool sort,
 
         /* Insert into the user's crate */
 
-        if (sort) {
-            if (listing_insert(&crate->listing, d) == NULL)
-                return -1;
-        } else {
-            if (listing_add(&crate->listing, d) == -1)
-                return -1;
-        }
+        if (crate_add(crate, d) == NULL)
+            return -1;
     }
 
     if (fclose(fp) == -1) {
