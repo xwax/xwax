@@ -455,7 +455,7 @@ static void process_bitstream(struct timecoder *tc, signed int m)
 
     tc->ref_level = (tc->ref_level * (REF_PEAKS_AVG - 1) + m) / REF_PEAKS_AVG;
 
-    debug("%+6d zero, %+6d (ref %+6d)\t= %d%c (%5d)\n",
+    debug("%+6d zero, %+6d (ref %+6d)\t= %d%c (%5d)",
           tc->primary.zero,
           m, tc->ref_level,
 	  b, tc->valid_counter == 0 ? 'x' : ' ',

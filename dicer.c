@@ -79,7 +79,7 @@ static int add_deck(struct controller *c, struct deck *k)
 {
     struct dicer *d = c->local;
 
-    debug("dicer: add deck %p\n", d);
+    debug("%p add deck %p", d, k);
 
     if (d->left != NULL && d->right != NULL)
         return -1;
@@ -139,7 +139,7 @@ static ssize_t led_cmd(led_t led, char *buf, size_t len,
     if (led & PRESSED)
         buf[2] += 0x5;
 
-    debug("dicer: compiling LED command: %02hhx %02hhx %02hhx\n",
+    debug("compiling LED command: %02hhx %02hhx %02hhx",
           buf[0], buf[1], buf[2]);
 
     return 3;
@@ -161,7 +161,7 @@ static ssize_t sync_one_led(led_t *led, char *buf, size_t len,
     if (*led & SYNCED)
         return 0;
 
-    debug("dicer: syncing LED: %s %d\n", right ? "right" : "left", button);
+    debug("syncing LED: %s %d", right ? "right" : "left", button);
 
     /* For simplicify we light all LEDs in all modes the same:
      * (cue, loop, roll) x (shift, non-shift) */
@@ -209,7 +209,7 @@ static size_t sync_one_dicer(led_t led[NBUTTONS], bool right,
 
         z = sync_one_led(&led[n], buf, len, right, n);
         if (z == -1) {
-            debug("dicer: output buffer full; expect incorrect LEDs\n");
+            debug("output buffer full; expect incorrect LEDs");
             break;
         }
 
@@ -254,7 +254,7 @@ static void sync_all_leds(struct dicer *d)
     if (d->ofill > 0) {
         ssize_t z;
 
-        debug("dicer: Writing %zd bytes of MIDI command\n", d->ofill);
+        debug("writing %zd bytes of MIDI command", d->ofill);
 
         z = midi_write(&d->midi, d->obuf, d->ofill);
         if (z == -1)
@@ -400,7 +400,7 @@ static void event(struct dicer *d, unsigned char buf[3])
         abort();
     }
 
-    debug("dicer: %s button %s%hhd %s, deck %p\n",
+    debug("%s button %s%hhd %s, deck %p",
           actions[action],
           shift ? "SHIFT-" : "",
           button, on ? "ON" : "OFF",
@@ -428,7 +428,7 @@ static int realtime(struct controller *c)
         if (z == 0)
             break;
 
-        debug("dicer: got event\n");
+        debug("got event");
 
         event(d, buf);
     }
@@ -443,7 +443,7 @@ static void clear(struct controller *c)
     struct dicer *d = c->local;
     size_t n;
 
-    debug("dicer: clear\n");
+    debug("%p", d);
 
     /* FIXME: Uses non-blocking functionality really intended
      * for realtime; no guarantee buffer is emptied */
@@ -469,7 +469,7 @@ int dicer_init(struct controller *c, struct rt *rt, const char *hw)
     size_t n;
     struct dicer *d;
 
-    debug("dicer: init\n");
+    debug("init %p from %s", c, hw);
 
     d = malloc(sizeof *d);
     if (d == NULL) {

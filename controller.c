@@ -27,14 +27,14 @@
 
 void controller_init(struct controller *c, struct controller_ops *ops)
 {
-    debug("controller: init\n");
+    debug("%p", c);
     c->fault = false;
     c->ops = ops;
 }
 
 void controller_clear(struct controller *c)
 {
-    debug("controller: clear\n");
+    debug("%p", c);
     c->ops->clear(c);
 }
 
@@ -44,10 +44,10 @@ void controller_clear(struct controller *c)
 
 void controller_add_deck(struct controller *c, struct deck *d)
 {
-    debug("controller: add_deck\n");
+    debug("%p adding deck %p", c, d);
 
     if (c->ops->add_deck(c, d) == 0) {
-        debug("controller: one added\n");
+        debug("deck was added");
 
         assert(d->ncontrol < ARRAY_SIZE(d->control)); /* FIXME: report error */
         d->control[d->ncontrol++] = c; /* for callbacks */

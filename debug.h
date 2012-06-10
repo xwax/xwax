@@ -23,7 +23,11 @@
 #include <stdio.h>
 
 #ifdef DEBUG
-#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define debug(...) { \
+    fprintf(stderr, "%s:%d: ", __func__, __LINE__); \
+    fprintf(stderr, __VA_ARGS__); \
+    fputc('\n', stderr); \
+}
 #define dassert(x) assert(x)
 #else
 #define debug(...)

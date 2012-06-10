@@ -106,7 +106,7 @@ static int more_space(struct track *tr)
 
     tr->block[tr->blocks++] = block;
 
-    debug("Allocated new track block (%d blocks, %zu bytes).\n",
+    debug("allocated new track block (%d blocks, %zu bytes)",
           tr->blocks, tr->blocks * TRACK_BLOCK_SAMPLES * SAMPLE);
 
     return 0;

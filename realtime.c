@@ -71,7 +71,7 @@ static void rt_main(struct rt *rt)
     int r;
     size_t n;
 
-    debug("realtime: main\n");
+    debug("%p", rt);
 
     thread_to_realtime();
 
@@ -114,7 +114,7 @@ static void* launch(void *p)
 
 void rt_init(struct rt *rt)
 {
-    debug("realtime: init\n");
+    debug("%p", rt);
 
     rt->finished = false;
     rt->ndv = 0;
@@ -141,7 +141,7 @@ int rt_add_device(struct rt *rt, struct device *dv)
 {
     ssize_t z;
 
-    debug("realtime: add_device\n");
+    debug("%p adding device %p", rt, dv);
 
     if (rt->ndv == sizeof rt->dv) {
         fprintf(stderr, "Too many audio devices\n");
@@ -173,7 +173,7 @@ int rt_add_device(struct rt *rt, struct device *dv)
 
 int rt_add_controller(struct rt *rt, struct controller *c)
 {
-    debug("realtime: add controller\n");
+    debug("%p adding controller %p", rt, c);
 
     if (rt->nctl == sizeof rt->ctl) {
         fprintf(stderr, "Too many controllers\n");
