@@ -52,6 +52,8 @@ OBJS = controller.o cues.o deck.o device.o external.o interface.o \
 DEVICE_CPPFLAGS =
 DEVICE_LIBS =
 
+TESTS = test-cues test-library test-status test-timecoder test-track
+
 # Optional device types
 
 ifdef ALSA
@@ -71,7 +73,8 @@ OBJS += oss.o
 DEVICE_CPPFLAGS += -DWITH_OSS
 endif
 
-DEPS = $(OBJS:.o=.d)
+TEST_OBJS = $(addsuffix .o,$(TESTS))
+DEPS = $(OBJS:.o=.d) $(TEST_OBJS:.o=.d)
 
 # Rules
 
@@ -125,7 +128,7 @@ TAGS:		$(OBJS:.o=.c)
 # Manual tests
 
 .PHONY:		tests
-tests:		test-cues test-library test-status test-timecoder test-track
+tests:		$(TESTS)
 
 test-cues:	test-cues.o cues.o
 
@@ -145,13 +148,8 @@ test-track:	LDLIBS += -lm
 .PHONY:		clean
 clean:
 		rm -f xwax \
-			test-cues \
-			test-library \
-			test-midi \
-			test-status \
-			test-timecoder \
-			test-track \
 			$(OBJS) $(DEPS) \
+			$(TESTS) $(TEST_OBJS) \
 			TAGS
 
 -include $(DEPS)
