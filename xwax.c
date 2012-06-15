@@ -74,7 +74,6 @@ static void usage(FILE *fd)
 
     fprintf(fd, "Music library options:\n"
       "  -l <path>      Location to scan for audio tracks\n"
-      "  -p <path>      Ordered playlist for audio tracks\n"
       "  -s <program>   Library scanner (default '%s')\n\n",
       DEFAULT_SCANNER);
 
@@ -485,7 +484,7 @@ int main(int argc, char *argv[])
             argv += 2;
             argc -= 2;
 
-        } else if (!strcmp(argv[0], "-l") || !strcmp(argv[0], "-p")) {
+        } else if (!strcmp(argv[0], "-l")) {
 
             /* Load in a music library */
 
