@@ -487,8 +487,6 @@ int main(int argc, char *argv[])
 
         } else if (!strcmp(argv[0], "-l") || !strcmp(argv[0], "-p")) {
 
-            bool sort;
-
             /* Load in a music library */
 
             if (argc < 2) {
@@ -497,13 +495,7 @@ int main(int argc, char *argv[])
                 return -1;
             }
 
-            if (argv[0][1] == 'p') {
-                sort = false;
-            } else {
-                sort = true;
-            }
-
-            if (library_import(&library, sort, scanner, argv[1]) == -1)
+            if (library_import(&library, scanner, argv[1]) == -1)
                 return -1;
 
             argv += 2;

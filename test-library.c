@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
         return -1;
 
     for (n = 2; n < argc; n++) {
-        if (library_import(&lib, true, scan, argv[n]) == -1)
+        if (library_import(&lib, scan, argv[n]) == -1)
             return -1;
     }
 

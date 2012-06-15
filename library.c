@@ -441,8 +441,7 @@ fail:
  * Return: 0 on success, -1 on fatal error (may leak)
  */
 
-int library_import(struct library *li, bool sort,
-                   const char *scan, const char *path)
+int library_import(struct library *li, const char *scan, const char *path)
 {
     int fd, status;
     char *cratename, *pathname;

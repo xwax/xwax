@@ -43,7 +43,6 @@ struct library {
 int library_init(struct library *li);
 void library_clear(struct library *li);
 
-int library_import(struct library *lib, bool sort,
-                   const char *scan, const char *path);
+int library_import(struct library *lib, const char *scan, const char *path);
 
 #endif
