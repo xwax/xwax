@@ -1638,6 +1638,20 @@ static int interface_main(void)
                 abort();
             }
             break;
+       case SDL_JOYBUTTONDOWN:  /* Handle Joystick Button Presses */
+		if ( event.jbutton.button == 0 ) 
+		{
+        	/* code goes here */
+			printf("joystick button 1 pressed! \n");
+			
+/*
+			struct player_t *pl=&in->deck[0].player;
+			(void)player_toggle_timecode_control(pl);
+			struct player_t *pla=&in->deck[1].player;
+			(void)player_toggle_timecode_control(pla);
+*/			
+		}
+		break;
 
         case SDL_KEYDOWN:
             if (handle_key(event.key.keysym.sym, event.key.keysym.mod))
@@ -1783,8 +1797,8 @@ int interface_start(struct library *lib, const char *geo)
     status_set(STATUS_VERBOSE, banner);
 
     fprintf(stderr, "Initialising SDL...\n");
-
-    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) == -1) {
+/* here i added the command to initailise the joystick support in sdl, ewan.*/
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_JOYSTICK) == -1) {
         fprintf(stderr, "%s\n", SDL_GetError());
         return -1;
     }
@@ -1800,6 +1814,25 @@ int interface_start(struct library *lib, const char *geo)
 
     if (load_fonts() == -1)
         return -1;
+
+ /* check for joysticks added by ewan*/
+    
+    printf("%i joysticks were found.\n\n", SDL_NumJoysticks() );
+    printf("The names of the joysticks are:\n");
+    
+    int i=0;		
+
+    for(i=0; i < SDL_NumJoysticks(); i++ ) 
+    {
+        printf("    %s\n", SDL_JoystickName(i));
+    }
+
+    /*initialise the joystiks*/
+
+    SDL_Joystick *joystick;
+
+    SDL_JoystickEventState(SDL_ENABLE);
+    joystick = SDL_JoystickOpen(0);
 
     fprintf(stderr, "Launching interface thread...\n");
 
@@ -1834,7 +1867,7 @@ void interface_stop(void)
     selector_clear(&selector);
 
     clear_fonts();
-
+    SDL_JoystickClose(0);
     TTF_Quit();
     SDL_Quit();
 }
