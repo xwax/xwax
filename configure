@@ -36,11 +36,11 @@ EOF
 
 # Set some defaults and parse the command line
 
-PREFIX=
-ALSA=false
-JACK=false
+PREFIX=/usr/local
+ALSA=true
+JACK=true
 OSS=false
-DEBUG=false
+DEBUG=true
 PROFILE=false
 
 while [ $# -ge 1 ]; do

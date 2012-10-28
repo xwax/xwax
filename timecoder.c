@@ -26,7 +26,7 @@
 #include "debug.h"
 #include "timecoder.h"
 
-#define ZERO_THRESHOLD 128
+#define ZERO_THRESHOLD 32
 
 #define ZERO_RC 0.001 /* time constant for zero/rumble filter */
 

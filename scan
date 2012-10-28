@@ -14,7 +14,7 @@ PATHNAME="$1"
 
 if [ -d "$PATHNAME" ]; then
 	find -L "$PATHNAME" -type f |
-		grep -iE '\.(ogg|oga|aac|cdaudio|mp3|flac|wav|aif|aiff|m4a|wma)$'
+		grep -iE '\.(ogg|oga|live|aac|cdaudio|mp3|flac|wav|aif|aiff|m4a|wma)$'
 else
 	cat "$PATHNAME"
 fi |

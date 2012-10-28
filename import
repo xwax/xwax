@@ -21,8 +21,12 @@ case "$FILE" in
     ;;
 
 *.mp3)
-    echo "Calling MP3 decoder..." >&2
+    echo "Calling MP3 decoder..a bitch." >&2
     exec mpg123 -q -s --rate "$RATE" --stereo "$FILE"
+    ;;
+*.live)
+    echo "Starting live capture..." >&2
+    exec sox --show-progress -2 -t alsa hw:Intel  -t raw --channels 2 --rate "$RATE" - trim 0 0:59
     ;;
 
 *)
