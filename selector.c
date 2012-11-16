@@ -353,10 +353,6 @@ void selector_next(struct selector *sel)
 
 void selector_toggle(struct selector *sel)
 {
-    struct record *c;
-
-    c = selector_current(sel);
-
     if (!sel->toggled) {
         sel->toggle_back = scroll_current(&sel->crates);
         scroll_first(&sel->crates);
