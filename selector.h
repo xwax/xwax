@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012 Mark Hills <mark@pogo.org.uk>,
+ * Copyright (C) 2012 Mark Hills <mark@xwax.org>,
  *                    Yves Adler <yves.adler@googlemail.com>
  *
  * This program is free software; you can redistribute it and/or
