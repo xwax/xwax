@@ -194,7 +194,7 @@ static inline bits_t rev(bits_t current, struct timecode_def *def)
 static int build_lookup(struct timecode_def *def)
 {
     unsigned int n;
-    bits_t current, last;
+    bits_t current;
 
     if (def->lookup)
         return 0;
@@ -208,12 +208,17 @@ static int build_lookup(struct timecode_def *def)
     current = def->seed;
 
     for (n = 0; n < def->length; n++) {
+        bits_t next;
+
         /* timecode must not wrap */
         dassert(lut_lookup(&def->lut, current) == (unsigned)-1);
         lut_push(&def->lut, current);
-        last = current;
-        current = fwd(current, def);
-        dassert(rev(current, def) == last);
+
+        /* check symmetry of the lfsr functions */
+        next = fwd(current, def);
+        dassert(rev(next, def) == current);
+
+        current = next;
     }
 
     def->lookup = true;
