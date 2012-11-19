@@ -1,0 +1,19 @@
+#!/bin/sh
+#
+# xwax 'scan' script which generates a series to test the BPM listing; eg.
+#
+#   xwax -s test-scan-bpm -l /dev/null
+#
+
+LOWEST=30.0
+HIGHEST=240.0
+STEP=0.01
+
+seq "$LOWEST" "$STEP" "$HIGHEST" | awk -- '
+	BEGIN {
+		OFS="\t"
+	}
+	{
+		print "/dev/null", "BPM test", "Track at " $1 " BPM", $1
+	}
+'
