@@ -6,8 +6,8 @@
 #
 
 LOWEST=30.0
-HIGHEST=240.0
-STEP=0.01
+HIGHEST=320.0
+STEP=0.1
 
 seq "$LOWEST" "$STEP" "$HIGHEST" | awk -- '
 	BEGIN {
