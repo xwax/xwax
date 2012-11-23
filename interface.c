@@ -618,21 +618,25 @@ static bool show_bpm(double bpm)
 static void draw_bpm(SDL_Surface *surface, const struct rect *rect, double bpm,
                      SDL_Color bg_col)
 {
-    static const double min = 76.0, max = 164.0;
+    static const double min = 60.0, max = 240.0;
     char buf[32];
     double f, h;
 
     sprintf(buf, "%5.1f", bpm);
-    f = (bpm - min) / (max - min);
 
-    if (f < 0.0 || f > 1.0) {
+    /* Safety catch against bad BPM values, NaN, infinity etc. */
+
+    if (bpm < min || bpm > max) {
         draw_token(surface, rect, buf, detail_col, bg_col, bg_col);
         return;
     }
 
-    h = 60.0 + f * 300.0; /* degrees */
-    if (h > 360.0)
-        h -= 360.0;
+    /* Colour compatible BPMs the same; cycle 360 degrees
+     * every time the BPM doubles */
+
+    f = log2(bpm);
+    f -= floor(f);
+    h = f * 360.0; /* degrees */
 
     draw_token(surface, rect, buf, text_col, hsv(h, 1.0, 0.3), bg_col);
 }
