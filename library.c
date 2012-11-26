@@ -332,6 +332,25 @@ done:
 }
 
 /*
+ * Translate a string from the scan to our internal BPM value
+ *
+ * Return: internal BPM value, or INFINITY if string is malformed
+ */
+
+static double parse_bpm(const char *s)
+{
+    char *endptr;
+    double bpm;
+
+    errno = 0;
+    bpm = strtod(s, &endptr);
+    if (errno == ERANGE || *endptr != '\0' || !isfinite(bpm) || bpm <= 0.0)
+        return INFINITY;
+
+    return bpm;
+}
+
+/*
  * Read the next record from the file
  *
  * Return: 0 on success, otherwise -1
@@ -342,7 +361,7 @@ done:
 static int get_record(FILE *f, struct record **r)
 {
     struct record x, *y;
-    char delim, *s, *endptr;
+    char delim, *s;
 
     x.pathname = NULL;
     x.artist = NULL;
@@ -393,11 +412,8 @@ static int get_record(FILE *f, struct record **r)
     if (s == NULL)
         goto fail;
 
-    errno = 0;
-    x.bpm = strtod(s, &endptr);
-    if (errno == ERANGE || *endptr != '\0'
-        || !isfinite(x.bpm) || x.bpm <= 0.0)
-    {
+    x.bpm = parse_bpm(s);
+    if (!isfinite(x.bpm)) {
         fprintf(stderr, "%s: Ignoring malformed BPM '%s'\n", x.pathname, s);
         x.bpm = 0.0;
     }
