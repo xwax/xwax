@@ -342,6 +342,9 @@ static double parse_bpm(const char *s)
     char *endptr;
     double bpm;
 
+    if (s[0] == '\0') /* empty string, valid for 'unknown BPM' */
+        return 0.0;
+
     errno = 0;
     bpm = strtod(s, &endptr);
     if (errno == ERANGE || *endptr != '\0' || !isfinite(bpm) || bpm <= 0.0)
