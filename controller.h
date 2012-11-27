@@ -22,6 +22,8 @@
 
 #include <stdbool.h>
 #include <stdlib.h>
+#include <sys/poll.h>
+#include <sys/types.h>
 
 struct deck;
 
@@ -42,7 +44,10 @@ struct controller {
 
 struct controller_ops {
     int (*add_deck)(struct controller *c, struct deck *deck);
+
+    ssize_t (*pollfds)(struct controller *c, struct pollfd *pe, size_t z);
     int (*realtime)(struct controller *c);
+
     void (*clear)(struct controller *c);
 };
 
@@ -50,6 +55,7 @@ void controller_init(struct controller *c, struct controller_ops *t);
 void controller_clear(struct controller *c);
 
 void controller_add_deck(struct controller *c, struct deck *d);
+ssize_t controller_pollfds(struct controller *c, struct pollfd *pe, size_t z);
 void controller_handle(struct controller *c);
 
 #endif

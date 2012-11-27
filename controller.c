@@ -54,6 +54,24 @@ void controller_add_deck(struct controller *c, struct deck *d)
     }
 }
 
+/*
+ * Get file descriptors which should be polled for this controller
+ *
+ * Important on systems where only callback-based audio devices
+ * (eg. JACK) are used. We need to return some descriptors so
+ * that the realtime thread runs.
+ *
+ * Return: the number of pollfd filled, or -1 on error
+ */
+
+ssize_t controller_pollfds(struct controller *c, struct pollfd *pe, size_t z)
+{
+    if (c->ops->pollfds != NULL)
+        return c->ops->pollfds(c, pe, z);
+    else
+        return 0;
+}
+
 void controller_handle(struct controller *c)
 {
     if (c->fault)

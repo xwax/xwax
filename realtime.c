@@ -175,6 +175,8 @@ int rt_add_device(struct rt *rt, struct device *dv)
 
 int rt_add_controller(struct rt *rt, struct controller *c)
 {
+    ssize_t z;
+
     debug("%p adding controller %p", rt, c);
 
     if (rt->nctl == ARRAY_SIZE(rt->ctl)) {
@@ -182,9 +184,15 @@ int rt_add_controller(struct rt *rt, struct controller *c)
         return -1;
     }
 
-    /* Controllers don't have poll entries; they are polled every
-     * cycle of the audio */
+    /* Similar to adding a PCM device */
 
+    z = controller_pollfds(c, &rt->pt[rt->npt], sizeof(rt->pt) - rt->npt);
+    if (z == -1) {
+        fprintf(stderr, "Controller failed to return file descriptors.\n");
+        return -1;
+    }
+
+    rt->npt += z;
     rt->ctl[rt->nctl++] = c;
 
     return 0;

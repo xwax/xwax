@@ -409,6 +409,13 @@ static void event(struct dicer *d, unsigned char buf[3])
     event_decoded(deck, led, action, shift, button, on);
 }
 
+static ssize_t pollfds(struct controller *c, struct pollfd *pe, size_t z)
+{
+    struct dicer *d = c->local;
+
+    return midi_pollfds(&d->midi, pe, z);
+}
+
 /*
  * Handler in the realtime thread, which polls on both input
  * and output
@@ -460,6 +467,7 @@ static void clear(struct controller *c)
 
 static struct controller_ops dicer_ops = {
     .add_deck = add_deck,
+    .pollfds = pollfds,
     .realtime = realtime,
     .clear = clear,
 };
