@@ -1,10 +1,10 @@
-v1.3 (work in progress)
------------------------
+v1.3 (2012-11-29)
+-----------------
 
 * Tempo (BPM) field, and sorting and changing of sort modes
 * Allow initial X window size and position to be set by the user
 * Makefile modifications for packagers
-* Report errors to the main interface
+* Track loading errors are reported to the main interface
 
 Acknowledgements: Engine, Lukas Fleischer, Daniel Holbach, Matej Laitl
 
