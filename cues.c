@@ -21,6 +21,7 @@
 #include <stdlib.h>
 
 #include "cues.h"
+#include "debug.h"
 
 void cues_reset(struct cues *q)
 {
@@ -36,11 +37,13 @@ void cues_reset(struct cues *q)
 
 void cues_unset(struct cues *q, unsigned int label)
 {
+    debug("clearing cue point %d", label);
     q->position[label] = CUE_UNSET;
 }
 
 void cues_set(struct cues *q, unsigned int label, double position)
 {
+    debug("setting cue point %d to %0.2f", label, position);
     assert(label < MAX_CUES);
     q->position[label] = position;
 }
