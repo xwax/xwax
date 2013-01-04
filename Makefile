@@ -53,7 +53,8 @@ OBJS = controller.o cues.o deck.o device.o external.o interface.o \
 DEVICE_CPPFLAGS =
 DEVICE_LIBS =
 
-TESTS = tests/cues tests/library tests/status tests/timecoder tests/track
+TESTS = tests/cues tests/library tests/status tests/timecoder tests/track \
+	tests/ttf
 
 # Optional device types
 
@@ -146,6 +147,9 @@ tests/timecoder:	tests/timecoder.o lut.o timecoder.o
 tests/track:	tests/track.o external.o rig.o status.o thread.o track.o
 tests/track:	LDFLAGS += -pthread
 tests/track:	LDLIBS += -lm
+
+tests/ttf.o:	CFLAGS += $(SDL_CFLAGS)
+tests/ttf:	LDLIBS += $(SDL_LIBS)
 
 .PHONY:		clean
 clean:
