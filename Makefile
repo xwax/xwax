@@ -52,7 +52,7 @@ OBJS = controller.o cues.o deck.o device.o external.o interface.o \
 DEVICE_CPPFLAGS =
 DEVICE_LIBS =
 
-TESTS = test-cues test-library test-status test-timecoder test-track
+TESTS = tests/cues tests/library tests/status tests/timecoder tests/track
 
 # Optional device types
 
@@ -129,21 +129,22 @@ TAGS:		$(OBJS:.o=.c)
 
 .PHONY:		tests
 tests:		$(TESTS)
+tests:		CPPFLAGS += -I.
 
-test-cues:	test-cues.o cues.o
+tests/cues:	tests/cues.o cues.o
 
-test-library:	test-library.o external.o library.o listing.o
+tests/library:	tests/library.o external.o library.o listing.o
 
-test-midi:	test-midi.o midi.o
-test-midi:	LDLIBS += $(ALSA_LIBS)
+tests/midi:	tests/midi.o midi.o
+tests/midi:	LDLIBS += $(ALSA_LIBS)
 
-test-status:	test-status.o status.o
+tests/status:	tests/status.o status.o
 
-test-timecoder:	test-timecoder.o lut.o timecoder.o
+tests/timecoder:	tests/timecoder.o lut.o timecoder.o
 
-test-track:	test-track.o external.o rig.o status.o thread.o track.o
-test-track:	LDFLAGS += -pthread
-test-track:	LDLIBS += -lm
+tests/track:	tests/track.o external.o rig.o status.o thread.o track.o
+tests/track:	LDFLAGS += -pthread
+tests/track:	LDLIBS += -lm
 
 .PHONY:		clean
 clean:
