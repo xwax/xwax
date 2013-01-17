@@ -92,7 +92,7 @@ static void rt_main(struct rt *rt)
                 continue;
             } else {
                 perror("poll");
-                return;
+                abort();
             }
         }
 
