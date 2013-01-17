@@ -28,6 +28,8 @@
 #include "realtime.h"
 #include "thread.h"
 
+#define ARRAY_SIZE(x) (sizeof(x) / sizeof(*x))
+
 /*
  * Raise the priority of the current thread
  *
@@ -143,7 +145,7 @@ int rt_add_device(struct rt *rt, struct device *dv)
 
     debug("%p adding device %p", rt, dv);
 
-    if (rt->ndv == sizeof rt->dv) {
+    if (rt->ndv == ARRAY_SIZE(rt->dv)) {
         fprintf(stderr, "Too many audio devices\n");
         return -1;
     }
@@ -175,7 +177,7 @@ int rt_add_controller(struct rt *rt, struct controller *c)
 {
     debug("%p adding controller %p", rt, c);
 
-    if (rt->nctl == sizeof rt->ctl) {
+    if (rt->nctl == ARRAY_SIZE(rt->ctl)) {
         fprintf(stderr, "Too many controllers\n");
         return -1;
     }
