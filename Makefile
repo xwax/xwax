@@ -39,10 +39,10 @@ DOCDIR ?= $(PREFIX)/share/doc
 
 # Build flags
 
-OPTFLAGS ?= -O3
-CFLAGS += -Wall $(OPTFLAGS)
+CFLAGS ?= -O3
+CFLAGS += -Wall
 CPPFLAGS += -MMD
-LDFLAGS += $(OPTFLAGS)
+LDFLAGS ?= -O3
 
 # Core objects and libraries
 
