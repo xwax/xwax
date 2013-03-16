@@ -153,7 +153,7 @@ static SDL_Color background_col = {0, 0, 0, 255},
     artist_col = {16, 64, 0, 255},
     bpm_col = {64, 16, 0, 255};
 
-static int spinner_angle[SPINNER_SIZE * SPINNER_SIZE];
+static int *spinner_angle;
 
 static int width = DEFAULT_WIDTH, height = DEFAULT_HEIGHT,
     meter_scale = DEFAULT_METER_SCALE;
@@ -331,6 +331,23 @@ static void calculate_angle_lut(int *lut, int size)
                 = ((int)(theta * 1024 / (M_PI * 2)) + 1024) % 1024;
         }
     }
+}
+
+static int init_spinner(int size)
+{
+    spinner_angle = malloc(size * size * (sizeof *spinner_angle));
+    if (spinner_angle == NULL) {
+        perror("malloc");
+        return -1;
+    }
+
+    calculate_angle_lut(spinner_angle, size);
+    return 0;
+}
+
+static void clear_spinner(void)
+{
+    free(spinner_angle);
 }
 
 /*
@@ -1778,8 +1795,10 @@ int interface_start(struct library *lib, const char *geo)
             return -1;
     }
 
+    if (init_spinner(SPINNER_SIZE) == -1)
+        return -1;
+
     selector_init(&selector, lib);
-    calculate_angle_lut(spinner_angle, SPINNER_SIZE);
     status_notify(status_change);
     status_set(STATUS_VERBOSE, banner);
 
@@ -1832,8 +1851,8 @@ void interface_stop(void)
     for (n = 0; n < ndeck; n++)
         timecoder_monitor_clear(&deck[n].timecoder);
 
+    clear_spinner();
     selector_clear(&selector);
-
     clear_fonts();
 
     TTF_Quit();
