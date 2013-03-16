@@ -293,7 +293,7 @@ static void time_to_clock(char *buf, char *deci, int t)
  * relative to the centre of the spinner
  */
 
-static void calculate_spinner_lookup(int *angle, int *distance, int size)
+static void calculate_spinner_lookup(int *angle, int size)
 {
     int r, c, nr, nc;
     float theta, rat;
@@ -329,9 +329,6 @@ static void calculate_spinner_lookup(int *angle, int *distance, int size)
 
             angle[r * size + c]
                 = ((int)(theta * 1024 / (M_PI * 2)) + 1024) % 1024;
-
-            if (distance)
-                distance[r * size + c] = sqrt(SQ(nc) + SQ(nr));
         }
     }
 }
@@ -1782,7 +1779,7 @@ int interface_start(struct library *lib, const char *geo)
     }
 
     selector_init(&selector, lib);
-    calculate_spinner_lookup(spinner_angle, NULL, SPINNER_SIZE);
+    calculate_spinner_lookup(spinner_angle, SPINNER_SIZE);
     status_notify(status_change);
     status_set(STATUS_VERBOSE, banner);
 
