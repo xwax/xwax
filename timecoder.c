@@ -469,17 +469,16 @@ static void process_bitstream(struct timecoder *tc, signed int m)
 
 /*
  * Process a single sample from the incoming audio
+ *
+ * The two input signals (primary and secondary) are in the full range
+ * of a signed int; ie. 32-bit signed.
  */
 
 static void process_sample(struct timecoder *tc,
 			   signed int primary, signed int secondary)
 {
-    signed int m; /* pcm sample, sum of two shorts */
-
     detect_zero_crossing(&tc->primary, primary, tc->zero_alpha);
     detect_zero_crossing(&tc->secondary, secondary, tc->zero_alpha);
-
-    m = abs(primary - tc->primary.zero);
 
     /* If an axis has been crossed, use the direction of the crossing
      * to work out the direction of the vinyl */
@@ -522,6 +521,9 @@ static void process_sample(struct timecoder *tc,
     if (tc->secondary.swapped &&
        tc->primary.positive == ((tc->def->flags & SWITCH_POLARITY) == 0))
     {
+        signed int m; /* pcm sample, sum of two shorts */
+
+        m = abs(primary - tc->primary.zero);
 	process_bitstream(tc, m);
     }
 
