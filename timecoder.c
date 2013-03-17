@@ -390,31 +390,35 @@ static void detect_zero_crossing(struct timecoder_channel *ch,
 
 static void update_monitor(struct timecoder *tc, signed int x, signed int y)
 {
-    int px, py, p;
-    double v, w;
+    int px, py, size, ref;
 
     if (!tc->mon)
         return;
 
+    size = tc->mon_size;
+    ref = tc->ref_level;
+
     /* Decay the pixels already in the montior */
 
     if (++tc->mon_counter % MONITOR_DECAY_EVERY == 0) {
-        for (p = 0; p < SQ(tc->mon_size); p++) {
+        int p;
+
+        for (p = 0; p < SQ(size); p++) {
             if (tc->mon[p])
                 tc->mon[p] = tc->mon[p] * 7 / 8;
         }
     }
 
-    v = (double)x / tc->ref_level / 2 / 2;
-    w = (double)y / tc->ref_level / 2 / 2;
+    assert(ref > 0);
 
-    px = tc->mon_size / 2 + (v * tc->mon_size / 2);
-    py = tc->mon_size / 2 + (w * tc->mon_size / 2);
+    /* ref_level is half the prevision of signal level */
+    px = size / 2 + (long long)x * size / ref / 8;
+    py = size / 2 + (long long)y * size / ref / 8;
 
-    /* Set the pixel value to white */
+    if (px < 0 || px > size || py < 0 || py > size)
+        return;
 
-    if (px > 0 && px < tc->mon_size && py > 0 && py < tc->mon_size)
-        tc->mon[py * tc->mon_size + px] = 0xff;
+    tc->mon[py * size + px] = 0xff; /* white */
 }
 
 /*
