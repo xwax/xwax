@@ -18,6 +18,7 @@
  */
 
 #include <assert.h>
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -26,7 +27,7 @@
 #include "debug.h"
 #include "timecoder.h"
 
-#define ZERO_THRESHOLD 128
+#define ZERO_THRESHOLD (128 << 16)
 
 #define ZERO_RC 0.001 /* time constant for zero/rumble filter */
 
@@ -308,7 +309,7 @@ void timecoder_init(struct timecoder *tc, struct timecode_def *def,
     init_channel(&tc->secondary);
     pitch_init(&tc->pitch, tc->dt);
 
-    tc->ref_level = 32768.0;
+    tc->ref_level = INT_MAX;
     tc->bitstream = 0;
     tc->timecode = 0;
     tc->valid_counter = 0;
@@ -404,8 +405,8 @@ static void update_monitor(struct timecoder *tc, signed int x, signed int y)
         }
     }
 
-    v = (double)x / tc->ref_level / 2;
-    w = (double)y / tc->ref_level / 2;
+    v = (double)x / tc->ref_level / 2 / 2;
+    w = (double)y / tc->ref_level / 2 / 2;
 
     px = tc->mon_size / 2 + (v * tc->mon_size / 2);
     py = tc->mon_size / 2 + (w * tc->mon_size / 2);
@@ -458,7 +459,8 @@ static void process_bitstream(struct timecoder *tc, signed int m)
 
     /* Adjust the reference level based on this new peak */
 
-    tc->ref_level = (tc->ref_level * (REF_PEAKS_AVG - 1) + m) / REF_PEAKS_AVG;
+    tc->ref_level -= tc->ref_level / REF_PEAKS_AVG;
+    tc->ref_level += m / REF_PEAKS_AVG;
 
     debug("%+6d zero, %+6d (ref %+6d)\t= %d%c (%5d)",
           tc->primary.zero,
@@ -521,9 +523,10 @@ static void process_sample(struct timecoder *tc,
     if (tc->secondary.swapped &&
        tc->primary.positive == ((tc->def->flags & SWITCH_POLARITY) == 0))
     {
-        signed int m; /* pcm sample, sum of two shorts */
+        signed int m;
 
-        m = abs(primary - tc->primary.zero);
+        /* scale to avoid clipping */
+        m = abs(primary / 2 - tc->primary.zero / 2);
 	process_bitstream(tc, m);
     }
 
@@ -564,24 +567,29 @@ void timecoder_cycle_definition(struct timecoder *tc)
 
 /*
  * Submit and decode a block of PCM audio data to the timecode decoder
+ *
+ * PCM data is in the full range of signed short; ie. 16-bit signed.
  */
 
 void timecoder_submit(struct timecoder *tc, signed short *pcm, size_t npcm)
 {
     while (npcm--) {
-	signed int primary, secondary;
+	signed int left, right, primary, secondary;
+
+        left = pcm[0] << 16;
+        right = pcm[1] << 16;
 
         if (tc->def->flags & SWITCH_PRIMARY) {
-            primary = pcm[0];
-            secondary = pcm[1];
+            primary = left;
+            secondary = right;
         } else {
-            primary = pcm[1];
-            secondary = pcm[0];
+            primary = right;
+            secondary = left;
         }
 
 	process_sample(tc, primary, secondary);
+        update_monitor(tc, left, right);
 
-        update_monitor(tc, pcm[0], pcm[1]);
         pcm += TIMECODER_CHANNELS;
     }
 }
