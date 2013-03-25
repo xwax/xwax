@@ -415,7 +415,7 @@ static void update_monitor(struct timecoder *tc, signed int x, signed int y)
     px = size / 2 + (long long)x * size / ref / 8;
     py = size / 2 + (long long)y * size / ref / 8;
 
-    if (px < 0 || px > size || py < 0 || py > size)
+    if (px < 0 || px >= size || py < 0 || py >= size)
         return;
 
     tc->mon[py * size + px] = 0xff; /* white */
