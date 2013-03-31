@@ -153,7 +153,7 @@ static SDL_Color background_col = {0, 0, 0, 255},
     artist_col = {16, 64, 0, 255},
     bpm_col = {64, 16, 0, 255};
 
-static int *spinner_angle;
+static unsigned short *spinner_angle;
 
 static int width = DEFAULT_WIDTH, height = DEFAULT_HEIGHT,
     meter_scale = DEFAULT_METER_SCALE;
@@ -293,7 +293,7 @@ static void time_to_clock(char *buf, char *deci, int t)
  * relative to the centre of the spinner
  */
 
-static void calculate_angle_lut(int *lut, int size)
+static void calculate_angle_lut(unsigned short *lut, int size)
 {
     int r, c, nr, nc;
     float theta, rat;
