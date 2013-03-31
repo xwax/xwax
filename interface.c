@@ -160,7 +160,7 @@ static SDL_Color background_col = {0, 0, 0, 255},
     artist_col = {16, 64, 0, 255},
     bpm_col = {64, 16, 0, 255};
 
-static unsigned short *spinner_angle;
+static unsigned short *spinner_angle, spinner_size;
 
 static int width = DEFAULT_WIDTH, height = DEFAULT_HEIGHT,
     meter_scale = DEFAULT_METER_SCALE;
@@ -283,6 +283,7 @@ static int init_spinner(int size)
     }
 
     calculate_angle_lut(spinner_angle, size);
+    spinner_size = size;
     return 0;
 }
 
@@ -726,18 +727,18 @@ static void draw_spinner(SDL_Surface *surface, const struct rect *rect,
     else
         col = ok_col;
 
-    for (r = 0; r < SPINNER_SIZE; r++) {
+    for (r = 0; r < spinner_size; r++) {
 
         /* Store a pointer to this row of the framebuffer */
 
         rp = surface->pixels + (y + r) * surface->pitch;
 
-        for (c = 0; c < SPINNER_SIZE; c++) {
+        for (c = 0; c < spinner_size; c++) {
 
             /* Use the lookup table to provide the angle at each
              * pixel */
 
-            pangle = spinner_angle[r * SPINNER_SIZE + c];
+            pangle = spinner_angle[r * spinner_size + c];
 
             /* Calculate the final pixel location and set it */
 
@@ -1740,11 +1741,11 @@ int interface_start(struct library *lib, const char *geo)
     }
 
     for (n = 0; n < ndeck; n++) {
-        if (timecoder_monitor_init(&deck[n].timecoder, SCOPE_SIZE) == -1)
+        if (timecoder_monitor_init(&deck[n].timecoder, zoom(SCOPE_SIZE)) == -1)
             return -1;
     }
 
-    if (init_spinner(SPINNER_SIZE) == -1)
+    if (init_spinner(zoom(SPINNER_SIZE)) == -1)
         return -1;
 
     selector_init(&selector, lib);
