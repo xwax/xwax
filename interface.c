@@ -67,10 +67,16 @@
 #define DETAIL_FONT_SIZE 9
 #define DETAIL_FONT_SPACE 12
 
-/* Screen dimensions */
+/* Screen size (pixels) */
 
 #define DEFAULT_WIDTH 960
 #define DEFAULT_HEIGHT 720
+
+/* Relationship between pixels and screen units */
+
+#define ZOOM 1.0
+
+/* Dimensions in our own screen units */
 
 #define BORDER 12
 #define SPACER 8
@@ -1528,6 +1534,8 @@ static int interface_main(void)
     surface = set_size(width, height, &rworkspace);
     if (!surface)
         return -1;
+
+    rworkspace.scale = ZOOM;
 
     decks_update = true;
     status_update = true;
