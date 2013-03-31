@@ -105,6 +105,24 @@ static struct layout rows(double f, pix_t space)
 }
 
 /*
+ * Take an existing layout spec and request that it be in pixels
+ *
+ * Most dimensions are done in terms of 'screen units' but sometimes
+ * we need to apply layout based on a pixel measurement (eg.  returned
+ * to us when drawing text)
+ */
+
+static struct layout pixels(struct layout j)
+{
+    struct layout r;
+
+    r = j;
+    r.flags |= LAYOUT_PIXELS;
+
+    return r;
+}
+
+/*
  * Create a new rectangle from pixels
  */
 

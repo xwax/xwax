@@ -452,7 +452,7 @@ static int draw_text(SDL_Surface *sf, const struct rect *rect,
 static void track_baseline(const struct rect *rect, const TTF_Font *a,
                            struct rect *aligned, const TTF_Font *b)
 {
-    split(*rect, from_top(TTF_FontAscent(a)  - TTF_FontAscent(b), 0),
+    split(*rect, pixels(from_top(TTF_FontAscent(a)  - TTF_FontAscent(b), 0)),
           NULL, aligned);
 }
 
@@ -646,7 +646,7 @@ static void draw_clock(SDL_Surface *surface, const struct rect *rect, int t,
 
     v = draw_text(surface, rect, hms, clock_font, col, background_col);
 
-    split(*rect, from_left(v, 0), NULL, &sr);
+    split(*rect, pixels(from_left(v, 0)), NULL, &sr);
     track_baseline(&sr, clock_font, &sr, deci_font);
 
     draw_text(surface, &sr, deci, deci_font, col, background_col);
