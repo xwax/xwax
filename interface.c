@@ -33,6 +33,7 @@
 #include <SDL_ttf.h>
 
 #include "interface.h"
+#include "layout.h"
 #include "player.h"
 #include "rig.h"
 #include "selector.h"
@@ -159,85 +160,6 @@ static int width = DEFAULT_WIDTH, height = DEFAULT_HEIGHT,
     meter_scale = DEFAULT_METER_SCALE;
 static pthread_t ph;
 static struct selector selector;
-
-struct rect {
-    signed short x, y, w, h;
-};
-
-/*
- * Split the given rectangle split v pixels from the top, with a gap
- * of 'space' between the output rectangles
- *
- * Post: upper and lower are set
- */
-
-static void split_top(const struct rect *source, struct rect *upper,
-                      struct rect *lower, int v, int space)
-{
-    int u;
-
-    u = v + space;
-
-    if (upper) {
-        upper->x = source->x;
-        upper->y = source->y;
-        upper->w = source->w;
-        upper->h = v;
-    }
-
-    if (lower) {
-        lower->x = source->x;
-        lower->y = source->y + u;
-        lower->w = source->w;
-        lower->h = source->h - u;
-    }
-}
-
-/*
- * As above, x pixels from the bottom
- */
-
-static void split_bottom(const struct rect *source, struct rect *upper,
-                         struct rect *lower, int v, int space)
-{
-    split_top(source, upper, lower, source->h - v - space, space);
-}
-
-/*
- * As above, v pixels from the left
- */
-
-static void split_left(const struct rect *source, struct rect *left,
-                       struct rect *right, int v, int space)
-{
-    int u;
-
-    u = v + space;
-
-    if (left) {
-        left->x = source->x;
-        left->y = source->y;
-        left->w = v;
-        left->h = source->h;
-    }
-
-    if (right) {
-        right->x = source->x + u;
-        right->y = source->y;
-        right->w = source->w - u;
-        right->h = source->h;
-    }
-}
-
-/*
- * As above, v pixels from the right
- */
-
-static void split_right(const struct rect *source, struct rect *left,
-                        struct rect *right, int v, int space)
-{
-    split_left(source, left, right, source->w - v - space, space);
-}
 
 /*
  * Shrink a rectangle to leave a small border of standard size
@@ -524,7 +446,8 @@ static int draw_text(SDL_Surface *sf, const struct rect *rect,
 static void track_baseline(const struct rect *rect, const TTF_Font *a,
                            struct rect *aligned, const TTF_Font *b)
 {
-    split_top(rect, NULL, aligned, TTF_FontAscent(a)  - TTF_FontAscent(b), 0);
+    split(*rect, from_top(TTF_FontAscent(a)  - TTF_FontAscent(b), 0),
+          NULL, aligned);
 }
 
 /*
@@ -685,17 +608,17 @@ static void draw_record(SDL_Surface *surface, const struct rect *rect,
 {
     struct rect artist, title, left, right;
 
-    split_top(rect, &artist, &title, BIG_FONT_SPACE, 0);
+    split(*rect, from_top(BIG_FONT_SPACE, 0), &artist, &title);
     draw_text(surface, &artist, record->artist,
               big_font, text_col, background_col);
 
     /* Layout changes slightly if BPM is known */
 
     if (show_bpm(record->bpm)) {
-        split_left(&title, &left, &right, BPM_WIDTH, 0);
+        split(title, from_left(BPM_WIDTH, 0), &left, &right);
         draw_bpm(surface, &left, record->bpm, background_col);
 
-        split_left(&right, &left, &title, HALF_SPACER, 0);
+        split(right, from_left(HALF_SPACER, 0), &left, &title);
         draw_rect(surface, &left, background_col);
     }
 
@@ -717,7 +640,7 @@ static void draw_clock(SDL_Surface *surface, const struct rect *rect, int t,
 
     v = draw_text(surface, rect, hms, clock_font, col, background_col);
 
-    split_left(rect, NULL, &sr, v, 0);
+    split(*rect, from_left(v, 0), NULL, &sr);
     track_baseline(&sr, clock_font, &sr, deci_font);
 
     draw_text(surface, &sr, deci, deci_font, col, background_col);
@@ -823,7 +746,7 @@ static void draw_deck_clocks(SDL_Surface *surface, const struct rect *rect,
     struct rect upper, lower;
     SDL_Color col;
 
-    split_top(rect, &upper, &lower, CLOCK_FONT_SIZE, 0);
+    split(*rect, from_top(CLOCK_FONT_SIZE, 0), &upper, &lower);
 
     elapse = player_get_elapsed(pl) * 1000;
     remain = player_get_remain(pl) * 1000;
@@ -1011,7 +934,7 @@ static void draw_meters(SDL_Surface *surface, const struct rect *rect,
 {
     struct rect overview, closeup;
 
-    split_top(rect, &overview, &closeup, OVERVIEW_HEIGHT, SPACER);
+    split(*rect, from_top(OVERVIEW_HEIGHT, SPACER), &overview, &closeup);
 
     if (closeup.h > OVERVIEW_HEIGHT)
         draw_overview(surface, &overview, tr, position);
@@ -1030,7 +953,7 @@ static void draw_deck_top(SDL_Surface *surface, const struct rect *rect,
 {
     struct rect clocks, left, right, spinner, scope;
 
-    split_left(rect, &clocks, &right, CLOCKS_WIDTH, SPACER);
+    split(*rect, from_left(CLOCKS_WIDTH, SPACER), &clocks, &right);
 
     /* If there is no timecoder to display information on, or not enough
      * available space, just draw clocks which span the overall space */
@@ -1042,16 +965,16 @@ static void draw_deck_top(SDL_Surface *surface, const struct rect *rect,
 
     draw_deck_clocks(surface, &clocks, pl, track);
 
-    split_right(&right, &left, &spinner, SPINNER_SIZE, SPACER);
+    split(right, from_right(SPINNER_SIZE, SPACER), &left, &spinner);
     if (left.w < 0)
         return;
-    split_bottom(&spinner, NULL, &spinner, SPINNER_SIZE, 0);
+    split(spinner, from_bottom(SPINNER_SIZE, 0), NULL, &spinner);
     draw_spinner(surface, &spinner, pl);
 
-    split_right(&left, &clocks, &scope, SCOPE_SIZE, SPACER);
+    split(left, from_right(SCOPE_SIZE, SPACER), &clocks, &scope);
     if (clocks.w < 0)
         return;
-    split_bottom(&scope, NULL, &scope, SCOPE_SIZE, 0);
+    split(scope, from_bottom(SCOPE_SIZE, 0), NULL, &scope);
     draw_scope(surface, &scope, pl->timecoder);
 }
 
@@ -1107,19 +1030,19 @@ static void draw_deck(SDL_Surface *surface, const struct rect *rect,
 
     position = player_get_elapsed(pl) * t->rate;
 
-    split_top(rect, &track, &rest, FONT_SPACE + BIG_FONT_SPACE, 0);
+    split(*rect, from_top(FONT_SPACE + BIG_FONT_SPACE, 0), &track, &rest);
     if (rest.h < 160)
         rest = *rect;
     else
         draw_record(surface, &track, deck->record);
 
-    split_top(&rest, &top, &lower, CLOCK_FONT_SIZE * 2, SPACER);
+    split(rest, from_top(CLOCK_FONT_SIZE * 2, SPACER), &top, &lower);
     if (lower.h < 64)
         lower = rest;
     else
         draw_deck_top(surface, &top, pl, t);
 
-    split_bottom(&lower, &meters, &status, FONT_SPACE, SPACER);
+    split(lower, from_bottom(FONT_SPACE, SPACER), &meters, &status);
     if (meters.h < 64)
         meters = lower;
     else
@@ -1174,7 +1097,7 @@ static void draw_search(SDL_Surface *surface, const struct rect *rect,
     SDL_Rect cursor;
     struct rect rtext;
 
-    split_left(rect, NULL, &rtext, SCROLLBAR_SIZE, SPACER);
+    split(*rect, from_left(SCROLLBAR_SIZE, SPACER), NULL, &rtext);
 
     if (sel->search[0] != '\0')
         buf = sel->search;
@@ -1245,7 +1168,7 @@ static void draw_crates(SDL_Surface *surface, const struct rect *rect,
     size_t n;
     struct rect left, bottom;
 
-    split_left(rect, &left, &bottom, SCROLLBAR_SIZE, SPACER);
+    split(*rect, from_left(SCROLLBAR_SIZE, SPACER), &left, &bottom);
     draw_scroll_bar(surface, &left, scroll);
 
     n = scroll->offset;
@@ -1262,7 +1185,7 @@ static void draw_crates(SDL_Surface *surface, const struct rect *rect,
         if (bottom.h < FONT_SPACE)
             break;
 
-        split_top(&bottom, &top, &bottom, FONT_SPACE, 0);
+        split(bottom, from_top(FONT_SPACE, 0), &top, &bottom);
 
         crate = library->crate[n];
         selected = (n == scroll->selected);
@@ -1274,7 +1197,7 @@ static void draw_crates(SDL_Surface *surface, const struct rect *rect,
         } else {
             struct rect left, right;
 
-            split_right(&top, &left, &right, SORT_WIDTH, 0);
+            split(top, from_right(SORT_WIDTH, 0), &left, &right);
             draw_text(surface, &left, crate->name, font, col, selected_col);
 
             switch (sort) {
@@ -1318,7 +1241,7 @@ static void draw_listing(SDL_Surface *surface, const struct rect *rect,
     int width;
     struct rect left, bottom;
 
-    split_left(rect, &left, &bottom, SCROLLBAR_SIZE, SPACER);
+    split(*rect, from_left(SCROLLBAR_SIZE, SPACER), &left, &bottom);
     draw_scroll_bar(surface, &left, scroll);
 
     /* Choose the width of the 'artist' column */
@@ -1341,7 +1264,7 @@ static void draw_listing(SDL_Surface *surface, const struct rect *rect,
         if (bottom.h < FONT_SPACE)
             break;
 
-        split_top(&bottom, &top, &bottom, FONT_SPACE, 0);
+        split(bottom, from_top(FONT_SPACE, 0), &top, &bottom);
 
         record = listing->record[n];
         selected = (n == scroll->selected);
@@ -1352,16 +1275,16 @@ static void draw_listing(SDL_Surface *surface, const struct rect *rect,
             col = background_col;
         }
 
-        split_left(&top, &left, &right, BPM_WIDTH, 0);
+        split(top, from_left(BPM_WIDTH, 0), &left, &right);
         draw_bpm_field(surface, &left, record->bpm, col);
 
-        split_left(&right, &left, &right, SPACER, 0);
+        split(right, from_left(SPACER, 0), &left, &right);
         draw_rect(surface, &left, col);
 
-        split_left(&right, &left, &right, width, 0);
+        split(right, from_left(width, 0), &left, &right);
         draw_text(surface, &left, record->artist, font, text_col, col);
 
-        split_left(&right, &left, &right, SPACER, 0);
+        split(right, from_left(SPACER, 0), &left, &right);
         draw_rect(surface, &left, col);
         draw_text(surface, &right, record->title, font, text_col, col);
 
@@ -1382,13 +1305,13 @@ static void draw_library(SDL_Surface *surface, const struct rect *rect,
     unsigned int lines;
     struct rect rsearch, rlists, rcrates, rrecords;
 
-    split_top(rect, &rsearch, &rlists, SEARCH_HEIGHT, SPACER);
+    split(*rect, from_top(SEARCH_HEIGHT, SPACER), &rsearch, &rlists);
     draw_search(surface, &rsearch, sel);
 
     lines = rlists.h / FONT_SPACE;
     selector_set_lines(sel, lines);
 
-    split_left(&rlists, &rcrates, &rrecords, (rlists.w / 4), SPACER);
+    split(rlists, from_left(rlists.w / 4, SPACER), &rcrates, &rrecords);
     if (rcrates.w > LIBRARY_MIN_WIDTH) {
         draw_listing(surface, &rrecords, sel->view_listing, &sel->records);
         draw_crates(surface, &rcrates, sel->library, &sel->crates, sel->sort);
@@ -1680,13 +1603,13 @@ static int interface_main(void)
         /* Split the display into the various areas. If an area is too
          * small, abandon any actions to happen in that area. */
 
-        split_bottom(&rworkspace, &rtmp, &rstatus, STATUS_HEIGHT, SPACER);
+        split(rworkspace, from_bottom(STATUS_HEIGHT, SPACER), &rtmp, &rstatus);
         if (rtmp.h < 128 || rtmp.w < 0) {
             rtmp = rworkspace;
             status_update = false;
         }
 
-        split_top(&rtmp, &rplayers, &rlibrary, PLAYER_HEIGHT, SPACER);
+        split(rtmp, from_top(PLAYER_HEIGHT, SPACER), &rplayers, &rlibrary);
         if (rlibrary.h < LIBRARY_MIN_HEIGHT || rlibrary.w < LIBRARY_MIN_WIDTH) {
             rplayers = rtmp;
             library_update = false;
