@@ -193,4 +193,14 @@ static void split(const struct rect in, const struct layout spec,
     }
 }
 
+/*
+ * Calculate the number of lines we can expect to fit if we
+ * do splits of the given row height
+ */
+
+static unsigned int count_rows(struct rect in, unsigned int row_height)
+{
+    return in.h / (row_height * in.scale);
+}
+
 #endif
