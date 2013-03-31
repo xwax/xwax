@@ -379,11 +379,8 @@ static TTF_Font* open_font(const char *name, int size) {
             fprintf(stderr, "Loading font '%s', %dpt...\n", buf, size);
 
             font = TTF_OpenFont(buf, size);
-            if (!font) {
-                fputs("Font error: ", stderr);
-                fputs(TTF_GetError(), stderr);
-                fputc('\n', stderr);
-            }
+            if (!font)
+                fprintf(stderr, "Font error: %s\n", TTF_GetError());
             return font; /* or NULL */
         }
 
