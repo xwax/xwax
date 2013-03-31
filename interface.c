@@ -168,6 +168,19 @@ static pthread_t ph;
 static struct selector selector;
 
 /*
+ * Scale a dimension according to the current zoom level
+ *
+ * FIXME: This function is used where a rendering does not
+ * acknowledge the scale given in the local rectangle.
+ * These cases should probably be removed.
+ */
+
+static int zoom(int d)
+{
+    return d * ZOOM;
+}
+
+/*
  * Shrink a rectangle to leave a small border of standard size
  */
 
@@ -289,11 +302,13 @@ static void clear_spinner(void)
  */
 
 static TTF_Font* open_font(const char *name, int size) {
-    int r;
+    int r, pt;
     char buf[256];
     const char **dir;
     struct stat st;
     TTF_Font *font;
+
+    pt = zoom(size);
 
     dir = &font_dirs[0];
 
@@ -304,9 +319,9 @@ static TTF_Font* open_font(const char *name, int size) {
         r = stat(buf, &st);
 
         if (r != -1) { /* something exists at this path */
-            fprintf(stderr, "Loading font '%s', %dpt...\n", buf, size);
+            fprintf(stderr, "Loading font '%s', %dpt...\n", buf, pt);
 
-            font = TTF_OpenFont(buf, size);
+            font = TTF_OpenFont(buf, pt);
             if (!font)
                 fprintf(stderr, "Font error: %s\n", TTF_GetError());
             return font; /* or NULL */
