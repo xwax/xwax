@@ -700,19 +700,14 @@ static void draw_clock(SDL_Surface *surface, const struct rect *rect, int t,
 {
     char hms[8], deci[8];
     short int v;
-    int offset;
     struct rect sr;
 
     time_to_clock(hms, deci, t);
 
     v = draw_text(surface, rect, hms, clock_font, col, background_col);
 
-    offset = CLOCK_FONT_SIZE - DECI_FONT_SIZE * 1.04;
-
-    sr.x = rect->x + v;
-    sr.y = rect->y + offset;
-    sr.w = rect->w - v;
-    sr.h = rect->h - offset;
+    split_left(rect, NULL, &sr, v, 0);
+    split_bottom(&sr, NULL, &sr, DECI_FONT_SIZE * 1.04 + 1, 0);
 
     draw_text(surface, &sr, deci, deci_font, col, background_col);
 }
