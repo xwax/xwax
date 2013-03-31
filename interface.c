@@ -517,6 +517,17 @@ static int draw_text(SDL_Surface *sf, const struct rect *rect,
 }
 
 /*
+ * Given a rectangle and font, calculate rendering bounds
+ * for another font so that the baseline matches.
+ */
+
+static void track_baseline(const struct rect *rect, const TTF_Font *a,
+                           struct rect *aligned, const TTF_Font *b)
+{
+    split_top(rect, NULL, aligned, TTF_FontAscent(a)  - TTF_FontAscent(b), 0);
+}
+
+/*
  * Draw a coloured rectangle
  */
 
@@ -707,7 +718,7 @@ static void draw_clock(SDL_Surface *surface, const struct rect *rect, int t,
     v = draw_text(surface, rect, hms, clock_font, col, background_col);
 
     split_left(rect, NULL, &sr, v, 0);
-    split_bottom(&sr, NULL, &sr, DECI_FONT_SIZE * 1.04 + 1, 0);
+    track_baseline(&sr, clock_font, &sr, deci_font);
 
     draw_text(surface, &sr, deci, deci_font, col, background_col);
 }
