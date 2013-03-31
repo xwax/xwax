@@ -1198,17 +1198,18 @@ static void draw_crates(SDL_Surface *surface, const struct rect *rect,
     for (;;) {
         bool selected;
         SDL_Color col;
-        struct rect top;
+        struct rect top, remain;
         const struct crate *crate;
 
         if (n >= library->crates)
             break;
 
-        if (bottom.h < FONT_SPACE)
+        split(bottom, from_top(FONT_SPACE, 0), &top, &remain);
+
+        if (remain.h < 0)
             break;
 
-        split(bottom, from_top(FONT_SPACE, 0), &top, &bottom);
-
+        bottom = remain;
         crate = library->crate[n];
         selected = (n == scroll->selected);
 
@@ -1276,18 +1277,19 @@ static void draw_listing(SDL_Surface *surface, const struct rect *rect,
 
     for (;;) {
         SDL_Color col;
-        struct rect top, left, right;
+        struct rect top, left, right, remain;
         const struct record *record;
         bool selected;
 
         if (n >= listing->entries)
             break;
 
-        if (bottom.h < FONT_SPACE)
+        split(bottom, from_top(FONT_SPACE, 0), &top, &remain);
+
+        if (remain.h < 0)
             break;
 
-        split(bottom, from_top(FONT_SPACE, 0), &top, &bottom);
-
+        bottom = remain;
         record = listing->record[n];
         selected = (n == scroll->selected);
 
