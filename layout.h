@@ -35,6 +35,7 @@ struct rect {
 
 struct layout {
     unsigned char flags;
+    float portion;
     pix_t distance, space;
 };
 
@@ -47,6 +48,7 @@ static struct layout absolute(unsigned char flags, pix_t distance, pix_t space)
     struct layout l;
 
     l.flags = flags;
+    l.portion = 0.0;
     l.distance = distance;
     l.space = space;
 
@@ -73,6 +75,28 @@ static struct layout from_bottom(pix_t distance, pix_t space)
     return absolute(LAYOUT_VERTICAL | LAYOUT_SECONDARY, distance, space);
 }
 
+static struct layout portion(unsigned char flags, double f, pix_t space)
+{
+    struct layout l;
+
+    l.flags = flags;
+    l.portion = f;
+    l.distance = 0;
+    l.space = space;
+
+    return l;
+}
+
+static struct layout columns(double f, pix_t space)
+{
+    return portion(0, f, space);
+}
+
+static struct layout rows(double f, pix_t space)
+{
+    return portion(LAYOUT_VERTICAL, f, space);
+}
+
 /*
  * Create a new rectangle from pixels
  */
@@ -97,7 +121,7 @@ static void split(const struct rect in, const struct layout spec,
                   struct rect *a, struct rect *b)
 {
     unsigned char flags;
-    signed short p, q, full;
+    signed short p, q, full, distance;
     struct rect discard;
 
     if (!a)
@@ -112,12 +136,17 @@ static void split(const struct rect in, const struct layout spec,
     else
         full = in.w;
 
+    if (spec.portion != 0.0)
+        distance = spec.portion * full - spec.space / 2;
+    else
+        distance = spec.distance;
+
     if (flags & LAYOUT_SECONDARY) {
-        p = full - spec.distance - spec.space;
-        q = full - spec.distance;
+        p = full - distance - spec.space;
+        q = full - distance;
     } else {
-        p = spec.distance;
-        q = spec.distance + spec.space;
+        p = distance;
+        q = distance + spec.space;
     }
 
     if (flags & LAYOUT_VERTICAL) {
