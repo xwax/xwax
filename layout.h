@@ -143,14 +143,19 @@ struct rect rect(pix_t x, pix_t y, pix_t w, pix_t h, float scale)
 
 /*
  * Apply a layout request to split two rectangles
+ *
+ * The caller is allowed to use the same rectangle for output
+ * as is the input.
  */
 
-static void split(const struct rect in, const struct layout spec,
+static void split(const struct rect x, const struct layout spec,
                   struct rect *a, struct rect *b)
 {
     unsigned char flags;
     signed short p, q, full, distance, space;
-    struct rect discard;
+    struct rect discard, in;
+
+    in = x; /* allow caller to re-use x as an output */
 
     if (!a)
         a = &discard;
