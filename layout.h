@@ -201,22 +201,20 @@ static void split(const struct rect x, const struct layout spec,
  * Shrink a rectangle to leave a border on all sides
  */
 
-static struct rect shrink(const struct rect in, unsigned int distance)
+static struct rect shrink(const struct rect in, int distance)
 {
     struct rect out;
 
-    if (distance * 2 >= in.w) {
-        out.x = in.x;
-        out.w = in.w;
-    } else {
+    out = in;
+
+    distance *= in.scale;
+
+    if (distance * 2 < in.w) {
         out.x = in.x + distance;
         out.w = in.w - distance * 2;
     }
 
-    if (distance * 2 >= in.h) {
-        out.y = in.y;
-        out.h = in.h;
-    } else {
+    if (distance * 2 < in.h) {
         out.y = in.y + distance;
         out.h = in.h - distance * 2;
     }
