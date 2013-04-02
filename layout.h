@@ -184,11 +184,11 @@ static void split(const struct rect x, const struct layout spec,
         distance = spec.portion * full - space / 2;
 
     if (flags & LAYOUT_SECONDARY) {
-        p = full - distance - spec.space;
+        p = full - distance - space;
         q = full - distance;
     } else {
         p = distance;
-        q = distance + spec.space;
+        q = distance + space;
     }
 
     if (flags & LAYOUT_VERTICAL) {
