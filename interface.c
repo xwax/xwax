@@ -181,29 +181,6 @@ static int zoom(int d)
 }
 
 /*
- * Shrink a rectangle to leave a small border of standard size
- */
-
-static void shrink(const struct rect *in, struct rect *out)
-{
-    if (TOKEN_SPACE * 2 >= in->w) {
-        out->x = in->x;
-        out->w = in->w;
-    } else {
-        out->x = in->x + TOKEN_SPACE;
-        out->w = in->w - TOKEN_SPACE * 2;
-    }
-
-    if (TOKEN_SPACE * 2 >= in->h) {
-        out->y = in->y;
-        out->h = in->h;
-    } else {
-        out->y = in->y + TOKEN_SPACE;
-        out->h = in->h - TOKEN_SPACE * 2;
-    }
-}
-
-/*
  * Convert the given time (in milliseconds) to displayable time
  */
 
@@ -499,7 +476,7 @@ static void draw_token(SDL_Surface *surface, const struct rect *rect,
     struct rect b;
 
     draw_rect(surface, rect, bg_col);
-    shrink(rect, &b);
+    b = shrink(*rect, TOKEN_SPACE);
     draw_text(surface, &b, buf, detail_font, text_col, col);
 }
 
@@ -1482,7 +1459,7 @@ static bool handle_key(SDLKey key, SDLMod mod)
  * Action on size change event on the main window
  */
 
-static SDL_Surface* set_size(int w, int h, struct rect *rect)
+static SDL_Surface* set_size(int w, int h, struct rect *r)
 {
     SDL_Surface *surface;
 
@@ -1492,10 +1469,7 @@ static SDL_Surface* set_size(int w, int h, struct rect *rect)
         return NULL;
     }
 
-    rect->x = BORDER;
-    rect->y = BORDER;
-    rect->w = w - 2 * BORDER;
-    rect->h = h - 2 * BORDER;
+    *r = shrink(rect(0, 0, w, h, ZOOM), BORDER);
 
     fprintf(stderr, "New interface size is %dx%d.\n", w, h);
 
@@ -1550,8 +1524,6 @@ static int interface_main(void)
     surface = set_size(width, height, &rworkspace);
     if (!surface)
         return -1;
-
-    rworkspace.scale = ZOOM;
 
     decks_update = true;
     status_update = true;
