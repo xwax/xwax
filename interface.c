@@ -1057,17 +1057,14 @@ static void draw_deck(SDL_Surface *surface, const struct rect *rect,
 static void draw_decks(SDL_Surface *surface, const struct rect *rect,
                        struct deck deck[], size_t ndecks, int meter_scale)
 {
-    int d, deck_width;
-    struct rect single;
+    int d;
+    struct rect left, right;
 
-    deck_width = (rect->w - BORDER * (ndecks - 1)) / ndecks;
-
-    single = *rect;
-    single.w = deck_width;
+    right = *rect;
 
     for (d = 0; d < ndecks; d++) {
-        single.x = rect->x + (deck_width + BORDER) * d;
-        draw_deck(surface, &single, &deck[d], meter_scale);
+        split(right, columns(d, ndecks, BORDER), &left, &right);
+        draw_deck(surface, &left, &deck[d], meter_scale);
     }
 }
 
@@ -1310,7 +1307,7 @@ static void draw_library(SDL_Surface *surface, const struct rect *rect,
 
     selector_set_lines(sel, count_rows(rlists, FONT_SPACE));
 
-    split(rlists, columns(1.0 / 4, SPACER), &rcrates, &rrecords);
+    split(rlists, columns(1, 4, SPACER), &rcrates, &rrecords);
     if (rcrates.w > LIBRARY_MIN_WIDTH) {
         draw_listing(surface, &rrecords, sel->view_listing, &sel->records);
         draw_crates(surface, &rcrates, sel->library, &sel->crates, sel->sort);

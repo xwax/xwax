@@ -94,14 +94,16 @@ static struct layout portion(unsigned char flags, double f, pix_t space)
     return l;
 }
 
-static struct layout columns(double f, pix_t space)
+static struct layout columns(unsigned int n, unsigned int total, pix_t space)
 {
-    return portion(0, f, space);
+    assert(n < total);
+    return portion(0, 1.0 / (total - n), space);
 }
 
-static struct layout rows(double f, pix_t space)
+static struct layout rows(unsigned int n, unsigned int total, pix_t space)
 {
-    return portion(LAYOUT_VERTICAL, f, space);
+    assert(n < total);
+    return portion(LAYOUT_VERTICAL, 1.0 / (total - n), space);
 }
 
 /*
