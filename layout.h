@@ -94,14 +94,16 @@ static struct layout portion(unsigned char flags, double f, pix_t space)
     return l;
 }
 
-static struct layout columns(double f, pix_t space)
+static struct layout columns(unsigned int n, unsigned int total, pix_t space)
 {
-    return portion(0, f, space);
+    assert(n < total);
+    return portion(0, 1.0 / (total - n), space);
 }
 
-static struct layout rows(double f, pix_t space)
+static struct layout rows(unsigned int n, unsigned int total, pix_t space)
 {
-    return portion(LAYOUT_VERTICAL, f, space);
+    assert(n < total);
+    return portion(LAYOUT_VERTICAL, 1.0 / (total - n), space);
 }
 
 /*
@@ -141,14 +143,19 @@ struct rect rect(pix_t x, pix_t y, pix_t w, pix_t h, float scale)
 
 /*
  * Apply a layout request to split two rectangles
+ *
+ * The caller is allowed to use the same rectangle for output
+ * as is the input.
  */
 
-static void split(const struct rect in, const struct layout spec,
+static void split(const struct rect x, const struct layout spec,
                   struct rect *a, struct rect *b)
 {
     unsigned char flags;
     signed short p, q, full, distance, space;
-    struct rect discard;
+    struct rect discard, in;
+
+    in = x; /* allow caller to re-use x as an output */
 
     if (!a)
         a = &discard;
@@ -162,9 +169,6 @@ static void split(const struct rect in, const struct layout spec,
     else
         full = in.w;
 
-    space = spec.space;
-    distance = spec.distance;
-
     if (flags & LAYOUT_PIXELS) {
         space = spec.space;
         distance = spec.distance;
@@ -177,11 +181,11 @@ static void split(const struct rect in, const struct layout spec,
         distance = spec.portion * full - space / 2;
 
     if (flags & LAYOUT_SECONDARY) {
-        p = full - distance - spec.space;
+        p = full - distance - space;
         q = full - distance;
     } else {
         p = distance;
-        q = distance + spec.space;
+        q = distance + space;
     }
 
     if (flags & LAYOUT_VERTICAL) {
@@ -191,6 +195,31 @@ static void split(const struct rect in, const struct layout spec,
         *a = rect(in.x,     in.y,     p,        in.h,     in.scale);
         *b = rect(in.x + q, in.y,     in.w - q, in.h,     in.scale);
     }
+}
+
+/*
+ * Shrink a rectangle to leave a border on all sides
+ */
+
+static struct rect shrink(const struct rect in, int distance)
+{
+    struct rect out;
+
+    out = in;
+
+    distance *= in.scale;
+
+    if (distance * 2 < in.w) {
+        out.x = in.x + distance;
+        out.w = in.w - distance * 2;
+    }
+
+    if (distance * 2 < in.h) {
+        out.y = in.y + distance;
+        out.h = in.h - distance * 2;
+    }
+
+    return out;
 }
 
 /*
