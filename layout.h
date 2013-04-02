@@ -169,9 +169,6 @@ static void split(const struct rect x, const struct layout spec,
     else
         full = in.w;
 
-    space = spec.space;
-    distance = spec.distance;
-
     if (flags & LAYOUT_PIXELS) {
         space = spec.space;
         distance = spec.distance;
