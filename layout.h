@@ -50,7 +50,8 @@ struct layout {
  * Helper function to make layout specs
  */
 
-static struct layout absolute(unsigned char flags, pix_t distance, pix_t space)
+static inline struct layout absolute(unsigned char flags, pix_t distance,
+                                     pix_t space)
 {
     struct layout l;
 
@@ -62,27 +63,27 @@ static struct layout absolute(unsigned char flags, pix_t distance, pix_t space)
     return l;
 }
 
-static struct layout from_left(pix_t distance, pix_t space)
+static inline struct layout from_left(pix_t distance, pix_t space)
 {
     return absolute(0, distance, space);
 }
 
-static struct layout from_right(pix_t distance, pix_t space)
+static inline struct layout from_right(pix_t distance, pix_t space)
 {
     return absolute(LAYOUT_SECONDARY, distance, space);
 }
 
-static struct layout from_top(pix_t distance, pix_t space)
+static inline struct layout from_top(pix_t distance, pix_t space)
 {
     return absolute(LAYOUT_VERTICAL, distance, space);
 }
 
-static struct layout from_bottom(pix_t distance, pix_t space)
+static inline struct layout from_bottom(pix_t distance, pix_t space)
 {
     return absolute(LAYOUT_VERTICAL | LAYOUT_SECONDARY, distance, space);
 }
 
-static struct layout portion(unsigned char flags, double f, pix_t space)
+static inline struct layout portion(unsigned char flags, double f, pix_t space)
 {
     struct layout l;
 
@@ -94,13 +95,15 @@ static struct layout portion(unsigned char flags, double f, pix_t space)
     return l;
 }
 
-static struct layout columns(unsigned int n, unsigned int total, pix_t space)
+static inline struct layout columns(unsigned int n, unsigned int total,
+                                    pix_t space)
 {
     assert(n < total);
     return portion(0, 1.0 / (total - n), space);
 }
 
-static struct layout rows(unsigned int n, unsigned int total, pix_t space)
+static inline struct layout rows(unsigned int n, unsigned int total,
+                                 pix_t space)
 {
     assert(n < total);
     return portion(LAYOUT_VERTICAL, 1.0 / (total - n), space);
@@ -114,7 +117,7 @@ static struct layout rows(unsigned int n, unsigned int total, pix_t space)
  * to us when drawing text)
  */
 
-static struct layout pixels(struct layout j)
+static inline struct layout pixels(struct layout j)
 {
     struct layout r;
 
@@ -128,7 +131,7 @@ static struct layout pixels(struct layout j)
  * Create a new rectangle from pixels
  */
 
-struct rect rect(pix_t x, pix_t y, pix_t w, pix_t h, float scale)
+static inline struct rect rect(pix_t x, pix_t y, pix_t w, pix_t h, float scale)
 {
     struct rect r;
 
@@ -148,8 +151,8 @@ struct rect rect(pix_t x, pix_t y, pix_t w, pix_t h, float scale)
  * as is the input.
  */
 
-static void split(const struct rect x, const struct layout spec,
-                  struct rect *a, struct rect *b)
+static inline void split(const struct rect x, const struct layout spec,
+                         struct rect *a, struct rect *b)
 {
     unsigned char flags;
     signed short p, q, full, distance, space;
@@ -201,7 +204,7 @@ static void split(const struct rect x, const struct layout spec,
  * Shrink a rectangle to leave a border on all sides
  */
 
-static struct rect shrink(const struct rect in, int distance)
+static inline struct rect shrink(const struct rect in, int distance)
 {
     struct rect out;
 
@@ -227,7 +230,7 @@ static struct rect shrink(const struct rect in, int distance)
  * do splits of the given row height
  */
 
-static unsigned int count_rows(struct rect in, unsigned int row_height)
+static inline unsigned int count_rows(struct rect in, unsigned int row_height)
 {
     return in.h / (row_height * in.scale);
 }
