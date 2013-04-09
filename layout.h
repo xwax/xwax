@@ -50,8 +50,8 @@ struct layout {
  * Helper function to make layout specs
  */
 
-static inline struct layout absolute(unsigned char flags, pix_t distance,
-                                     pix_t space)
+static inline struct layout absolute(unsigned char flags, unsigned int distance,
+                                     unsigned int space)
 {
     struct layout l;
 
@@ -63,27 +63,32 @@ static inline struct layout absolute(unsigned char flags, pix_t distance,
     return l;
 }
 
-static inline struct layout from_left(pix_t distance, pix_t space)
+static inline struct layout from_left(unsigned int distance,
+                                      unsigned int space)
 {
     return absolute(0, distance, space);
 }
 
-static inline struct layout from_right(pix_t distance, pix_t space)
+static inline struct layout from_right(unsigned int distance,
+                                       unsigned int space)
 {
     return absolute(LAYOUT_SECONDARY, distance, space);
 }
 
-static inline struct layout from_top(pix_t distance, pix_t space)
+static inline struct layout from_top(unsigned int distance,
+                                     unsigned int space)
 {
     return absolute(LAYOUT_VERTICAL, distance, space);
 }
 
-static inline struct layout from_bottom(pix_t distance, pix_t space)
+static inline struct layout from_bottom(unsigned int distance,
+                                        unsigned int space)
 {
     return absolute(LAYOUT_VERTICAL | LAYOUT_SECONDARY, distance, space);
 }
 
-static inline struct layout portion(unsigned char flags, double f, pix_t space)
+static inline struct layout portion(unsigned char flags, double f,
+                                    unsigned int space)
 {
     struct layout l;
 
@@ -96,14 +101,14 @@ static inline struct layout portion(unsigned char flags, double f, pix_t space)
 }
 
 static inline struct layout columns(unsigned int n, unsigned int total,
-                                    pix_t space)
+                                    unsigned int space)
 {
     assert(n < total);
     return portion(0, 1.0 / (total - n), space);
 }
 
 static inline struct layout rows(unsigned int n, unsigned int total,
-                                 pix_t space)
+                                 unsigned int space)
 {
     assert(n < total);
     return portion(LAYOUT_VERTICAL, 1.0 / (total - n), space);
