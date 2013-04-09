@@ -614,15 +614,15 @@ signed int timecoder_get_position(struct timecoder *tc, double *when)
 {
     signed int r;
 
-    if (tc->valid_counter > VALID_BITS) {
-        r = lut_lookup(&tc->def->lut, tc->bitstream);
+    if (tc->valid_counter <= VALID_BITS)
+        return -1;
 
-        if (r >= 0) {
-            if (when)
-                *when = tc->timecode_ticker * tc->dt;
-            return r;
-        }
-    }
+    r = lut_lookup(&tc->def->lut, tc->bitstream);
+    if (r == -1)
+        return -1;
 
-    return -1;
+    if (when)
+        *when = tc->timecode_ticker * tc->dt;
+
+    return r;
 }
