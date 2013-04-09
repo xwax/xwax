@@ -148,7 +148,9 @@ tests/track:	tests/track.o external.o rig.o status.o thread.o track.o
 tests/track:	LDFLAGS += -pthread
 tests/track:	LDLIBS += -lm
 
+tests/ttf.o:	tests/ttf.c  # not needed except to workaround Make 3.81
 tests/ttf.o:	CFLAGS += $(SDL_CFLAGS)
+
 tests/ttf:	LDLIBS += $(SDL_LIBS)
 
 .PHONY:		clean
