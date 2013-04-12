@@ -56,6 +56,7 @@ struct timecoder {
     /* Precomputed values */
 
     double dt, zero_alpha;
+    signed int threshold;
 
     /* Pitch information */
 
@@ -81,7 +82,7 @@ struct timecode_def* timecoder_find_definition(const char *name);
 void timecoder_free_lookup(void);
 
 void timecoder_init(struct timecoder *tc, struct timecode_def *def,
-                    double speed, unsigned int sample_rate);
+                    double speed, unsigned int sample_rate, bool phono);
 void timecoder_clear(struct timecoder *tc);
 
 int timecoder_monitor_init(struct timecoder *tc, int size);

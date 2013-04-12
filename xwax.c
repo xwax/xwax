@@ -83,6 +83,8 @@ static void usage(FILE *fd)
       "  -45            Use timecode at 45RPM\n"
       "  -c             Protect against certain operations while playing\n"
       "  -u             Allow all operations when playing\n"
+      "  --line         Line level signal (default)\n"
+      "  --phono        Tolerate cartridge level signal ('software pre-amp')\n"
       "  -i <program>   Importer (default '%s')\n\n",
       DEFAULT_IMPORTER);
 
@@ -131,7 +133,7 @@ int main(int argc, char *argv[])
     size_t nctl;
     double speed;
     struct timecode_def *timecode;
-    bool protect, use_mlock;
+    bool protect, use_mlock, phono;
 
     struct controller ctl[2];
     struct rt rt;
@@ -168,6 +170,7 @@ int main(int argc, char *argv[])
     timecode = NULL;
     speed = 1.0;
     protect = false;
+    phono = false;
     use_mlock = false;
 
 #if defined WITH_OSS || WITH_ALSA
@@ -348,7 +351,7 @@ int main(int argc, char *argv[])
                 assert(timecode != NULL);
             }
 
-            timecoder_init(timecoder, timecode, speed, sample_rate);
+            timecoder_init(timecoder, timecode, speed, sample_rate, phono);
 
             /* Connect up the elements to make an operational deck */
 
@@ -408,6 +411,20 @@ int main(int argc, char *argv[])
         } else if (!strcmp(argv[0], "-u")) {
 
             protect = false;
+
+            argv++;
+            argc--;
+
+        } else if (!strcmp(argv[0], "--line")) {
+
+            phono = false;
+
+            argv++;
+            argc--;
+
+        } else if (!strcmp(argv[0], "--phono")) {
+
+            phono = true;
 
             argv++;
             argc--;

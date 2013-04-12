@@ -41,7 +41,7 @@ int main(int argc, char *argv[])
     def = timecoder_find_definition("serato_2a");
     assert(def != NULL);
 
-    timecoder_init(&tc, def, 1.0, RATE);
+    timecoder_init(&tc, def, 1.0, RATE, false);
 
     s = 0;
 

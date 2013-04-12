@@ -290,7 +290,7 @@ static void init_channel(struct timecoder_channel *ch)
  */
 
 void timecoder_init(struct timecoder *tc, struct timecode_def *def,
-                    double speed, unsigned int sample_rate)
+                    double speed, unsigned int sample_rate, bool phono)
 {
     assert(def != NULL);
 
@@ -303,6 +303,9 @@ void timecoder_init(struct timecoder *tc, struct timecode_def *def,
 
     tc->dt = 1.0 / sample_rate;
     tc->zero_alpha = tc->dt / (ZERO_RC + tc->dt);
+    tc->threshold = ZERO_THRESHOLD;
+    if (phono)
+        tc->threshold >>= 5; /* approx -36dB */
 
     tc->forwards = 1;
     init_channel(&tc->primary);
@@ -366,16 +369,17 @@ void timecoder_monitor_clear(struct timecoder *tc)
  */
 
 static void detect_zero_crossing(struct timecoder_channel *ch,
-                                 signed int v, double alpha)
+                                 signed int v, double alpha,
+                                 signed int threshold)
 {
     ch->crossing_ticker++;
 
     ch->swapped = false;
-    if (v > ch->zero + ZERO_THRESHOLD && !ch->positive) {
+    if (v > ch->zero + threshold && !ch->positive) {
         ch->swapped = true;
         ch->positive = true;
         ch->crossing_ticker = 0;
-    } else if (v < ch->zero - ZERO_THRESHOLD && ch->positive) {
+    } else if (v < ch->zero - threshold && ch->positive) {
         ch->swapped = true;
         ch->positive = false;
         ch->crossing_ticker = 0;
@@ -483,8 +487,8 @@ static void process_bitstream(struct timecoder *tc, signed int m)
 static void process_sample(struct timecoder *tc,
 			   signed int primary, signed int secondary)
 {
-    detect_zero_crossing(&tc->primary, primary, tc->zero_alpha);
-    detect_zero_crossing(&tc->secondary, secondary, tc->zero_alpha);
+    detect_zero_crossing(&tc->primary, primary, tc->zero_alpha, tc->threshold);
+    detect_zero_crossing(&tc->secondary, secondary, tc->zero_alpha, tc->threshold);
 
     /* If an axis has been crossed, use the direction of the crossing
      * to work out the direction of the vinyl */

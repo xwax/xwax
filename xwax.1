@@ -57,6 +57,21 @@ of the
 option, and is the default.
 
 .TP
+.B \--phono
+Adjust the noise thresholds of subsequent decks to tolerate a
+cartridge-level signal connected to a line-level audio interface. This
+is a 'software pre-amp'. Unless your audio path has low noise, this
+will give worse results or may not work at all; a true phono
+pre-amplifier is always preferred.
+
+.TP
+.B \--line
+Set noise thresholds of subsequent decks to standard audio levels.
+This reverses the effect of the
+.B \--phono
+option, and is the default.
+
+.TP
 .B \-i \fIpath\fR
 Use the given importer executable for subsequent decks.
 
