@@ -1,3 +1,12 @@
+v1.4 (work in progress)
+-----------------------
+
+* Scalable user interface
+* Simple control of timecode levels for 'software pre-amp'
+* Bug fix: MIDI interface now works when only JACK audio is used
+
+Acknowledgements: Daniel Holbach
+
 v1.3 (2012-11-29)
 -----------------
 
