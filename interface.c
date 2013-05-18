@@ -74,7 +74,7 @@
 
 /* Relationship between pixels and screen units */
 
-#define ZOOM 1.0
+#define DEFAULT_SCALE 1.0
 
 /* Dimensions in our own screen units */
 
@@ -164,6 +164,7 @@ static unsigned short *spinner_angle, spinner_size;
 
 static int width = DEFAULT_WIDTH, height = DEFAULT_HEIGHT,
     meter_scale = DEFAULT_METER_SCALE;
+static float scale = DEFAULT_SCALE;
 static pthread_t ph;
 static struct selector selector;
 
@@ -172,12 +173,12 @@ static struct selector selector;
  *
  * FIXME: This function is used where a rendering does not
  * acknowledge the scale given in the local rectangle.
- * These cases should probably be removed.
+ * These cases should be removed.
  */
 
 static int zoom(int d)
 {
-    return d * ZOOM;
+    return d * scale;
 }
 
 /*
@@ -1466,7 +1467,7 @@ static SDL_Surface* set_size(int w, int h, struct rect *r)
         return NULL;
     }
 
-    *r = shrink(rect(0, 0, w, h, ZOOM), BORDER);
+    *r = shrink(rect(0, 0, w, h, scale), BORDER);
 
     fprintf(stderr, "New interface size is %dx%d.\n", w, h);
 
@@ -1656,27 +1657,49 @@ static void* launch(void *p)
 }
 
 /*
- * Parse and action the given geometry string. Format is "960x720" or
- * "970x720+20+20"
+ * Parse and action the given geometry string
+ *
+ * Geometry string includes size, position and scale. The format is
+ * "[<n>x<n>][+<n>+<n>][@<f>]". Some examples:
+ *
+ *   960x720
+ *   +10+10
+ *   960x720+10+10
+ *   @1.6
+ *   1920x1200@1.6
  *
  * Return: -1 if string could not be actioned, otherwise 0
  */
 
 static int parse_geometry(const char *s)
 {
-    int n, x, y;
+    int n, x, y, len;
     char buf[128];
 
-    n = sscanf(s, "%dx%d+%d+%d", &width, &height, &x, &y);
+    /* The %n in format strings is not a token, see scanf(3) man page */
 
+    n = sscanf(s, "%[0-9]x%d%n", buf, &height, &len);
     switch (n) {
-    case EOF: /* empty string */
+    case EOF:
+        return 0;
+    case 0:
         break;
-
     case 2:
+        /* we used a format to prevent parsing the '+' in the next block */
+        width = atoi(buf);
+        s += len;
         break;
+    default:
+        return -1;
+    }
 
-    case 4:
+    n = sscanf(s, "+%d+%d%n", &x, &y, &len);
+    switch (n) {
+    case EOF:
+        return 0;
+    case 0:
+        break;
+    case 2:
         /* FIXME: Not a desirable way to get geometry information to
          * SDL, but it seems to be the only way */
 
@@ -1684,11 +1707,29 @@ static int parse_geometry(const char *s)
         if (putenv(buf) != 0)
             return -1;
 
+        s += len;
         break;
-
     default:
         return -1;
     }
+
+    n = sscanf(s, "/%f%n", &scale, &len);
+    switch (n) {
+    case EOF:
+        return 0;
+    case 0:
+        break;
+    case 1:
+        if (scale <= 0.0)
+            return -1;
+        s += len;
+        break;
+    default:
+        return -1;
+    }
+
+    if (*s != '\0')
+        return -1;
 
     return 0;
 }
