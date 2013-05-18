@@ -22,6 +22,7 @@
 #include "controller.h"
 #include "cues.h"
 #include "deck.h"
+#include "status.h"
 #include "rig.h"
 
 /*
@@ -89,8 +90,10 @@ void deck_load(struct deck *deck, struct record *record)
 {
     struct track *t;
 
-    if (deck_is_locked(deck))
+    if (deck_is_locked(deck)) {
+        status_printf(STATUS_WARN, "Stop deck to load a different track");
         return;
+    }
 
     t = track_get_by_import(deck->importer, record->pathname);
     if (t == NULL)
@@ -102,8 +105,10 @@ void deck_load(struct deck *deck, struct record *record)
 
 void deck_recue(struct deck *deck)
 {
-    if (deck_is_locked(deck))
+    if (deck_is_locked(deck)) {
+        status_printf(STATUS_WARN, "Stop deck to recue");
         return;
+    }
 
     player_recue(&deck->player);
 }

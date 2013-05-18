@@ -1075,10 +1075,20 @@ static void draw_decks(SDL_Surface *surface, const struct rect *rect,
 
 static void draw_status(SDL_Surface *sf, const struct rect *rect)
 {
-    if (status_level() >= STATUS_ERROR)
-        draw_text(sf, rect, status(), detail_font, text_col, dim(warn_col, 2));
-    else
-        draw_text(sf, rect, status(), detail_font, detail_col, background_col);
+    SDL_Color fg, bg;
+
+    switch (status_level()) {
+    case STATUS_ERROR:
+    case STATUS_WARN:
+        fg = text_col;
+        bg = dim(warn_col, 2);
+        break;
+    default:
+        fg = detail_col;
+        bg = background_col;
+    }
+
+    draw_text(sf, rect, status(), detail_font, fg, bg);
 }
 
 /*

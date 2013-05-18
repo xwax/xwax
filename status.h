@@ -28,7 +28,8 @@
 
 #define STATUS_VERBOSE 0
 #define STATUS_INFO    1
-#define STATUS_ERROR   2
+#define STATUS_WARN    2
+#define STATUS_ERROR   3
 
 const char* status(void);
 int status_level(void);
