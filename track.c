@@ -452,7 +452,7 @@ static void stop_import(struct track *t)
     } else {
         fprintf(stderr, "Track import completed with status %d\n", status);
         if (!t->terminated)
-            status_printf(STATUS_ERROR, "Error importing %s", t->path);
+            status_printf(STATUS_ALERT, "Error importing %s", t->path);
     }
 
     t->pid = 0;

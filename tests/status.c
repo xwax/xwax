@@ -19,8 +19,8 @@ int main(int argc, char *argv[])
 
     status_notify(notify);
 
-    status_set(STATUS_ERROR, "apple");
-    status_set(STATUS_ERROR, "orange");
+    status_set(STATUS_ALERT, "apple");
+    status_set(STATUS_ALERT, "orange");
 
     return 0;
 }

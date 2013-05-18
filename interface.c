@@ -150,7 +150,7 @@ static TTF_Font *clock_font, *deci_font, *detail_font,
 
 static SDL_Color background_col = {0, 0, 0, 255},
     text_col = {224, 224, 224, 255},
-    warn_col = {192, 64, 0, 255},
+    alert_col = {192, 64, 0, 255},
     ok_col = {32, 128, 3, 255},
     elapsed_col = {0, 32, 255, 255},
     cursor_col = {192, 0, 0, 255},
@@ -701,7 +701,7 @@ static void draw_spinner(SDL_Surface *surface, const struct rect *rect,
     rangle = (int)(player_get_position(pl) * 1024 * rps) % 1024;
 
     if (elapsed < 0 || remain < 0)
-        col = warn_col;
+        col = alert_col;
     else
         col = ok_col;
 
@@ -752,7 +752,7 @@ static void draw_deck_clocks(SDL_Surface *surface, const struct rect *rect,
     remain = player_get_remain(pl) * 1000;
 
     if (elapse < 0)
-        col = warn_col;
+        col = alert_col;
     else if (remain > 0)
         col = ok_col;
     else
@@ -761,7 +761,7 @@ static void draw_deck_clocks(SDL_Surface *surface, const struct rect *rect,
     draw_clock(surface, &upper, elapse, col);
 
     if (remain <= 0)
-        col = warn_col;
+        col = alert_col;
     else
         col = text_col;
 
@@ -818,7 +818,7 @@ static void draw_overview(SDL_Surface *surface, const struct rect *rect,
             col = needle_col;
             fade = 1;
         } else if (position > tr->length - tr->rate * METER_WARNING_TIME) {
-            col = warn_col;
+            col = alert_col;
             fade = 3;
         } else {
             col = elapsed_col;
@@ -1078,10 +1078,10 @@ static void draw_status(SDL_Surface *sf, const struct rect *rect)
     SDL_Color fg, bg;
 
     switch (status_level()) {
-    case STATUS_ERROR:
+    case STATUS_ALERT:
     case STATUS_WARN:
         fg = text_col;
-        bg = dim(warn_col, 2);
+        bg = dim(alert_col, 2);
         break;
     default:
         fg = detail_col;
