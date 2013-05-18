@@ -1105,7 +1105,7 @@ static void draw_search(SDL_Surface *surface, const struct rect *rect,
 
     cursor.x = rtext.x + s;
     cursor.y = rtext.y;
-    cursor.w = CURSOR_WIDTH;
+    cursor.w = CURSOR_WIDTH * rect->scale; /* FIXME: use proper UI funcs */
     cursor.h = rtext.h;
 
     SDL_FillRect(surface, &cursor, palette(surface, &cursor_col));
