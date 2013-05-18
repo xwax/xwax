@@ -78,9 +78,13 @@ Change the real-time priority of the process. A priority of 0 gives
 the process no priority, and is used for testing only.
 
 .TP
-.B \-g \fIn\fRx\fIn\fR[+\fIn\fR+\fIn\fR]
-Change the geometry of the display. This size and position is passed
+.B \-g [\fIn\fRx\fIn\fR][+\fIn\fR+\fIn\fR][/\fIf\fR]
+Change the geometry of the display in size, position and scale (zoom)
+respectively.
+The size and position is passed
 to SDL, which may use it to set the display mode, or size of an X window.
+See the
+.B EXAMPLES.
 
 .TP
 .B \-h
@@ -312,6 +316,13 @@ Control two decks with Dicer hardware:
 .sp
 .RS
 xwax \-dicer hw:Dicer \-a hw:0 \-a hw:1
+.RE
+
+.P
+Use a high resolution and enlarge the user interface:
+.sp
+.RS
+xwax -g 1920x1200/1.8 -a hw:0
 .RE
 
 .SH HOMEPAGE

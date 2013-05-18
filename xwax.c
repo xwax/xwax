@@ -68,7 +68,7 @@ static void usage(FILE *fd)
     fprintf(fd, "Program-wide options:\n"
       "  -k             Lock real-time memory into RAM\n"
       "  -q <n>         Real-time priority (0 for no priority, default %d)\n"
-      "  -g <n>x<n>     Set display geometry\n"
+      "  -g <s>         Set display geometry (see man page)\n"
       "  -h             Display this message to stdout and exit\n\n",
       DEFAULT_PRIORITY);
 
