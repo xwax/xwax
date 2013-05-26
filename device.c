@@ -20,9 +20,16 @@
 #include <assert.h>
 #include <stddef.h>
 
+#include "debug.h"
 #include "device.h"
 #include "player.h"
 #include "timecoder.h"
+
+void device_init(struct device *dv, struct device_ops *ops)
+{
+    debug("%p", dv);
+    dv->ops = ops;
+}
 
 void device_connect_timecoder(struct device *dv, struct timecoder *tc)
 {

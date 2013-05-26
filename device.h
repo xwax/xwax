@@ -20,6 +20,7 @@
 #ifndef DEVICE_H
 #define DEVICE_H
 
+#include <stdbool.h>
 #include <sys/poll.h>
 #include <sys/types.h>
 
@@ -44,6 +45,7 @@ struct device_ops {
     void (*clear)(struct device *dv);
 };
 
+void device_init(struct device *dv, struct device_ops *ops);
 void device_connect_timecoder(struct device *dv, struct timecoder *tc);
 void device_connect_player(struct device *dv, struct player *pl);
 

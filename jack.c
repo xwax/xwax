@@ -339,8 +339,8 @@ int jack_init(struct device *dv, const char *name)
     if (register_ports(jack, name) == -1)
         goto fail;
 
+    device_init(dv, &jack_ops);
     dv->local = jack;
-    dv->ops = &jack_ops;
 
     assert(ndeck < sizeof device);
     device[ndeck] = dv;

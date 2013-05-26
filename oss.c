@@ -220,8 +220,8 @@ int oss_init(struct device *dv, const char *filename, unsigned int rate,
     oss->pe = NULL;
     oss->rate = rate;
 
+    device_init(dv, &oss_ops);
     dv->local = oss;
-    dv->ops = &oss_ops;
 
     return 0;
 

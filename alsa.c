@@ -419,8 +419,8 @@ int alsa_init(struct device *dv, const char *device_name,
         goto fail_capture;
     }
 
+    device_init(dv, &alsa_ops);
     dv->local = alsa;
-    dv->ops = &alsa_ops;
 
     return 0;
 
