@@ -103,8 +103,10 @@ ssize_t device_pollfds(struct device *dv, struct pollfd *pe, size_t z)
 
 int device_handle(struct device *dv)
 {
-    assert(dv->ops->handle != NULL);
-    return dv->ops->handle(dv);
+    if (dv->ops->handle != NULL)
+        return dv->ops->handle(dv);
+    else
+        return 0;
 }
 
 /*
