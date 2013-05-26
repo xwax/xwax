@@ -31,6 +31,17 @@ void device_init(struct device *dv, struct device_ops *ops)
     dv->ops = ops;
 }
 
+/*
+ * Clear (destruct) the device. The corresponding constructor is
+ * specific to each particular audio system
+ */
+
+void device_clear(struct device *dv)
+{
+    if (dv->ops->clear != NULL)
+        dv->ops->clear(dv);
+}
+
 void device_connect_timecoder(struct device *dv, struct timecoder *tc)
 {
     dv->timecoder = tc;
@@ -69,17 +80,6 @@ void device_stop(struct device *dv)
 {
     if (dv->ops->stop != NULL)
         dv->ops->stop(dv);
-}
-
-/*
- * Clear (destruct) the device. The corresponding constructor is
- * specific to each particular audio system
- */
-
-void device_clear(struct device *dv)
-{
-    if (dv->ops->clear != NULL)
-        dv->ops->clear(dv);
 }
 
 /*

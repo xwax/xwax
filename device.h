@@ -46,6 +46,8 @@ struct device_ops {
 };
 
 void device_init(struct device *dv, struct device_ops *ops);
+void device_clear(struct device *dv);
+
 void device_connect_timecoder(struct device *dv, struct timecoder *tc);
 void device_connect_player(struct device *dv, struct player *pl);
 
@@ -53,8 +55,6 @@ unsigned int device_sample_rate(struct device *dv);
 
 void device_start(struct device *dv);
 void device_stop(struct device *dv);
-
-void device_clear(struct device *dv);
 
 ssize_t device_pollfds(struct device *dv, struct pollfd *pe, size_t z);
 int device_handle(struct device *dv);
