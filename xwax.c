@@ -570,7 +570,7 @@ int main(int argc, char *argv[])
     rc = EXIT_FAILURE; /* until clean exit */
 
     /* Order is important: launch realtime thread first, then mlock.
-     * Don't mlock the running interface */
+     * Don't mlock the interface, use sparingly for audio threads */
 
     if (rt_start(&rt, priority) == -1)
         return -1;
