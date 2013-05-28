@@ -399,8 +399,8 @@ int alsa_init(struct device *dv, const char *device_name,
 {
     struct alsa *alsa;
 
-    alsa = malloc(sizeof(struct alsa));
-    if (!alsa) {
+    alsa = malloc(sizeof *alsa);
+    if (alsa == NULL) {
         perror("malloc");
         return -1;
     }

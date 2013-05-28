@@ -210,7 +210,7 @@ int oss_init(struct device *dv, const char *filename, unsigned int rate,
         return -1;
     }
 
-    oss = malloc(sizeof(struct oss));
+    oss = malloc(sizeof *oss);
     if (oss == NULL) {
         perror("malloc");
         goto fail;
