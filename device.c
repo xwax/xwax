@@ -28,6 +28,7 @@
 void device_init(struct device *dv, struct device_ops *ops)
 {
     debug("%p", dv);
+    dv->fault = false;
     dv->ops = ops;
 }
 
@@ -104,16 +105,20 @@ ssize_t device_pollfds(struct device *dv, struct pollfd *pe, size_t z)
  *
  * This function can be called when there is activity on any file
  * descriptor, not specifically one returned by this device.
- *
- * Return: 0 on success, or -1 if an error occured
  */
 
-int device_handle(struct device *dv)
+void device_handle(struct device *dv)
 {
-    if (dv->ops->handle != NULL)
-        return dv->ops->handle(dv);
-    else
-        return 0;
+    if (dv->fault)
+        return;
+
+    if (dv->ops->handle == NULL)
+        return;
+
+    if (dv->ops->handle(dv) != 0) {
+        dv->fault = true;
+        fputs("Error handling audio device; disabling it\n", stderr);
+    }
 }
 
 /*
