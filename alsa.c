@@ -17,6 +17,7 @@
  *
  */
 
+#include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/poll.h>
@@ -52,6 +53,17 @@ static void alsa_error(const char *msg, int r)
 }
 
 
+static bool chk(const char *s, int r)
+{
+    if (r < 0) {
+        alsa_error(s, r);
+        return false;
+    } else {
+        return true;
+    }
+}
+
+
 static int pcm_open(struct alsa_pcm *alsa, const char *device_name,
                     snd_pcm_stream_t stream, int rate, int buffer_time)
 {
@@ -61,37 +73,29 @@ static int pcm_open(struct alsa_pcm *alsa, const char *device_name,
     snd_pcm_hw_params_t *hw_params;
     
     r = snd_pcm_open(&alsa->pcm, device_name, stream, SND_PCM_NONBLOCK);
-    if (r < 0) {
-        alsa_error("open", r);
+    if (!chk("open", r))
         return -1;
-    }
 
     snd_pcm_hw_params_alloca(&hw_params);
 
     r = snd_pcm_hw_params_any(alsa->pcm, hw_params);
-    if (r < 0) {
-        alsa_error("hw_params_any", r);
+    if (!chk("hw_params_any", r))
         return -1;
-    }
     
     r = snd_pcm_hw_params_set_access(alsa->pcm, hw_params,
                                      SND_PCM_ACCESS_RW_INTERLEAVED);
-    if (r < 0) {
-        alsa_error("hw_params_set_access", r);
+    if (!chk("hw_params_set_access", r))
         return -1;
-    }
     
     r = snd_pcm_hw_params_set_format(alsa->pcm, hw_params, SND_PCM_FORMAT_S16);
-    if (r < 0) {
-        alsa_error("hw_params_set_format", r);
+    if (!chk("hw_params_set_format", r)) {
         fprintf(stderr, "16-bit signed format is not available. "
                 "You may need to use a 'plughw' device.\n");
         return -1;
     }
 
     r = snd_pcm_hw_params_set_rate(alsa->pcm, hw_params, rate, 0);
-    if (r < 0) {
-        alsa_error("hw_params_set_rate", r);
+    if (!chk("hw_params_set_rate", r )) {
         fprintf(stderr, "%dHz sample rate not available. You may need to use "
                 "a 'plughw' device.\n", rate);
         return -1;
@@ -99,8 +103,7 @@ static int pcm_open(struct alsa_pcm *alsa, const char *device_name,
     alsa->rate = rate;
 
     r = snd_pcm_hw_params_set_channels(alsa->pcm, hw_params, DEVICE_CHANNELS);
-    if (r < 0) {
-        alsa_error("hw_params_set_channels", r);
+    if (!chk("hw_params_set_channels", r)) {
         fprintf(stderr, "%d channel audio not available on this device.\n",
                 DEVICE_CHANNELS);
         return -1;
@@ -109,8 +112,7 @@ static int pcm_open(struct alsa_pcm *alsa, const char *device_name,
     p = buffer_time * 1000; /* microseconds */
     dir = -1;
     r = snd_pcm_hw_params_set_buffer_time_max(alsa->pcm, hw_params, &p, &dir);
-    if (r < 0) {
-        alsa_error("hw_params_set_buffer_time_max", r);
+    if (!chk("hw_params_set_buffer_time_max", r)) {
         fprintf(stderr, "Buffer of %dms may be too small for this hardware.\n",
                 buffer_time);
         return -1;
@@ -119,24 +121,19 @@ static int pcm_open(struct alsa_pcm *alsa, const char *device_name,
     p = 2; /* double buffering */
     dir = 1;
     r = snd_pcm_hw_params_set_periods_min(alsa->pcm, hw_params, &p, &dir);
-    if (r < 0) {
-        alsa_error("hw_params_set_periods_min", r);
+    if (!chk("hw_params_set_periods_min", r)) {
         fprintf(stderr, "Buffer of %dms may be too small for this hardware.\n",
                 buffer_time);
         return -1;
     }
 
     r = snd_pcm_hw_params(alsa->pcm, hw_params);
-    if (r < 0) {
-        alsa_error("hw_params", r);
+    if (!chk("hw_params", r))
         return -1;
-    }
     
     r = snd_pcm_hw_params_get_period_size(hw_params, &alsa->period, &dir);
-    if (r < 0) {
-        alsa_error("get_period_size", r);
+    if (!chk("get_period_size", r))
         return -1;
-    }
 
     bytes = alsa->period * DEVICE_CHANNELS * sizeof(signed short);
     alsa->buf = malloc(bytes);
