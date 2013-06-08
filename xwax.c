@@ -112,7 +112,7 @@ static void usage(FILE *fd)
 
 #ifdef WITH_ALSA
     fprintf(fd, "MIDI control:\n"
-      "  -dicer <dev>   Novation Dicer\n\n");
+      "  --dicer <dev>   Novation Dicer\n\n");
 #endif
 
     fprintf(fd,
@@ -519,7 +519,7 @@ int main(int argc, char *argv[])
             argc -= 2;
 
 #ifdef WITH_ALSA
-        } else if (!strcmp(argv[0], "-dicer")) {
+        } else if (!strcmp(argv[0], "--dicer")) {
 
             struct controller *c;
 
