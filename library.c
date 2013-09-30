@@ -109,7 +109,7 @@ static int crate_cmp(const struct crate *a, const struct crate *b)
  * Post: Record added to the crate
  */
 
-static struct record* listing_add(struct listing *l, struct record *r)
+struct record* listing_add(struct listing *l, struct record *r)
 {
     struct record *x;
 
@@ -355,7 +355,7 @@ static size_t split(char *s, char *x[], size_t len)
  * Post: if successful, responsibility for pointer line is taken
  */
 
-static struct record* get_record(char *line)
+struct record* get_record(char *line)
 {
     int n;
     struct record *x;

@@ -50,6 +50,7 @@ OBJS = controller.o \
 	cues.o \
 	deck.o \
 	device.o \
+	excrate.o \
 	external.o \
 	index.o \
 	interface.o \
@@ -169,7 +170,7 @@ tests/status:	tests/status.o status.o
 
 tests/timecoder:	tests/timecoder.o lut.o timecoder.o
 
-tests/track:	tests/track.o external.o rig.o status.o thread.o track.o
+tests/track:	tests/track.o excrate.o external.o index.o library.o rig.o status.o thread.o track.o
 tests/track:	LDFLAGS += -pthread
 tests/track:	LDLIBS += -lm
 

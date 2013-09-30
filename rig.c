@@ -37,7 +37,8 @@
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof(*x))
 
 static int event[2]; /* pipe to wake up service thread */
-static struct list tracks = LIST_INIT(tracks);
+static struct list tracks = LIST_INIT(tracks),
+    excrates = LIST_INIT(excrates);
 mutex lock;
 
 int rig_init()
@@ -103,6 +104,7 @@ int rig_main()
         int r;
         struct pollfd *pe;
         struct track *track, *xtrack;
+        struct excrate *excrate, *xexcrate;
 
         pe = &pt[1];
 
@@ -112,6 +114,13 @@ int rig_main()
             if (pe == px)
                 break;
             track_pollfd(track, pe);
+            pe++;
+        }
+
+        list_for_each(excrate, &excrates, rig) {
+            if (pe == px)
+                break;
+            excrate_pollfd(excrate, pe);
             pe++;
         }
 
@@ -162,6 +171,9 @@ int rig_main()
 
         list_for_each_safe(track, xtrack, &tracks, rig)
             track_handle(track);
+
+        list_for_each_safe(excrate, xexcrate, &excrates, rig)
+            excrate_handle(excrate);
     }
  finish:
 
@@ -213,3 +225,11 @@ void rig_post_track(struct track *t)
     list_add(&t->rig, &tracks);
     post_event(EVENT_WAKE);
 }
+
+void rig_post_excrate(struct excrate *e)
+{
+    excrate_get(e);
+    list_add(&e->rig, &excrates);
+    post_event(EVENT_WAKE);
+}
+

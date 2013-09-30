@@ -20,6 +20,7 @@
 #ifndef RIG_H
 #define RIG_H
 
+#include "excrate.h"
 #include "track.h"
 
 int rig_init();
@@ -33,5 +34,6 @@ void rig_lock();
 void rig_unlock();
 
 void rig_post_track(struct track *t);
+void rig_post_excrate(struct excrate *e);
 
 #endif
