@@ -17,12 +17,10 @@
  *
  */
 
-#define _BSD_SOURCE /* vfork() */
 #include <assert.h>
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <sys/mman.h> /* mlock() */
