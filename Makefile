@@ -46,14 +46,32 @@ LDFLAGS ?= -O3
 
 # Core objects and libraries
 
-OBJS = controller.o cues.o deck.o device.o external.o interface.o \
-	library.o listing.o lut.o \
-	player.o realtime.o \
-	rig.o selector.o status.o thread.o timecoder.o track.o xwax.o
+OBJS = controller.o \
+	cues.o \
+	deck.o \
+	device.o \
+	external.o \
+	interface.o \
+	library.o \
+	listing.o \
+	lut.o \
+	player.o \
+	realtime.o \
+	rig.o \
+	selector.o \
+	status.o \
+	thread.o \
+	timecoder.o \
+	track.o \
+	xwax.o
 DEVICE_CPPFLAGS =
 DEVICE_LIBS =
 
-TESTS = tests/cues tests/library tests/status tests/timecoder tests/track \
+TESTS = tests/cues \
+	tests/library \
+	tests/status \
+	tests/timecoder \
+	tests/track \
 	tests/ttf
 
 # Optional device types
