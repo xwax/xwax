@@ -284,54 +284,6 @@ void library_clear(struct library *li)
 }
 
 /*
- * Read the next string from the file up to a valid delimeter
- *
- * Return: pointer to alloc'd string
- * Post: *delim is set
- */
-
-static char* get_field(FILE *f, char *delim)
-{
-    char *s;
-    size_t len;
-
-    s = NULL;
-    len = 0;
-
-    for (;;) {
-        int c;
-        void *x;
-
-        x = realloc(s, len + 1);
-        if (x == NULL) {
-            perror("realloc");
-            free(s);
-            return NULL;
-        }
-        s = x;
-
-        c = fgetc(f);
-        switch (c) {
-        case EOF:
-            *delim = '\0';
-            goto done;
-
-        case '\n':
-        case '\t':
-            *delim = c;
-            goto done;
-        }
-
-        s[len] = c;
-        len++;
-    }
-
-done:
-    s[len] = '\0';
-    return s;
-}
-
-/*
  * Translate a string from the scan to our internal BPM value
  *
  * Return: internal BPM value, or INFINITY if string is malformed
@@ -354,98 +306,56 @@ static double parse_bpm(const char *s)
 }
 
 /*
- * Read the next record from the file
+ * Convert a line from the scan script to a record structure in memory
  *
- * Return: 0 on success, otherwise -1
- * Post: if 0 is returned, *r points to an alloc'd record or NULL
- *     if EOF was found
+ * Return: pointer to alloc'd record, or NULL on error
  */
 
-static int get_record(FILE *f, struct record **r)
+static struct record* get_record(const char *line)
 {
-    struct record x, *y;
-    char delim, *s;
+    int n;
+    struct record *x;
+    char bpm[16];
 
-    x.pathname = NULL;
-    x.artist = NULL;
-    x.title = NULL;
-    x.bpm = 0.0;
-
-    x.pathname = get_field(f, &delim);
-    if (x.pathname == NULL)
-        goto fail;
-
-    /* Check for clean EOF */
-
-    if (delim == '\0' && x.pathname[0] == '\0') {
-        free(x.pathname);
-        *r = NULL;
-        return 0;
-    }
-
-    if (delim != '\t') {
-        fprintf(stderr, "Malformed record '%s'\n", x.pathname);
-        goto fail;
-    }
-
-    x.artist = get_field(f, &delim);
-    if (x.artist == NULL)
-        goto fail;
-
-    if (delim != '\t') {
-        fprintf(stderr, "Malformed record '%s'\n", x.pathname);
-        goto fail;
-    }
-
-    x.title = get_field(f, &delim);
-    if (x.title == NULL)
-        goto fail;
-
-    if (delim == '\n') /* other fields are optional */
-        goto done;
-
-    if (delim != '\t') {
-        fprintf(stderr, "Malformed record '%s'\n", x.pathname);
-        goto fail;
-    }
-
-    /* Beats-per-minute (BPM) */
-
-    s = get_field(f, &delim);
-    if (s == NULL)
-        goto fail;
-
-    x.bpm = parse_bpm(s);
-    if (!isfinite(x.bpm)) {
-        fprintf(stderr, "%s: Ignoring malformed BPM '%s'\n", x.pathname, s);
-        x.bpm = 0.0;
-    }
-
-    free(s);
-
-    if (delim != '\n') {
-        fprintf(stderr, "Malformed record '%s'\n", x.pathname);
-        goto fail;
-    }
-
-done:
-    y = malloc(sizeof *y);
-    if (y == NULL) {
+    x = malloc(sizeof *x);
+    if (!x) {
         perror("malloc");
-        goto fail;
+        return NULL;
     }
 
-    *y = x;
-    *r = y;
-    return 0;
+    n = sscanf(line, "%a[^\t]\t%a[^\t]\t%a[^\t]\t%16[^\t]\n",
+               &x->pathname,
+               &x->artist,
+               &x->title,
+               &bpm);
 
-fail:
-    /* no-op on NULL */
-    free(x.pathname);
-    free(x.artist);
-    free(x.title);
+    switch (n) {
+    case 2:
+        free(x->artist);
+    case 1:
+        free(x->pathname);
+    default:
+        fprintf(stderr, "Malformed record '%s'\n", line);
+        goto bad;
 
-    return -1;
+    case 3:
+        break;
+
+    case 4:
+        x->bpm = parse_bpm(bpm);
+        if (!isfinite(x->bpm)) {
+            fprintf(stderr, "%s: Ignoring malformed BPM '%s'\n",
+                    x->pathname, bpm);
+            x->bpm = 0.0;
+        }
+        break;
+    }
+
+    return x;
+
+bad:
+    free(x);
+    return NULL;
 }
 
 /*
@@ -462,8 +372,8 @@ int library_import(struct library *li, const char *scan, const char *path)
     int fd, status;
     char *cratename, *pathname;
     pid_t pid;
-    FILE *fp;
     struct crate *crate;
+    struct rb rb;
 
     fprintf(stderr, "Scanning '%s'...\n", path);
 
@@ -478,20 +388,27 @@ int library_import(struct library *li, const char *scan, const char *path)
     if (pid == -1)
         return -1;
 
-    fp = fdopen(fd, "r");
-    if (fp == NULL) {
-        perror("fdopen");
-        abort(); /* recovery not implemented */
-    }
+    rb_reset(&rb);
 
     for (;;) {
+        char *line;
+        ssize_t z;
         struct record *d, *x;
 
-        if (get_record(fp, &d) == -1)
+        z = get_line(fd, &rb, &line);
+        if (z == -1) {
+            perror("get_line");
             return -1;
+        }
+
+        if (z == 0)
+            break;
+
+        d = get_record(line);
+        free(line);
 
         if (d == NULL)
-            break;
+            return -1;
 
         /* Add to the crate of all records */
 
@@ -513,10 +430,8 @@ int library_import(struct library *li, const char *scan, const char *path)
             return -1;
     }
 
-    if (fclose(fp) == -1) {
-        perror("close");
-        abort(); /* assumption fclose() can't on read-only descriptor */
-    }
+    if (close(fd) == -1)
+        abort();
 
     if (waitpid(pid, &status, 0) == -1) {
         perror("waitpid");
