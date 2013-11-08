@@ -330,18 +330,6 @@ static struct record* get_record(const char *line)
                &bpm);
 
     switch (n) {
-    case 2:
-        free(x->artist);
-    case 1:
-        free(x->pathname);
-    default:
-        fprintf(stderr, "Malformed record '%s'\n", line);
-        goto bad;
-
-    case 3:
-        x->bpm = 0.0;
-        break;
-
     case 4:
         x->bpm = parse_bpm(bpm);
         if (!isfinite(x->bpm)) {
@@ -350,6 +338,18 @@ static struct record* get_record(const char *line)
             x->bpm = 0.0;
         }
         break;
+
+    case 3:
+        x->bpm = 0.0;
+        break;
+
+    case 2:
+        free(x->artist);
+    case 1:
+        free(x->pathname);
+    default:
+        fprintf(stderr, "Malformed record '%s'\n", line);
+        goto bad;
     }
 
     return x;
