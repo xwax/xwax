@@ -159,7 +159,8 @@ tests/cues:	tests/cues.o cues.o
 
 tests/external:	tests/external.o external.o
 
-tests/library:	tests/library.o external.o index.o library.o
+tests/library:	tests/library.o excrate.o external.o index.o library.o rig.o status.o thread.o track.o
+tests/library:	LDFLAGS += -pthread
 
 tests/midi:	tests/midi.o midi.o
 tests/midi:	LDLIBS += $(ALSA_LIBS)

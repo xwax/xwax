@@ -30,8 +30,8 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
+#include "excrate.h"
 #include "external.h"
-#include "library.h"
 
 #define CRATE_ALL "All records"
 
@@ -411,13 +411,10 @@ bad:
 
 int library_import(struct library *li, const char *scan, const char *path)
 {
-    int fd, status;
     char *cratename, *pathname;
-    pid_t pid;
     struct crate *crate;
-    struct rb rb;
 
-    fprintf(stderr, "Scanning '%s'...\n", path);
+    fprintf(stderr, "Adding '%s'...\n", path);
 
     pathname = strdupa(path);
     cratename = basename(pathname); /* POSIX version, see basename(3) */
@@ -426,64 +423,8 @@ int library_import(struct library *li, const char *scan, const char *path)
     if (crate == NULL)
         return -1;
 
-    pid = fork_pipe(&fd, scan, "scan", path, NULL);
-    if (pid == -1)
+    if (excrate_get_by_scan(scan, path, &crate->listing) == NULL)
         return -1;
-
-    rb_reset(&rb);
-
-    for (;;) {
-        char *line;
-        ssize_t z;
-        struct record *d, *x;
-
-        z = get_line(fd, &rb, &line);
-        if (z == -1) {
-            perror("get_line");
-            return -1;
-        }
-
-        if (z == 0)
-            break;
-
-        d = get_record(line);
-        if (d == NULL) {
-            free(line);
-            return -1;
-        }
-
-        /* Add to the crate of all records */
-
-        x = crate_add(&li->all, d);
-        if (x == NULL)
-            return -1;
-
-        /* If there is an existing entry, use it instead */
-
-        if (x != d) {
-            record_clear(d);
-            free(d);
-            d = x;
-        }
-
-        /* Insert into the user's crate */
-
-        if (crate_add(crate, d) == NULL)
-            return -1;
-    }
-
-    if (close(fd) == -1)
-        abort();
-
-    if (waitpid(pid, &status, 0) == -1) {
-        perror("waitpid");
-        return -1;
-    }
-
-    if (!WIFEXITED(status) || WEXITSTATUS(status) != EXIT_SUCCESS) {
-        fputs("Library scan exited reporting failure.\n", stderr);
-        return -1;
-    }
 
     return 0;
 }
