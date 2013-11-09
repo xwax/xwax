@@ -69,6 +69,7 @@ static int crate_init(struct crate *c, const char *name, bool is_fixed)
 
     c->is_fixed = is_fixed;
     listing_init(&c->listing);
+    event_init(&c->addition);
 
     return 0;
 }
@@ -82,6 +83,7 @@ static int crate_init(struct crate *c, const char *name, bool is_fixed)
 
 static void crate_clear(struct crate *c)
 {
+    event_clear(&c->addition);
     listing_clear(&c->listing);
     free(c->name);
 }
@@ -130,9 +132,22 @@ struct record* listing_add(struct listing *l, struct record *r)
     return r;
 }
 
-static struct record* crate_add(struct crate *c, struct record *r)
+/*
+ * Add a record to the given crate
+ *
+ * Return: pointer to existing entry, NULL if out of memory
+ * Post: unless NULL is returned, record is in the crate
+ */
+
+struct record* crate_add(struct crate *c, struct record *r)
 {
-    return listing_add(&c->listing, r);
+    struct record *q;
+
+    q = listing_add(&c->listing, r);
+    if (q == r)
+        fire(&c->addition, r);
+
+    return q;
 }
 
 /*

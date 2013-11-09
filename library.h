@@ -24,6 +24,7 @@
 #include <stddef.h>
 
 #include "index.h"
+#include "observer.h"
 
 /* A list of records, with several optimised indexes */
 
@@ -37,6 +38,7 @@ struct crate {
     bool is_fixed;
     char *name;
     struct listing listing;
+    struct event addition;
 };
 
 /* The complete music library, which consists of multiple crates */
@@ -49,6 +51,7 @@ struct library {
 void listing_init(struct listing *l);
 void listing_clear(struct listing *l);
 struct record* listing_add(struct listing *l, struct record *r);
+struct record* crate_add(struct crate *c, struct record *r);
 
 int library_init(struct library *li);
 void library_clear(struct library *li);
