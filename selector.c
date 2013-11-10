@@ -23,7 +23,6 @@
 
 #include "selector.h"
 
-
 static void scroll_reset(struct scroll *s)
 {
     s->lines = 0;
@@ -31,7 +30,6 @@ static void scroll_reset(struct scroll *s)
     s->entries = 0;
     s->selected = -1;
 }
-
 
 /* Set the number of lines displayed on screen. The current selection
  * is moved to within range. */
@@ -47,7 +45,6 @@ static void scroll_set_lines(struct scroll *s, unsigned int lines)
             s->offset = 0;  
     }
 }
-
 
 /* Set the number of entries in the list which backs the scrolling
  * display. Bring the current selection within the bounds given. */
@@ -69,7 +66,6 @@ static void scroll_set_entries(struct scroll *s, unsigned int entries)
         s->selected = 0;
 }
 
-
 /* Scroll the selection up by n lines. Move the window offset if
  * needed */
 
@@ -88,7 +84,6 @@ static void scroll_up(struct scroll *s, unsigned int n)
     }
 }
 
-
 static void scroll_down(struct scroll *s, unsigned int n)
 {
     s->selected += n;
@@ -104,7 +99,6 @@ static void scroll_down(struct scroll *s, unsigned int n)
     }
 }
 
-
 /* Scroll to the first entry on the list */
 
 static void scroll_first(struct scroll *s)
@@ -112,7 +106,6 @@ static void scroll_first(struct scroll *s)
     s->selected = 0;
     s->offset = 0;
 }
-
 
 /* Scroll to the final entry on the list */
 
@@ -123,7 +116,6 @@ static void scroll_last(struct scroll *s)
     if (s->offset < 0)
         s->offset = 0;
 }
-
 
 /* Scroll to an entry by index */
 
@@ -144,7 +136,6 @@ static void scroll_to(struct scroll *s, unsigned int n)
         s->offset = 0;
 }
 
-
 /* Return the index of the current selected list entry, or -1 if
  * no current selection */
 
@@ -156,7 +147,6 @@ static int scroll_current(struct scroll *s)
         return s->selected;
     }
 }
-
 
 /* Scroll to our target entry if it can be found, otherwise leave our
  * position unchanged */
@@ -191,7 +181,6 @@ static void retain_position(struct selector *sel)
         scroll_to(&sel->records, n);
 }
 
-
 /* Return the listing which acts as the starting point before
  * string matching, based on the current crate */
 
@@ -211,7 +200,6 @@ static struct listing* initial(struct selector *sel)
         abort();
     }
 }
-
 
 void selector_init(struct selector *sel, struct library *lib)
 {
@@ -236,13 +224,11 @@ void selector_init(struct selector *sel, struct library *lib)
     scroll_set_entries(&sel->records, sel->view_listing->entries);
 }
 
-
 void selector_clear(struct selector *sel)
 {
     listing_clear(&sel->listing_a);
     listing_clear(&sel->listing_b);
 }
-
 
 void selector_set_lines(struct selector *sel, unsigned int lines)
 {
@@ -266,7 +252,6 @@ struct record* selector_current(struct selector *sel)
     }
 }
 
-
 /* Make a note of the current selected record, and make it the
  * position we will try and retain if the crate is changed etc. */
 
@@ -279,13 +264,11 @@ static void set_target(struct selector *sel)
         sel->target = x;
 }
 
-
 void selector_up(struct selector *sel)
 {
     scroll_up(&sel->records, 1);
     set_target(sel);
 }
-
 
 void selector_down(struct selector *sel)
 {
@@ -293,13 +276,11 @@ void selector_down(struct selector *sel)
     set_target(sel);
 }
 
-
 void selector_page_up(struct selector *sel)
 {
     scroll_up(&sel->records, sel->records.lines);
     set_target(sel);
 }
-
 
 void selector_page_down(struct selector *sel)
 {
@@ -307,20 +288,17 @@ void selector_page_down(struct selector *sel)
     set_target(sel);
 }
 
-
 void selector_top(struct selector *sel)
 {
     scroll_first(&sel->records);
     set_target(sel);
 }
 
-
 void selector_bottom(struct selector *sel)
 {
     scroll_last(&sel->records);
     set_target(sel);
 }
-
 
 /* When the crate has changed, update the current listing to reflect
  * the crate and the search criteria */
@@ -332,7 +310,6 @@ static void crate_has_changed(struct selector *sel)
     retain_position(sel);
 }
 
-
 void selector_prev(struct selector *sel)
 {
     scroll_up(&sel->crates, 1);
@@ -340,14 +317,12 @@ void selector_prev(struct selector *sel)
     crate_has_changed(sel);
 }
 
-
 void selector_next(struct selector *sel)
 {
     scroll_down(&sel->crates, 1);
     sel->toggled = false;
     crate_has_changed(sel);
 }
-
 
 /* Toggle between the current crate and the 'all' crate */
 
@@ -365,7 +340,6 @@ void selector_toggle(struct selector *sel)
     crate_has_changed(sel);
 }
 
-
 /* Toggle between sort order */
 
 void selector_toggle_order(struct selector *sel)
@@ -374,7 +348,6 @@ void selector_toggle_order(struct selector *sel)
     sel->sort = (sel->sort + 1) % SORT_END;
     crate_has_changed(sel);
 }
-
 
 /* Expand the search. Do not disrupt the running process on memory
  * allocation failure, leave the view listing incomplete */
@@ -387,7 +360,6 @@ void selector_search_expand(struct selector *sel)
     sel->search[--sel->search_len] = '\0';
     crate_has_changed(sel);
 }
-
 
 /* Refine the search. Do not distrupt the running process on memory
  * allocation failure, leave the view listing incomplete */
