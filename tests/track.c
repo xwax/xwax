@@ -41,13 +41,13 @@ int main(int argc, char *argv[])
 
     rig_init();
 
-    track = track_get_by_import(argv[1], argv[2]);
+    track = track_acquire_by_import(argv[1], argv[2]);
     if (track == NULL)
         return -1;
 
     rig_main();
 
-    track_put(track);
+    track_release(track);
     rig_clear();
     thread_global_clear();
 

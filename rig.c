@@ -209,7 +209,7 @@ void rig_unlock(void)
 
 void rig_post_track(struct track *t)
 {
-    track_get(t);
+    track_acquire(t);
     list_add(&t->rig, &tracks);
     post_event(EVENT_WAKE);
 }

@@ -280,7 +280,7 @@ static struct track* track_get_again(const char *importer, const char *path)
 
     list_for_each(t, &tracks, tracks) {
         if (t->importer == importer && t->path == path) {
-            track_get(t);
+            track_acquire(t);
             return t;
         }
     }
@@ -294,7 +294,7 @@ static struct track* track_get_again(const char *importer, const char *path)
  * Return: pointer, or NULL if not enough resources
  */
 
-struct track* track_get_by_import(const char *importer, const char *path)
+struct track* track_acquire_by_import(const char *importer, const char *path)
 {
     struct track *t;
 
@@ -313,7 +313,7 @@ struct track* track_get_by_import(const char *importer, const char *path)
         return NULL;
     }
 
-    track_get(t);
+    track_acquire(t);
 
     return t;
 }
@@ -324,13 +324,13 @@ struct track* track_get_by_import(const char *importer, const char *path)
  * Return: pointer, not NULL
  */
 
-struct track* track_get_empty(void)
+struct track* track_acquire_empty(void)
 {
     empty.refcount++;
     return &empty;
 }
 
-void track_get(struct track *t)
+void track_acquire(struct track *t)
 {
     t->refcount++;
 }
@@ -353,7 +353,7 @@ static void terminate(struct track *t)
  * Finish use of a track object
  */
 
-void track_put(struct track *t)
+void track_release(struct track *t)
 {
     t->refcount--;
 
@@ -480,5 +480,5 @@ void track_handle(struct track *tr)
 
     stop_import(tr);
     list_del(&tr->rig);
-    track_put(tr); /* may delete the track */
+    track_release(tr); /* may delete the track */
 }

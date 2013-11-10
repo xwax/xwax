@@ -217,7 +217,7 @@ void player_init(struct player *pl, unsigned int sample_rate,
 void player_clear(struct player *pl)
 {
     spin_clear(&pl->lock);
-    track_put(pl->track);
+    track_release(pl->track);
 }
 
 /*
@@ -294,7 +294,7 @@ void player_set_track(struct player *pl, struct track *track)
     pl->track = track;
     spin_unlock(&pl->lock);
 
-    track_put(x); /* discard the old track */
+    track_release(x); /* discard the old track */
 }
 
 /*
@@ -311,14 +311,14 @@ void player_clone(struct player *pl, const struct player *from)
     pl->offset = pl->position - elapsed;
 
     t = from->track;
-    track_get(t);
+    track_acquire(t);
 
     spin_lock(&pl->lock);
     x = pl->track;
     pl->track = t;
     spin_unlock(&pl->lock);
 
-    track_put(x);
+    track_release(x);
 }
 
 /*
