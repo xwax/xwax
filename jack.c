@@ -46,8 +46,9 @@ static struct device *device[4];
 static void interleave(signed short *buf, jack_default_audio_sample_t *jbuf[],
                        jack_nframes_t nframes)
 {
-    int n;
     while (nframes--) {
+        int n;
+
         for (n = 0; n < DEVICE_CHANNELS; n++) {
             *buf = (signed short)(*jbuf[n] * SCALE);
             buf++;
@@ -61,8 +62,9 @@ static void interleave(signed short *buf, jack_default_audio_sample_t *jbuf[],
 static void uninterleave(jack_default_audio_sample_t *jbuf[],
                          signed short *buf, jack_nframes_t nframes)
 {
-    int n;
     while (nframes--) {
+        int n;
+
         for (n = 0; n < DEVICE_CHANNELS; n++) {
             *jbuf[n] = (jack_default_audio_sample_t)*buf / SCALE;
             buf++;
@@ -125,9 +127,10 @@ static void process_deck(struct device *dv, jack_nframes_t nframes)
 static int process_callback(jack_nframes_t nframes, void *local)
 {
     size_t n;
-    struct jack *jack;
 
     for (n = 0; n < ndeck; n++) {
+        struct jack *jack;
+
         jack = (struct jack*)device[n]->local;
         if (jack->started)
             process_deck(device[n], nframes);
@@ -190,11 +193,12 @@ static int stop_jack_client(void)
 static int register_ports(struct jack *jack, const char *name)
 {
     size_t n;
-    static const char channel[] = { 'L', 'R' };
-    char port_name[32];
 
     assert(DEVICE_CHANNELS == 2);
     for (n = 0; n < DEVICE_CHANNELS; n++) {
+        static const char channel[] = { 'L', 'R' };
+        char port_name[32];
+
 	sprintf(port_name, "%s_timecode_%c", name, channel[n]);
         jack->input_port[n] = jack_port_register(client, port_name,
                                                  JACK_DEFAULT_AUDIO_TYPE,
