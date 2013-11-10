@@ -109,7 +109,8 @@ static void process_deck(struct device *dv, jack_nframes_t nframes)
         interleave(buf, in, block);
         device_submit(dv, buf, block);
 
-        /* Audio output -- handle in the same loop for finer granularity */
+        /* Audio output is handle in the inner loop, so that
+         * we get the timecoder applied in small steps */
 
         device_collect(dv, buf, block);
         uninterleave(out, buf, block);
