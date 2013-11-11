@@ -26,17 +26,19 @@
 
 #include <stdarg.h>
 
+#include "observer.h"
+
 #define STATUS_VERBOSE 0
 #define STATUS_INFO    1
 #define STATUS_WARN    2
 #define STATUS_ALERT   3
+
+extern struct event status_changed;
 
 const char* status(void);
 int status_level(void);
 
 void status_set(int level, const char *s);
 void status_printf(int level, const char *s, ...);
-
-void status_notify(void (*f)(void));
 
 #endif

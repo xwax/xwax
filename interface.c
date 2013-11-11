@@ -167,6 +167,7 @@ static int width = DEFAULT_WIDTH, height = DEFAULT_HEIGHT,
 static float scale = DEFAULT_SCALE;
 static pthread_t ph;
 static struct selector selector;
+static struct observer on_status;
 
 /*
  * Scale a dimension according to the current zoom level
@@ -1513,7 +1514,7 @@ static Uint32 ticker(Uint32 interval, void *p)
  * Callback to tell the interface that status has changed
  */
 
-static void status_change(void)
+static void defer_status_redraw(struct observer *o, void *x)
 {
     push_event(EVENT_STATUS);
 }
@@ -1768,7 +1769,7 @@ int interface_start(struct library *lib, const char *geo)
         return -1;
 
     selector_init(&selector, lib);
-    status_notify(status_change);
+    watch(&on_status, &status_changed, defer_status_redraw);
     status_set(STATUS_VERBOSE, banner);
 
     fprintf(stderr, "Initialising SDL...\n");
@@ -1817,6 +1818,7 @@ void interface_stop(void)
         timecoder_monitor_clear(&deck[n].timecoder);
 
     clear_spinner();
+    ignore(&on_status);
     selector_clear(&selector);
     clear_fonts();
 

@@ -2,13 +2,17 @@
 
 #include "status.h"
 
-void notify(void)
+void callback(struct observer *o, void *x)
 {
-    printf("notify: %s\n", status());
+    const char *s = x;
+
+    printf("notify: %s -> %s\n", s, status());
 }
 
 int main(int argc, char *argv[])
 {
+    struct observer o;
+
     printf("initial: %s\n", status());
 
     status_set(STATUS_VERBOSE, "lemon");
@@ -17,7 +21,7 @@ int main(int argc, char *argv[])
     status_printf(STATUS_INFO, "%s", "carrot");
     printf("%s\n", status());
 
-    status_notify(notify);
+    watch(&o, &status_changed, callback);
 
     status_set(STATUS_ALERT, "apple");
     status_set(STATUS_ALERT, "orange");

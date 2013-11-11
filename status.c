@@ -21,11 +21,10 @@
 
 #include "status.h"
 
-static void no_notify(void) {}
+struct event status_changed = EVENT_INIT(status_changed);
 
 static const char *message = "";
 static int level = 0;
-static void (*notify)(void) = &no_notify;
 
 /*
  * Return: current status string
@@ -57,7 +56,7 @@ void status_set(int l, const char *s)
         fputc('\n', stderr);
     }
 
-    notify();
+    fire(&status_changed, (void*)s);
 }
 
 /*
@@ -74,13 +73,4 @@ void status_printf(int lvl, const char *t, ...)
     va_end(l);
 
     status_set(lvl, buf);
-}
-
-/*
- * Set a function to call as a notification when status changes
- */
-
-void status_notify(void (*f)(void))
-{
-    notify = f;
 }
