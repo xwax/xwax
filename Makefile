@@ -71,6 +71,7 @@ DEVICE_LIBS =
 TESTS = tests/cues \
 	tests/external \
 	tests/library \
+	tests/observer \
 	tests/status \
 	tests/timecoder \
 	tests/track \
@@ -161,6 +162,8 @@ tests/library:	tests/library.o external.o index.o library.o
 
 tests/midi:	tests/midi.o midi.o
 tests/midi:	LDLIBS += $(ALSA_LIBS)
+
+tests/observer:	tests/observer.o
 
 tests/status:	tests/status.o status.o
 
