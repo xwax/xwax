@@ -37,8 +37,10 @@ void listbox_init(struct listbox *s)
 void listbox_set_lines(struct listbox *s, unsigned int lines)
 {
     s->lines = lines;
+
     if (s->selected >= s->offset + s->lines)
         s->selected = s->offset + s->lines - 1;
+
     if (s->offset + s->lines > s->entries) {
         s->offset = s->entries - s->lines;
         if (s->offset < 0)
@@ -54,8 +56,10 @@ void listbox_set_lines(struct listbox *s, unsigned int lines)
 void listbox_set_entries(struct listbox *s, unsigned int entries)
 {
     s->entries = entries;
+
     if (s->selected >= s->entries)
         s->selected = s->entries - 1;
+
     if (s->offset + s->lines > s->entries) {
         s->offset = s->entries - s->lines;
         if (s->offset < 0)
@@ -76,6 +80,7 @@ void listbox_set_entries(struct listbox *s, unsigned int entries)
 void listbox_up(struct listbox *s, unsigned int n)
 {
     s->selected -= n;
+
     if (s->selected < 0)
         s->selected = 0;
 
@@ -91,6 +96,7 @@ void listbox_up(struct listbox *s, unsigned int n)
 void listbox_down(struct listbox *s, unsigned int n)
 {
     s->selected += n;
+
     if (s->selected >= s->entries)
         s->selected = s->entries - 1;
 
@@ -121,6 +127,7 @@ void listbox_last(struct listbox *s)
 {
     s->selected = s->entries - 1;
     s->offset = s->selected - s->lines + 1;
+
     if (s->offset < 0)
         s->offset = 0;
 }
@@ -153,11 +160,10 @@ void listbox_to(struct listbox *s, unsigned int n)
 
 int listbox_current(const struct listbox *s)
 {
-    if (s->entries == 0) {
+    if (s->entries == 0)
         return -1;
-    } else {
+    else
         return s->selected;
-    }
 }
 
 /*
