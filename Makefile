@@ -53,6 +53,7 @@ OBJS = controller.o \
 	external.o \
 	interface.o \
 	library.o \
+	listbox.o \
 	listing.o \
 	lut.o \
 	player.o \

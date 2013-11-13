@@ -1139,7 +1139,7 @@ static void draw_search(SDL_Surface *surface, const struct rect *rect,
  */
 
 static void draw_scroll_bar(SDL_Surface *surface, const struct rect *rect,
-                            const struct scroll *scroll)
+                            const struct listbox *scroll)
 {
     SDL_Rect box;
     SDL_Color bg;
@@ -1169,7 +1169,7 @@ static void draw_scroll_bar(SDL_Surface *surface, const struct rect *rect,
 
 static void draw_crates(SDL_Surface *surface, const struct rect *rect,
                         const struct library *library,
-                        const struct scroll *scroll,
+                        const struct listbox *scroll,
                         int sort)
 {
     size_t n;
@@ -1243,7 +1243,7 @@ static void draw_crates(SDL_Surface *surface, const struct rect *rect,
 
 static void draw_listing(SDL_Surface *surface, const struct rect *rect,
                          const struct listing *listing,
-                         const struct scroll *scroll)
+                         const struct listbox *scroll)
 {
     size_t n;
     int width;

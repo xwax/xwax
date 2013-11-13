@@ -25,14 +25,8 @@
 #include <stddef.h>
 
 #include "library.h"
+#include "listbox.h"
 #include "listing.h"
-
-/* Managed context of a scrolling window, of a number of fixed-height
- * lines, backed by a list of a known number of entries */
-
-struct scroll {
-    int lines, offset, entries, selected;
-};
 
 struct selector {
     struct library *library;
@@ -41,7 +35,7 @@ struct selector {
         *swap_listing, /* used to swap between a and b listings */
         listing_a, listing_b;
 
-    struct scroll records, crates;
+    struct listbox records, crates;
     bool toggled;
     int toggle_back, sort;
     struct record *target;
