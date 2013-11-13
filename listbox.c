@@ -30,8 +30,10 @@ void listbox_init(struct listbox *s)
 }
 
 /*
- * Set the number of lines displayed on screen. The current selection
- * is moved to within range.
+ * Set the number of lines displayed on screen
+ *
+ * Zero is valid, to mean that the display is hidden. In all other
+ * cases, the current selection is moved to within range.
  */
 
 void listbox_set_lines(struct listbox *s, unsigned int lines)
