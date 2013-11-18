@@ -1162,145 +1162,147 @@ static void draw_scroll_bar(SDL_Surface *surface, const struct rect *rect,
 }
 
 /*
- * Display a crate listing, with scrollbar and current selection
- *
- * Return: the number of lines which fit on the display.
+ * A callback function for drawing a row. Included here for
+ * readability where it is used.
  */
 
-static void draw_crates(SDL_Surface *surface, const struct rect *rect,
-                        const struct library *library,
-                        const struct listbox *scroll,
-                        int sort)
+typedef void (*draw_row_t)(const void *context,
+                           SDL_Surface *surface, const struct rect rect,
+                           unsigned int entry, bool selected);
+
+/*
+ * Draw a listbox, using the given function to draw each row
+ */
+
+static void draw_listbox(const struct listbox *lb, SDL_Surface *surface,
+                         const struct rect rect,
+                         const void *context, draw_row_t draw)
 {
-    size_t n;
-    struct rect left, bottom;
+    struct rect left, remain;
+    unsigned int row;
 
-    split(*rect, from_left(SCROLLBAR_SIZE, SPACER), &left, &bottom);
-    draw_scroll_bar(surface, &left, scroll);
+    split(rect, from_left(SCROLLBAR_SIZE, SPACER), &left, &remain);
+    draw_scroll_bar(surface, &left, lb);
 
-    n = scroll->offset;
+    row = 0;
 
-    for (;;) {
+    for (row = 0;; row++) {
+        int entry;
         bool selected;
-        SDL_Color col;
-        struct rect top, remain;
-        const struct crate *crate;
+        struct rect line;
 
-        if (n >= library->crates)
+        entry = listbox_map(lb, row);
+        if (entry == -1)
             break;
 
-        split(bottom, from_top(FONT_SPACE, 0), &top, &remain);
+        if (entry == listbox_current(lb))
+            selected = true;
+        else
+            selected = false;
 
-        if (remain.h < 0)
-            break;
-
-        bottom = remain;
-        crate = library->crate[n];
-        selected = (n == scroll->selected);
-
-        col = crate->is_fixed ? detail_col: text_col;
-
-        if (!selected) {
-            draw_text(surface, &top, crate->name, font, col, background_col);
-        } else {
-            struct rect left, right;
-
-            split(top, from_right(SORT_WIDTH, 0), &left, &right);
-            draw_text(surface, &left, crate->name, font, col, selected_col);
-
-            switch (sort) {
-            case SORT_ARTIST:
-                draw_token(surface, &right, "ART", text_col,
-                           artist_col, selected_col);
-                break;
-            case SORT_BPM:
-                draw_token(surface, &right, "BPM", text_col,
-                           bpm_col, selected_col);
-                break;
-            case SORT_PLAYLIST:
-                draw_token(surface, &right, "PLS", text_col,
-                           selected_col, selected_col);
-                break;
-            default:
-                abort();
-            }
-        }
-
-        n++;
+        split(remain, from_top(FONT_SPACE, 0), &line, &remain);
+        draw(context, surface, line, entry, selected);
     }
 
-    draw_rect(surface, &bottom, background_col);
+    draw_rect(surface, &remain, background_col);
 }
 
+static void draw_crate_row(const void *context,
+                           SDL_Surface *surface, const struct rect rect,
+                           unsigned int entry, bool selected)
+{
+    const struct selector *selector = context;
+    const struct crate *crate;
+    struct rect left, right;
+    SDL_Color col;
 
+    crate = selector->library->crate[entry];
+
+    if (crate->is_fixed)
+        col = detail_col;
+    else
+        col = text_col;
+
+    if (!selected) {
+        draw_text(surface, &rect, crate->name, font, col, background_col);
+        return;
+    }
+
+    split(rect, from_right(SORT_WIDTH, 0), &left, &right);
+    draw_text(surface, &left, crate->name, font, col, selected_col);
+
+    switch (selector->sort) {
+    case SORT_ARTIST:
+        draw_token(surface, &right, "ART", text_col, artist_col, selected_col);
+        break;
+
+    case SORT_BPM:
+        draw_token(surface, &right, "BPM", text_col, bpm_col, selected_col);
+        break;
+
+    case SORT_PLAYLIST:
+        draw_token(surface, &right, "PLS", text_col, selected_col, selected_col);
+        break;
+
+    default:
+        abort();
+    }
+}
+
+/*
+ * Draw a crate listing, with scrollbar and current selection
+ */
+
+static void draw_crates(SDL_Surface *surface, const struct rect rect,
+                        const struct selector *x)
+{
+    draw_listbox(&x->crates, surface, rect, x, draw_crate_row);
+}
+
+static void draw_record_row(const void *context,
+                            SDL_Surface *surface, const struct rect rect,
+                            unsigned int entry, bool selected)
+{
+    int width;
+    struct record *record;
+    const struct listing *listing = context;
+    struct rect left, right;
+    SDL_Color col;
+
+    if (selected)
+        col = selected_col;
+    else
+        col = background_col;
+
+    width = rect.w / 2;
+    if (width > RESULTS_ARTIST_WIDTH)
+        width = RESULTS_ARTIST_WIDTH;
+
+    record = listing->record[entry];
+
+    split(rect, from_left(BPM_WIDTH, 0), &left, &right);
+    draw_bpm_field(surface, &left, record->bpm, col);
+
+    split(right, from_left(SPACER, 0), &left, &right);
+    draw_rect(surface, &left, col);
+
+    split(right, from_left(width, 0), &left, &right);
+    draw_text(surface, &left, record->artist, font, text_col, col);
+
+    split(right, from_left(SPACER, 0), &left, &right);
+    draw_rect(surface, &left, col);
+    draw_text(surface, &right, record->title, font, text_col, col);
+}
 
 /*
  * Display a record library listing, with scrollbar and current
  * selection
- *
- * Return: the number of lines which fit on the display
  */
 
-static void draw_listing(SDL_Surface *surface, const struct rect *rect,
-                         const struct listing *listing,
-                         const struct listbox *scroll)
+static void draw_listing(SDL_Surface *surface, const struct rect rect,
+                         const struct selector *x)
 {
-    size_t n;
-    int width;
-    struct rect left, bottom;
-
-    split(*rect, from_left(SCROLLBAR_SIZE, SPACER), &left, &bottom);
-    draw_scroll_bar(surface, &left, scroll);
-
-    /* Choose the width of the 'artist' column */
-
-    width = bottom.w / 2;
-    if (width > RESULTS_ARTIST_WIDTH)
-        width = RESULTS_ARTIST_WIDTH;
-
-    n = scroll->offset;
-
-    for (;;) {
-        SDL_Color col;
-        struct rect top, left, right, remain;
-        const struct record *record;
-        bool selected;
-
-        if (n >= listing->entries)
-            break;
-
-        split(bottom, from_top(FONT_SPACE, 0), &top, &remain);
-
-        if (remain.h < 0)
-            break;
-
-        bottom = remain;
-        record = listing->record[n];
-        selected = (n == scroll->selected);
-
-        if (selected) {
-            col = selected_col;
-        } else {
-            col = background_col;
-        }
-
-        split(top, from_left(BPM_WIDTH, 0), &left, &right);
-        draw_bpm_field(surface, &left, record->bpm, col);
-
-        split(right, from_left(SPACER, 0), &left, &right);
-        draw_rect(surface, &left, col);
-
-        split(right, from_left(width, 0), &left, &right);
-        draw_text(surface, &left, record->artist, font, text_col, col);
-
-        split(right, from_left(SPACER, 0), &left, &right);
-        draw_rect(surface, &left, col);
-        draw_text(surface, &right, record->title, font, text_col, col);
-
-        n++;
-    }
-
-    draw_rect(surface, &bottom, background_col);
+    draw_listbox(&x->records, surface, rect, x->view_listing, draw_record_row);
 }
 
 /*
@@ -1320,10 +1322,10 @@ static void draw_library(SDL_Surface *surface, const struct rect *rect,
 
     split(rlists, columns(0, 4, SPACER), &rcrates, &rrecords);
     if (rcrates.w > LIBRARY_MIN_WIDTH) {
-        draw_listing(surface, &rrecords, sel->view_listing, &sel->records);
-        draw_crates(surface, &rcrates, sel->library, &sel->crates, sel->sort);
+        draw_listing(surface, rrecords, sel);
+        draw_crates(surface, rcrates, sel);
     } else {
-        draw_listing(surface, rect, sel->view_listing, &sel->records);
+        draw_listing(surface, *rect, sel);
     }
 }
 
