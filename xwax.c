@@ -306,7 +306,7 @@ int main(int argc, char *argv[])
                 return -1;
             }
 
-            fprintf(stderr, "Initialising deck %d (%s)...\n", ndeck, argv[1]);
+            fprintf(stderr, "Initialising deck %zd (%s)...\n", ndeck, argv[1]);
 
             ld = &deck[ndeck];
             device = &ld->device;
