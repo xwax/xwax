@@ -48,7 +48,9 @@ int main(int argc, char *argv[])
     if (font == NULL)
         abort();
 
+#ifdef TTF_HINTING_NONE
     TTF_SetFontHinting(font, TTF_HINTING_NONE);
+#endif
     TTF_SetFontKerning(font, 1);
 
     surface = SDL_SetVideoMode(400, 200, 32, 0);
