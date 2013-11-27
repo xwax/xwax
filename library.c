@@ -323,7 +323,7 @@ static struct record* get_record(const char *line)
         return NULL;
     }
 
-    n = sscanf(line, "%a[^\t]\t%a[^\t]\t%a[^\t]\t%16[^\t]\n",
+    n = sscanf(line, "%a[^\t]\t%a[^\t]\t%a[^\t]\t%15[^\t]\n",
                &x->pathname,
                &x->artist,
                &x->title,
