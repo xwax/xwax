@@ -339,6 +339,7 @@ static struct record* get_record(const char *line)
         goto bad;
 
     case 3:
+        x->bpm = 0.0;
         break;
 
     case 4:
