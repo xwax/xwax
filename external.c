@@ -19,11 +19,15 @@
 
 #define _BSD_SOURCE /* vfork() */
 #include <assert.h>
+#include <errno.h>
 #include <fcntl.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/types.h>
 
+#include "debug.h"
 #include "external.h"
 
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof(*x))
@@ -193,6 +197,112 @@ fail:
         abort();
     if (close(pp[1]) != 0)
         abort();
+
+    return -1;
+}
+
+void rb_reset(struct rb *rb)
+{
+    rb->len = 0;
+}
+
+bool rb_is_full(const struct rb *rb)
+{
+    return (rb->len == sizeof rb->buf);
+}
+
+/*
+ * Read, within reasonable limits (ie. memory or time)
+ * from the fd into the buffer
+ *
+ * Return: -1 on error, 0 on EOF, otherwise the number of bytes added
+ */
+
+static ssize_t top_up(struct rb *rb, int fd)
+{
+    size_t remain;
+    ssize_t z;
+
+    assert(rb->len < sizeof rb->buf);
+    remain = sizeof(rb->buf) - rb->len;
+
+    z = read(fd, rb->buf + rb->len, remain);
+    if (z == -1) {
+        perror("read");
+        return -1;
+    }
+
+    rb->len += z;
+    return z;
+}
+
+/*
+ * Pop the front of the buffer to end-of-line
+ *
+ * Return: 0 if not found, -1 if not enough memory,
+ *    otherwise string length (incl. terminator)
+ * Post: if return is > 0, q points to alloc'd string
+ */
+
+static ssize_t pop(struct rb *rb, char **q)
+{
+    const char *x;
+    char *s;
+    size_t len;
+
+    x = memchr(rb->buf, '\n', rb->len);
+    if (!x) {
+        debug("pop %p exhausted", rb);
+        return 0;
+    }
+
+    len = x - rb->buf;
+    debug("pop %p got %u", rb, len);
+
+    s = strndup(rb->buf, len);
+    if (!s) {
+        perror("strndup");
+        return -1;
+    }
+
+    *q = s;
+
+    /* Simple compact of the buffer. If this is a bottleneck of any
+     * kind (unlikely) then a circular buffer should be used */
+
+    memmove(rb->buf, x + 1, rb->len - len - 1);
+    rb->len = rb->len - len - 1;
+
+    return len + 1;
+}
+
+/*
+ * Read a terminated string from the given file descriptor via
+ * the buffer.
+ *
+ * Handles non-blocking file descriptors too. If fd is non-blocking,
+ * then the semantics are the same as a non-blocking read() --
+ * ie. EAGAIN may be returned as an error.
+ *
+ * Return: 0 on EOF
+ */
+
+ssize_t get_line(int fd, struct rb *rb, char **string)
+{
+    ssize_t z;
+
+    z = top_up(rb, fd);
+    if (z <= 0)
+        return z;
+
+    z = pop(rb, string);
+    if (z != 0)
+        return z;
+
+    if (rb_is_full(rb))
+        errno = ENOBUFS;
+    else
+        errno = EAGAIN;
 
     return -1;
 }

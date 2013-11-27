@@ -69,6 +69,7 @@ DEVICE_CPPFLAGS =
 DEVICE_LIBS =
 
 TESTS = tests/cues \
+	tests/external \
 	tests/library \
 	tests/status \
 	tests/timecoder \
@@ -153,6 +154,8 @@ tests:		$(TESTS)
 tests:		CPPFLAGS += -I.
 
 tests/cues:	tests/cues.o cues.o
+
+tests/external:	tests/external.o external.o
 
 tests/library:	tests/library.o external.o library.o listing.o
 

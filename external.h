@@ -27,7 +27,20 @@
 #include <stdarg.h>
 #include <unistd.h>
 
+/*
+ * A handy read buffer; an equivalent of fread() but for
+ * non-blocking file descriptors
+ */
+
+struct rb {
+    char buf[4096];
+    size_t len;
+};
+
 pid_t fork_pipe(int *fd, const char *path, char *arg, ...);
 pid_t fork_pipe_nb(int *fd, const char *path, char *arg, ...);
+
+void rb_reset(struct rb *rb);
+ssize_t get_line(int fd, struct rb *rb, char **string);
 
 #endif
