@@ -227,10 +227,8 @@ static ssize_t top_up(struct rb *rb, int fd)
     remain = sizeof(rb->buf) - rb->len;
 
     z = read(fd, rb->buf + rb->len, remain);
-    if (z == -1) {
-        perror("read");
+    if (z == -1)
         return -1;
-    }
 
     rb->len += z;
     return z;
@@ -261,7 +259,7 @@ static ssize_t pop(struct rb *rb, char **q)
 
     s = strndup(rb->buf, len);
     if (!s) {
-        perror("strndup");
+        debug("strndup: %s", strerror(errno));
         return -1;
     }
 
@@ -284,7 +282,8 @@ static ssize_t pop(struct rb *rb, char **q)
  * then the semantics are the same as a non-blocking read() --
  * ie. EAGAIN may be returned as an error.
  *
- * Return: 0 on EOF
+ * Return: 0 on EOF, or -1 on error
+ * Post: if -1 is returned, errno is set accordingly
  */
 
 ssize_t get_line(int fd, struct rb *rb, char **string)
