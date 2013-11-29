@@ -24,17 +24,17 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "listing.h"
+#include "index.h"
 
 #define BLOCK 1024
 #define MAX_WORDS 32
 #define SEPARATOR ' '
 
 /*
- * Initialise a record listing
+ * Initialise a record index
  */
 
-void listing_init(struct listing *ls)
+void index_init(struct index *ls)
 {
     ls->record = NULL;
     ls->size = 0;
@@ -42,39 +42,39 @@ void listing_init(struct listing *ls)
 }
 
 /*
- * Deallocate resources associated with this listing
+ * Deallocate resources associated with this index
  *
- * The listing does not allocate records itself, so it is not
+ * The index does not allocate records itself, so it is not
  * responsible for deallocating them.
  */
 
-void listing_clear(struct listing *ls)
+void index_clear(struct index *ls)
 {
     if (ls->record != NULL)
         free(ls->record);
 }
 
 /*
- * Blank the listing so it contains no entries
+ * Blank the index so it contains no entries
  *
  * We don't de-allocate memory, but this gives us an advantage where
- * listing re-use is of similar size.
+ * index re-use is of similar size.
  */
 
-void listing_blank(struct listing *ls)
+void index_blank(struct index *ls)
 {
     ls->entries = 0;
 }
 
 /*
- * Enlarge the storage space of the listing to at least the target
+ * Enlarge the storage space of the index to at least the target
  * size
  *
  * Return: 0 on success or -1 on memory allocation failure
- * Post: size of listing is greater than or equal to target
+ * Post: size of index is greater than or equal to target
  */
 
-static int enlarge(struct listing *ls, size_t target)
+static int enlarge(struct index *ls, size_t target)
 {
     size_t p;
     struct record **ln;
@@ -96,12 +96,12 @@ static int enlarge(struct listing *ls, size_t target)
 }
 
 /*
- * Add a record to the listing
+ * Add a record to the index
  *
  * Return: 0 on success or -1 on memory allocation failure
  */
 
-int listing_add(struct listing *ls, struct record *lr)
+int index_add(struct index *ls, struct record *lr)
 {
     if (enlarge(ls, ls->entries + 1) == -1)
         return -1;
@@ -183,20 +183,20 @@ static bool record_match_all(struct record *re, char **matches)
 }
 
 /*
- * Copy the source listing
+ * Copy the source index
  *
  * Return: 0 on success or -1 on memory allocation failure
  * Post: on failure, dest is valid but incomplete
  */
 
-int listing_copy(const struct listing *src, struct listing *dest)
+int index_copy(const struct index *src, struct index *dest)
 {
     int n;
 
-    listing_blank(dest);
+    index_blank(dest);
 
     for (n = 0; n < src->entries; n++) {
-	if (listing_add(dest, src->record[n]) != 0)
+	if (index_add(dest, src->record[n]) != 0)
 	    return -1;
     }
 
@@ -204,9 +204,9 @@ int listing_copy(const struct listing *src, struct listing *dest)
 }
 
 /*
- * Find entries from the source listing with match the given string
+ * Find entries from the source index with match the given string
  *
- * Copy the subset of the source listing which matches the given
+ * Copy the subset of the source index which matches the given
  * string into the destination. This function defines what constitutes
  * a match.
  *
@@ -214,8 +214,8 @@ int listing_copy(const struct listing *src, struct listing *dest)
  * Post: on failure, dest is valid but incomplete
  */
 
-int listing_match(struct listing *src, struct listing *dest,
-		  const char *match)
+int index_match(struct index *src, struct index *dest,
+                const char *match)
 {
     int n;
     char *buf, *words[MAX_WORDS];
@@ -244,13 +244,13 @@ int listing_match(struct listing *src, struct listing *dest,
     }
     words[n] = NULL; /* terminate list */
 
-    listing_blank(dest);
+    index_blank(dest);
 
     for (n = 0; n < src->entries; n++) {
         re = src->record[n];
 
         if (record_match_all(re, words)) {
-            if (listing_add(dest, re) == -1)
+            if (index_add(dest, re) == -1)
                 return -1;
         }
     }
@@ -259,7 +259,7 @@ int listing_match(struct listing *src, struct listing *dest,
 }
 
 /*
- * Binary search of sorted listing
+ * Binary search of sorted index
  *
  * We implement our own binary search rather than using the bsearch()
  * from stdlib.h, because we need to know the position to insert to if
@@ -312,15 +312,15 @@ static size_t bin_search(struct record **base, size_t n,
 }
 
 /*
- * Insert or re-use an entry in a sorted listing
+ * Insert or re-use an entry in a sorted index
  *
- * Pre: listing is sorted
+ * Pre: index is sorted
  * Return: pointer to item, or existing entry; NULL if out of memory
- * Post: listing is sorted and contains item or a matching item
+ * Post: index is sorted and contains item or a matching item
  */
 
-struct record* listing_insert(struct listing *ls, struct record *item,
-                              int sort)
+struct record* index_insert(struct index *ls, struct record *item,
+                            int sort)
 {
     bool found;
     size_t z;
@@ -346,7 +346,7 @@ struct record* listing_insert(struct listing *ls, struct record *item,
  * Find an identical entry, or the nearest match
  */
 
-size_t listing_find(struct listing *ls, struct record *item, int sort)
+size_t index_find(struct index *ls, struct record *item, int sort)
 {
     bool found;
     size_t z;
@@ -356,10 +356,10 @@ size_t listing_find(struct listing *ls, struct record *item, int sort)
 }
 
 /*
- * Debug the content of a listing to standard error
+ * Debug the content of a index to standard error
  */
 
-void listing_debug(struct listing *ls)
+void index_debug(struct index *ls)
 {
     int n;
 

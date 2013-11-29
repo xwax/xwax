@@ -51,10 +51,10 @@ OBJS = controller.o \
 	deck.o \
 	device.o \
 	external.o \
+	index.o \
 	interface.o \
 	library.o \
 	listbox.o \
-	listing.o \
 	lut.o \
 	player.o \
 	realtime.o \
@@ -157,7 +157,7 @@ tests/cues:	tests/cues.o cues.o
 
 tests/external:	tests/external.o external.o
 
-tests/library:	tests/library.o external.o library.o listing.o
+tests/library:	tests/library.o external.o index.o library.o
 
 tests/midi:	tests/midi.o midi.o
 tests/midi:	LDLIBS += $(ALSA_LIBS)

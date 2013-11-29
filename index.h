@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef LISTING_H
-#define LISTING_H
+#ifndef INDEX_H
+#define INDEX_H
 
 #include <stddef.h>
 
@@ -32,23 +32,23 @@ struct record {
     double bpm; /* or 0.0 if not known */
 };
 
-/* Listing points to records, but does not manage those pointers */
+/* Index points to records, but does not manage those pointers */
 
-struct listing {
+struct index {
     struct record **record;
     size_t size, entries;
 };
 
-void listing_init(struct listing *ls);
-void listing_clear(struct listing *ls);
-void listing_blank(struct listing *ls);
-int listing_add(struct listing *li, struct record *lr);
-int listing_copy(const struct listing *src, struct listing *dest);
-int listing_match(struct listing *src, struct listing *dest,
-		  const char *match);
-struct record* listing_insert(struct listing *ls, struct record *item,
-                              int sort);
-size_t listing_find(struct listing *ls, struct record *item, int sort);
-void listing_debug(struct listing *ls);
+void index_init(struct index *ls);
+void index_clear(struct index *ls);
+void index_blank(struct index *ls);
+int index_add(struct index *li, struct record *lr);
+int index_copy(const struct index *src, struct index *dest);
+int index_match(struct index *src, struct index *dest,
+                const char *match);
+struct record* index_insert(struct index *ls, struct record *item,
+                            int sort);
+size_t index_find(struct index *ls, struct record *item, int sort);
+void index_debug(struct index *ls);
 
 #endif

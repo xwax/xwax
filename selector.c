@@ -29,17 +29,17 @@
 static void retain_position(struct selector *sel)
 {
     size_t n;
-    struct listing *l;
+    struct index *l;
 
     if (sel->target == NULL)
         return;
 
-    l = sel->view_listing;
+    l = sel->view_index;
 
     switch (sel->sort) {
     case SORT_ARTIST:
     case SORT_BPM:
-        n = listing_find(l, sel->target, sel->sort);
+        n = index_find(l, sel->target, sel->sort);
         break;
     case SORT_PLAYLIST:
         /* Linear search */
@@ -56,10 +56,10 @@ static void retain_position(struct selector *sel)
         listbox_to(&sel->records, n);
 }
 
-/* Return the listing which acts as the starting point before
+/* Return the index which acts as the starting point before
  * string matching, based on the current crate */
 
-static struct listing* initial(struct selector *sel)
+static struct index* initial(struct selector *sel)
 {
     struct crate *c;
 
@@ -90,19 +90,19 @@ void selector_init(struct selector *sel, struct library *lib)
     sel->search[0] = '\0';
     sel->search_len = 0;
 
-    listing_init(&sel->listing_a);
-    listing_init(&sel->listing_b);
-    sel->view_listing = &sel->listing_a;
-    sel->swap_listing = &sel->listing_b;
+    index_init(&sel->index_a);
+    index_init(&sel->index_b);
+    sel->view_index = &sel->index_a;
+    sel->swap_index = &sel->index_b;
 
-    (void)listing_copy(initial(sel), sel->view_listing);
-    listbox_set_entries(&sel->records, sel->view_listing->entries);
+    (void)index_copy(initial(sel), sel->view_index);
+    listbox_set_entries(&sel->records, sel->view_index->entries);
 }
 
 void selector_clear(struct selector *sel)
 {
-    listing_clear(&sel->listing_a);
-    listing_clear(&sel->listing_b);
+    index_clear(&sel->index_a);
+    index_clear(&sel->index_b);
 }
 
 void selector_set_lines(struct selector *sel, unsigned int lines)
@@ -123,7 +123,7 @@ struct record* selector_current(struct selector *sel)
     if (i == -1) {
         return NULL;
     } else {
-        return sel->view_listing->record[i];
+        return sel->view_index->record[i];
     }
 }
 
@@ -175,13 +175,13 @@ void selector_bottom(struct selector *sel)
     set_target(sel);
 }
 
-/* When the crate has changed, update the current listing to reflect
+/* When the crate has changed, update the current index to reflect
  * the crate and the search criteria */
 
 static void crate_has_changed(struct selector *sel)
 {
-    (void)listing_match(initial(sel), sel->view_listing, sel->search);
-    listbox_set_entries(&sel->records, sel->view_listing->entries);
+    (void)index_match(initial(sel), sel->view_index, sel->search);
+    listbox_set_entries(&sel->records, sel->view_index->entries);
     retain_position(sel);
 }
 
@@ -225,7 +225,7 @@ void selector_toggle_order(struct selector *sel)
 }
 
 /* Expand the search. Do not disrupt the running process on memory
- * allocation failure, leave the view listing incomplete */
+ * allocation failure, leave the view index incomplete */
 
 void selector_search_expand(struct selector *sel)
 {
@@ -237,11 +237,11 @@ void selector_search_expand(struct selector *sel)
 }
 
 /* Refine the search. Do not distrupt the running process on memory
- * allocation failure, leave the view listing incomplete */
+ * allocation failure, leave the view index incomplete */
 
 void selector_search_refine(struct selector *sel, char key)
 {
-    struct listing *tmp;
+    struct index *tmp;
 
     if (sel->search_len >= sizeof(sel->search) - 1) /* would overflow */
         return;
@@ -249,12 +249,12 @@ void selector_search_refine(struct selector *sel, char key)
     sel->search[sel->search_len] = key;
     sel->search[++sel->search_len] = '\0';
 
-    (void)listing_match(sel->view_listing, sel->swap_listing, sel->search);
+    (void)index_match(sel->view_index, sel->swap_index, sel->search);
 
-    tmp = sel->view_listing;
-    sel->view_listing = sel->swap_listing;
-    sel->swap_listing = tmp;
+    tmp = sel->view_index;
+    sel->view_index = sel->swap_index;
+    sel->swap_index = tmp;
 
-    listbox_set_entries(&sel->records, sel->view_listing->entries);
+    listbox_set_entries(&sel->records, sel->view_index->entries);
     set_target(sel);
 }

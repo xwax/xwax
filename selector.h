@@ -26,14 +26,14 @@
 
 #include "library.h"
 #include "listbox.h"
-#include "listing.h"
+#include "index.h"
 
 struct selector {
     struct library *library;
-    struct listing
-        *view_listing, /* base_listing + search filter applied */
-        *swap_listing, /* used to swap between a and b listings */
-        listing_a, listing_b;
+    struct index
+        *view_index, /* base_index + search filter applied */
+        *swap_index, /* used to swap between a and b indexes */
+        index_a, index_b;
 
     struct listbox records, crates;
     bool toggled;

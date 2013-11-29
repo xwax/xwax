@@ -52,9 +52,9 @@ static int crate_init(struct crate *c, const char *name, bool is_fixed)
     }
 
     c->is_fixed = is_fixed;
-    listing_init(&c->by_artist);
-    listing_init(&c->by_bpm);
-    listing_init(&c->by_order);
+    index_init(&c->by_artist);
+    index_init(&c->by_bpm);
+    index_init(&c->by_order);
 
     return 0;
 }
@@ -68,9 +68,9 @@ static int crate_init(struct crate *c, const char *name, bool is_fixed)
 
 static void crate_clear(struct crate *c)
 {
-    listing_clear(&c->by_artist);
-    listing_clear(&c->by_bpm);
-    listing_clear(&c->by_order);
+    index_clear(&c->by_artist);
+    index_clear(&c->by_bpm);
+    index_clear(&c->by_order);
     free(c->name);
 }
 
@@ -103,17 +103,17 @@ static struct record* crate_add(struct crate *c, struct record *r)
 
     assert(r != NULL);
 
-    x = listing_insert(&c->by_artist, r, SORT_ARTIST);
+    x = index_insert(&c->by_artist, r, SORT_ARTIST);
     if (x != r) /* may be NULL */
         return x;
 
-    x = listing_insert(&c->by_bpm, r, SORT_BPM);
+    x = index_insert(&c->by_bpm, r, SORT_BPM);
     if (x == NULL)
-        abort(); /* FIXME: remove from all listings and return */
+        abort(); /* FIXME: remove from all indexes and return */
     assert(x == r);
 
-    if (listing_add(&c->by_order, r) != 0)
-        abort(); /* FIXME: remove from all listings and return */
+    if (index_add(&c->by_order, r) != 0)
+        abort(); /* FIXME: remove from all indexes and return */
 
     return r;
 }

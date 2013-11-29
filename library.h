@@ -23,14 +23,14 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-#include "listing.h"
+#include "index.h"
 
 /* A single crate of records */
 
 struct crate {
     bool is_fixed;
     char *name;
-    struct listing by_artist, by_bpm, by_order;
+    struct index by_artist, by_bpm, by_order;
 };
 
 /* The complete music library, which consists of multiple crates */

@@ -1120,9 +1120,9 @@ static void draw_search(SDL_Surface *surface, const struct rect *rect,
 
     SDL_FillRect(surface, &cursor, palette(surface, &cursor_col));
 
-    if (sel->view_listing->entries > 1)
-        sprintf(cm, "%zd matches", sel->view_listing->entries);
-    else if (sel->view_listing->entries > 0)
+    if (sel->view_index->entries > 1)
+        sprintf(cm, "%zd matches", sel->view_index->entries);
+    else if (sel->view_index->entries > 0)
         sprintf(cm, "1 match");
     else
         sprintf(cm, "no matches");
@@ -1250,7 +1250,7 @@ static void draw_crate_row(const void *context,
 }
 
 /*
- * Draw a crate listing, with scrollbar and current selection
+ * Draw a crate index, with scrollbar and current selection
  */
 
 static void draw_crates(SDL_Surface *surface, const struct rect rect,
@@ -1265,7 +1265,7 @@ static void draw_record_row(const void *context,
 {
     int width;
     struct record *record;
-    const struct listing *listing = context;
+    const struct index *index = context;
     struct rect left, right;
     SDL_Color col;
 
@@ -1278,7 +1278,7 @@ static void draw_record_row(const void *context,
     if (width > RESULTS_ARTIST_WIDTH)
         width = RESULTS_ARTIST_WIDTH;
 
-    record = listing->record[entry];
+    record = index->record[entry];
 
     split(rect, from_left(BPM_WIDTH, 0), &left, &right);
     draw_bpm_field(surface, &left, record->bpm, col);
@@ -1295,14 +1295,14 @@ static void draw_record_row(const void *context,
 }
 
 /*
- * Display a record library listing, with scrollbar and current
+ * Display a record library index, with scrollbar and current
  * selection
  */
 
-static void draw_listing(SDL_Surface *surface, const struct rect rect,
+static void draw_index(SDL_Surface *surface, const struct rect rect,
                          const struct selector *x)
 {
-    draw_listbox(&x->records, surface, rect, x->view_listing, draw_record_row);
+    draw_listbox(&x->records, surface, rect, x->view_index, draw_record_row);
 }
 
 /*
@@ -1322,10 +1322,10 @@ static void draw_library(SDL_Surface *surface, const struct rect *rect,
 
     split(rlists, columns(0, 4, SPACER), &rcrates, &rrecords);
     if (rcrates.w > LIBRARY_MIN_WIDTH) {
-        draw_listing(surface, rrecords, sel);
+        draw_index(surface, rrecords, sel);
         draw_crates(surface, rcrates, sel);
     } else {
-        draw_listing(surface, *rect, sel);
+        draw_index(surface, *rect, sel);
     }
 }
 
