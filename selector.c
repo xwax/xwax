@@ -66,11 +66,11 @@ static struct index* initial(struct selector *sel)
     c = sel->library->crate[sel->crates.selected];
     switch (sel->sort) {
     case SORT_ARTIST:
-        return &c->by_artist;
+        return &c->listing.by_artist;
     case SORT_BPM:
-        return &c->by_bpm;
+        return &c->listing.by_bpm;
     case SORT_PLAYLIST:
-        return &c->by_order;
+        return &c->listing.by_order;
     default:
         abort();
     }

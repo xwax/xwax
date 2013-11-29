@@ -25,12 +25,18 @@
 
 #include "index.h"
 
+/* A list of records, with several optimised indexes */
+
+struct listing {
+    struct index by_artist, by_bpm, by_order;
+};
+
 /* A single crate of records */
 
 struct crate {
     bool is_fixed;
     char *name;
-    struct index by_artist, by_bpm, by_order;
+    struct listing listing;
 };
 
 /* The complete music library, which consists of multiple crates */
@@ -39,6 +45,9 @@ struct library {
     struct crate all, **crate;
     size_t crates;
 };
+
+void listing_init(struct listing *l);
+void listing_clear(struct listing *l);
 
 int library_init(struct library *li);
 void library_clear(struct library *li);

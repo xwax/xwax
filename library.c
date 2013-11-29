@@ -35,6 +35,20 @@
 
 #define CRATE_ALL "All records"
 
+void listing_init(struct listing *l)
+{
+    index_init(&l->by_artist);
+    index_init(&l->by_bpm);
+    index_init(&l->by_order);
+}
+
+void listing_clear(struct listing *l)
+{
+    index_clear(&l->by_artist);
+    index_clear(&l->by_bpm);
+    index_clear(&l->by_order);
+}
+
 /*
  * Initialise a crate
  *
@@ -52,9 +66,7 @@ static int crate_init(struct crate *c, const char *name, bool is_fixed)
     }
 
     c->is_fixed = is_fixed;
-    index_init(&c->by_artist);
-    index_init(&c->by_bpm);
-    index_init(&c->by_order);
+    listing_init(&c->listing);
 
     return 0;
 }
@@ -68,9 +80,7 @@ static int crate_init(struct crate *c, const char *name, bool is_fixed)
 
 static void crate_clear(struct crate *c)
 {
-    index_clear(&c->by_artist);
-    index_clear(&c->by_bpm);
-    index_clear(&c->by_order);
+    listing_clear(&c->listing);
     free(c->name);
 }
 
@@ -97,25 +107,30 @@ static int crate_cmp(const struct crate *a, const struct crate *b)
  * Post: Record added to the crate
  */
 
-static struct record* crate_add(struct crate *c, struct record *r)
+static struct record* listing_add(struct listing *l, struct record *r)
 {
     struct record *x;
 
     assert(r != NULL);
 
-    x = index_insert(&c->by_artist, r, SORT_ARTIST);
+    x = index_insert(&l->by_artist, r, SORT_ARTIST);
     if (x != r) /* may be NULL */
         return x;
 
-    x = index_insert(&c->by_bpm, r, SORT_BPM);
+    x = index_insert(&l->by_bpm, r, SORT_BPM);
     if (x == NULL)
         abort(); /* FIXME: remove from all indexes and return */
     assert(x == r);
 
-    if (index_add(&c->by_order, r) != 0)
+    if (index_add(&l->by_order, r) != 0)
         abort(); /* FIXME: remove from all indexes and return */
 
     return r;
+}
+
+static struct record* crate_add(struct crate *c, struct record *r)
+{
+    return listing_add(&c->listing, r);
 }
 
 /*
@@ -261,10 +276,10 @@ void library_clear(struct library *li)
 
     /* This object is responsible for all the record pointers */
 
-    for (n = 0; n < li->all.by_artist.entries; n++) {
+    for (n = 0; n < li->all.listing.by_artist.entries; n++) {
         struct record *re;
 
-        re = li->all.by_artist.record[n];
+        re = li->all.listing.by_artist.record[n];
         record_clear(re);
         free(re);
     }
