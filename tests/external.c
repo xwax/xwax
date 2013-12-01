@@ -59,4 +59,6 @@ int main(int argc, char *argv[])
 
     p = wait(&status);
     assert(p == pid);
+
+    return 0;
 }
