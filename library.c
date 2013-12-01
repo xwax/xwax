@@ -342,7 +342,7 @@ static struct record* get_record(const char *line)
                &x->pathname,
                &x->artist,
                &x->title,
-               &bpm);
+               bpm);
 
     switch (n) {
     case 4:
