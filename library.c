@@ -111,7 +111,7 @@ static int crate_cmp(const struct crate *a, const struct crate *b)
  * Post: Record added to the crate
  */
 
-struct record* listing_add(struct listing *l, struct record *r)
+static struct record* listing_add(struct listing *l, struct record *r)
 {
     struct record *x;
 
@@ -438,7 +438,7 @@ int library_import(struct library *li, const char *scan, const char *path)
     if (crate == NULL)
         return -1;
 
-    if (excrate_get_by_scan(scan, path, &crate->listing) == NULL)
+    if (excrate_get_by_scan(scan, path, crate) == NULL)
         return -1;
 
     return 0;

@@ -18,7 +18,7 @@
 static struct list excrates = LIST_INIT(excrates);
 
 static int excrate_init(struct excrate *e, const char *script,
-                        const char *search, struct listing *target)
+                        const char *search, struct crate *target)
 {
     pid_t pid;
 
@@ -47,7 +47,7 @@ static void excrate_clear(struct excrate *e)
 }
 
 struct excrate* excrate_get_by_scan(const char *script, const char *search,
-                                    struct listing *target)
+                                    struct crate *target)
 {
     struct excrate *e;
 
@@ -178,7 +178,7 @@ static int read_from_pipe(struct excrate *e)
             continue; /* ignore malformed entries */
         }
 
-        x = listing_add(e->target, d);
+        x = crate_add(e->target, d);
         if (x == NULL)
             return -1;
         if (x != d) /* our new record is a duplicate */
