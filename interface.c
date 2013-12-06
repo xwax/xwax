@@ -120,9 +120,9 @@
 
 /* Types of SDL_USEREVENT */
 
-#define EVENT_TICKER 0
-#define EVENT_QUIT 1
-#define EVENT_STATUS 2
+#define EVENT_TICKER (SDL_USEREVENT)
+#define EVENT_QUIT   (SDL_USEREVENT + 1)
+#define EVENT_STATUS (SDL_USEREVENT + 2)
 
 /* Macro functions */
 
@@ -1486,21 +1486,24 @@ static SDL_Surface* set_size(int w, int h, struct rect *r)
     return surface;
 }
 
+static void push_event(int t)
+{
+    SDL_Event e;
+
+    if (!SDL_PeepEvents(&e, 1, SDL_PEEKEVENT, SDL_EVENTMASK(t))) {
+        e.type = t;
+        if (SDL_PushEvent(&e) == -1)
+            abort();
+    }
+}
+
 /*
  * Timer which posts a screen redraw event
  */
 
 static Uint32 ticker(Uint32 interval, void *p)
 {
-    SDL_Event event;
-
-    if (!SDL_PeepEvents(&event, 1, SDL_PEEKEVENT, SDL_EVENTMASK(SDL_USEREVENT)))
-    {
-        event.type = SDL_USEREVENT;
-        event.user.code = EVENT_TICKER;
-        SDL_PushEvent(&event);
-    }
-
+    push_event(EVENT_TICKER);
     return interval;
 }
 
@@ -1510,11 +1513,7 @@ static Uint32 ticker(Uint32 interval, void *p)
 
 static void status_change(void)
 {
-    SDL_Event e;
-
-    e.type = SDL_USEREVENT;
-    e.user.code = EVENT_STATUS;
-    SDL_PushEvent(&e);
+    push_event(EVENT_STATUS);
 }
 
 /*
@@ -1571,22 +1570,15 @@ static int interface_main(void)
 
             break;
 
-        case SDL_USEREVENT:
-            switch (event.user.code) {
-            case EVENT_TICKER: /* request to poll the clocks */
-                decks_update = true;
-                break;
+        case EVENT_TICKER:
+            decks_update = true;
+            break;
 
-            case EVENT_QUIT: /* internal request to finish this thread */
-                goto finish;
+        case EVENT_QUIT: /* internal request to finish this thread */
+            goto finish;
 
-            case EVENT_STATUS:
-                status_update = true;
-                break;
-
-            default:
-                abort();
-            }
+        case EVENT_STATUS:
+            status_update = true;
             break;
 
         case SDL_KEYDOWN:
@@ -1810,12 +1802,8 @@ int interface_start(struct library *lib, const char *geo)
 void interface_stop(void)
 {
     size_t n;
-    SDL_Event quit;
-
-    quit.type = SDL_USEREVENT;
-    quit.user.code = EVENT_QUIT;
-    if (SDL_PushEvent(&quit) == -1)
-        abort();
+ 
+    push_event(EVENT_QUIT);
 
     if (pthread_join(ph, NULL) != 0)
         abort();
