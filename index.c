@@ -18,6 +18,7 @@
  */
 
 #define _GNU_SOURCE /* strcasestr(), strdupa() */
+#include <assert.h>
 #include <ctype.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -103,6 +104,8 @@ static int enlarge(struct index *ls, size_t target)
 
 int index_add(struct index *ls, struct record *lr)
 {
+    assert(lr != NULL);
+
     if (enlarge(ls, ls->entries + 1) == -1)
         return -1;
 
