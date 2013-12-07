@@ -26,7 +26,7 @@
 /* Scroll to our target entry if it can be found, otherwise leave our
  * position unchanged */
 
-static void retain_position(struct selector *sel)
+static void retain_target(struct selector *sel)
 {
     size_t n;
     struct index *l;
@@ -57,11 +57,11 @@ static void retain_position(struct selector *sel)
 }
 
 /*
- * Optimised version of retain_position where our position may
+ * Optimised version of retain_target where our position may
  * only have moved due to insertion of a single record
  */
 
-static void hunt_position(struct selector *s)
+static void hunt_target(struct selector *s)
 {
     struct index *l;
     size_t n;
@@ -130,7 +130,7 @@ static void do_content_change(struct selector *sel)
 {
     (void)index_match(initial(sel), sel->view_index, sel->search);
     listbox_set_entries(&sel->records, sel->view_index->entries);
-    retain_position(sel);
+    retain_target(sel);
     notify(sel);
 }
 
@@ -146,7 +146,7 @@ static void merge_addition(struct observer *o, void *x)
 
     index_insert(s->view_index, r, s->sort);
     listbox_set_entries(&s->records, s->view_index->entries);
-    hunt_position(s);
+    hunt_target(s);
     notify(s);
 }
 
