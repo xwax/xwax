@@ -63,7 +63,7 @@
 #define DECI_FONT FONT
 #define DECI_FONT_SIZE 20
 
-#define DETAIL_FONT "DejaVuSansMono.ttf"
+#define DETAIL_FONT "DejaVuSansMono-Bold.ttf"
 #define DETAIL_FONT_SIZE 9
 #define DETAIL_FONT_SPACE 12
 
