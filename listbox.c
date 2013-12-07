@@ -89,7 +89,7 @@ void listbox_up(struct listbox *s, unsigned int n)
     /* Move the viewing offset up, if necessary */
 
     if (s->selected < s->offset) {
-        s->offset = s->selected - s->lines / 2 + 1;
+        s->offset = s->selected + s->lines / 2 - s->lines + 1;
         if (s->offset < 0)
             s->offset = 0;
     }
