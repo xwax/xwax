@@ -35,6 +35,8 @@
 
 #define CRATE_ALL "All records"
 
+#define ARRAY_SIZE(x) (sizeof(x) / sizeof(*x))
+
 void listing_init(struct listing *l)
 {
     index_init(&l->by_artist);
@@ -262,8 +264,6 @@ int library_init(struct library *li)
 static void record_clear(struct record *re)
 {
     free(re->pathname);
-    free(re->artist);
-    free(re->title);
 }
 
 /*
@@ -321,16 +321,45 @@ static double parse_bpm(const char *s)
 }
 
 /*
+ * Split string into array of fields (destructive)
+ *
+ * Return: number of fields found
+ * Post: array x is filled with n values
+ */
+
+static size_t split(char *s, char *x[], size_t len)
+{
+    size_t n;
+
+    for (n = 0; n < len; n++) {
+        char *y;
+
+        y = strchr(s, '\t');
+        if (y == NULL) {
+            x[n] = s;
+            return n + 1;
+        }
+
+        *y = '\0';
+        x[n] = s;
+        s = y + 1;
+    }
+
+    return n;
+}
+
+/*
  * Convert a line from the scan script to a record structure in memory
  *
  * Return: pointer to alloc'd record, or NULL on error
+ * Post: if successful, responsibility for pointer line is taken
  */
 
-static struct record* get_record(const char *line)
+static struct record* get_record(char *line)
 {
     int n;
     struct record *x;
-    char bpm[16];
+    char *field[4];
 
     x = malloc(sizeof *x);
     if (!x) {
@@ -338,30 +367,27 @@ static struct record* get_record(const char *line)
         return NULL;
     }
 
-    n = sscanf(line, "%a[^\t]\t%a[^\t]\t%a[^\t]\t%15[^\t]\n",
-               &x->pathname,
-               &x->artist,
-               &x->title,
-               bpm);
+    x->bpm = 0.0;
+
+    n = split(line, field, ARRAY_SIZE(field));
 
     switch (n) {
     case 4:
-        x->bpm = parse_bpm(bpm);
+        x->bpm = parse_bpm(field[3]);
         if (!isfinite(x->bpm)) {
             fprintf(stderr, "%s: Ignoring malformed BPM '%s'\n",
-                    x->pathname, bpm);
+                    field[0], field[3]);
             x->bpm = 0.0;
         }
-        break;
-
+        /* fall-through */
     case 3:
-        x->bpm = 0.0;
+        x->pathname = field[0];
+        x->artist = field[1];
+        x->title = field[2];
         break;
 
     case 2:
-        free(x->artist);
     case 1:
-        free(x->pathname);
     default:
         fprintf(stderr, "Malformed record '%s'\n", line);
         goto bad;
@@ -421,10 +447,10 @@ int library_import(struct library *li, const char *scan, const char *path)
             break;
 
         d = get_record(line);
-        free(line);
-
-        if (d == NULL)
+        if (d == NULL) {
+            free(line);
             return -1;
+        }
 
         /* Add to the crate of all records */
 
