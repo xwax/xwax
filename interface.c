@@ -123,6 +123,7 @@
 #define EVENT_TICKER (SDL_USEREVENT)
 #define EVENT_QUIT   (SDL_USEREVENT + 1)
 #define EVENT_STATUS (SDL_USEREVENT + 2)
+#define EVENT_SELECTOR (SDL_USEREVENT + 3)
 
 /* Macro functions */
 
@@ -167,7 +168,7 @@ static int width = DEFAULT_WIDTH, height = DEFAULT_HEIGHT,
 static float scale = DEFAULT_SCALE;
 static pthread_t ph;
 static struct selector selector;
-static struct observer on_status;
+static struct observer on_status, on_selector;
 
 /*
  * Scale a dimension according to the current zoom level
@@ -1519,6 +1520,11 @@ static void defer_status_redraw(struct observer *o, void *x)
     push_event(EVENT_STATUS);
 }
 
+static void defer_selector_redraw(struct observer *o, void *x)
+{
+    push_event(EVENT_SELECTOR);
+}
+
 /*
  * The SDL interface thread
  */
@@ -1584,6 +1590,10 @@ static int interface_main(void)
             status_update = true;
             break;
 
+        case EVENT_SELECTOR:
+            library_update = true;
+            break;
+
         case SDL_KEYDOWN:
             if (handle_key(event.key.keysym.sym, event.key.keysym.mod))
             {
@@ -1595,8 +1605,6 @@ static int interface_main(void)
                 } else {
                     status_set(STATUS_VERBOSE, "No search results found");
                 }
-
-                library_update = true;
             }
 
         } /* switch(event.type) */
@@ -1770,6 +1778,7 @@ int interface_start(struct library *lib, const char *geo)
 
     selector_init(&selector, lib);
     watch(&on_status, &status_changed, defer_status_redraw);
+    watch(&on_selector, &selector.changed, defer_selector_redraw);
     status_set(STATUS_VERBOSE, banner);
 
     fprintf(stderr, "Initialising SDL...\n");
@@ -1819,6 +1828,7 @@ void interface_stop(void)
 
     clear_spinner();
     ignore(&on_status);
+    ignore(&on_selector);
     selector_clear(&selector);
     clear_fonts();
 

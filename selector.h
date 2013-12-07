@@ -39,9 +39,12 @@ struct selector {
     bool toggled;
     int toggle_back, sort;
     struct record *target;
+    struct observer on_crate;
 
     size_t search_len;
     char search[256];
+
+    struct event changed;
 };
 
 void selector_init(struct selector *sel, struct library *lib);

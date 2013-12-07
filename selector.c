@@ -56,8 +56,34 @@ static void retain_position(struct selector *sel)
         listbox_to(&sel->records, n);
 }
 
-/* Return the index which acts as the starting point before
- * string matching, based on the current crate */
+/*
+ * Optimised version of retain_position where our position may
+ * only have moved due to insertion of a single record
+ */
+
+static void hunt_position(struct selector *s)
+{
+    struct index *l;
+    size_t n;
+
+    if (s->target == NULL)
+        return;
+
+    l = s->view_index;
+    n = listbox_current(&s->records);
+
+    if (n < l->entries && l->record[n + 1] == s->target) {
+        struct listbox *x;
+
+        /* Retain selection in the same position on screen
+         * FIXME: listbox should provide this functionality */
+
+        x = &s->records;
+
+        x->selected++;
+        x->offset++;
+    }
+}
 
 static struct crate* current_crate(struct selector *sel)
 {
@@ -92,8 +118,42 @@ static struct index* initial(struct selector *sel)
     }
 }
 
+static void notify(struct selector *s)
+{
+    fire(&s->changed, NULL);
+}
+
+/* When the crate has changed, update the current index to reflect
+ * the crate and the search criteria */
+
+static void do_content_change(struct selector *sel)
+{
+    (void)index_match(initial(sel), sel->view_index, sel->search);
+    listbox_set_entries(&sel->records, sel->view_index->entries);
+    retain_position(sel);
+    notify(sel);
+}
+
+/*
+ * A new record has been added to the currently selected crate. Merge
+ * this new addition into the current view, if applicable.
+ */
+
+static void merge_addition(struct observer *o, void *x)
+{
+    struct selector *s = container_of(o, struct selector, on_crate);
+    struct record *r = x;
+
+    index_insert(s->view_index, r, s->sort);
+    listbox_set_entries(&s->records, s->view_index->entries);
+    hunt_position(s);
+    notify(s);
+}
+
 void selector_init(struct selector *sel, struct library *lib)
 {
+    struct crate *c;
+
     sel->library = lib;
 
     listbox_init(&sel->records);
@@ -112,12 +172,19 @@ void selector_init(struct selector *sel, struct library *lib)
     sel->view_index = &sel->index_a;
     sel->swap_index = &sel->index_b;
 
+    c = current_crate(sel);
+    watch(&sel->on_crate, &c->addition, merge_addition);
+
     (void)index_copy(initial(sel), sel->view_index);
     listbox_set_entries(&sel->records, sel->view_index->entries);
+
+    event_init(&sel->changed);
 }
 
 void selector_clear(struct selector *sel)
 {
+    event_clear(&sel->changed);
+    ignore(&sel->on_crate);
     index_clear(&sel->index_a);
     index_clear(&sel->index_b);
 }
@@ -160,60 +227,71 @@ void selector_up(struct selector *sel)
 {
     listbox_up(&sel->records, 1);
     set_target(sel);
+    notify(sel);
 }
 
 void selector_down(struct selector *sel)
 {
     listbox_down(&sel->records, 1);
     set_target(sel);
+    notify(sel);
 }
 
 void selector_page_up(struct selector *sel)
 {
     listbox_up(&sel->records, sel->records.lines);
     set_target(sel);
+    notify(sel);
 }
 
 void selector_page_down(struct selector *sel)
 {
     listbox_down(&sel->records, sel->records.lines);
     set_target(sel);
+    notify(sel);
 }
 
 void selector_top(struct selector *sel)
 {
     listbox_first(&sel->records);
     set_target(sel);
+    notify(sel);
 }
 
 void selector_bottom(struct selector *sel)
 {
     listbox_last(&sel->records);
     set_target(sel);
+    notify(sel);
 }
 
-/* When the crate has changed, update the current index to reflect
- * the crate and the search criteria */
+/*
+ * Helper function when we have switched crate
+ */
 
-static void crate_has_changed(struct selector *sel)
+static void do_crate_change(struct selector *sel)
 {
-    (void)index_match(initial(sel), sel->view_index, sel->search);
-    listbox_set_entries(&sel->records, sel->view_index->entries);
-    retain_position(sel);
+    struct crate *c;
+
+    c = current_crate(sel);
+
+    ignore(&sel->on_crate);
+    watch(&sel->on_crate, &c->addition, merge_addition);
+    do_content_change(sel);
 }
 
 void selector_prev(struct selector *sel)
 {
     listbox_up(&sel->crates, 1);
     sel->toggled = false;
-    crate_has_changed(sel);
+    do_crate_change(sel);
 }
 
 void selector_next(struct selector *sel)
 {
     listbox_down(&sel->crates, 1);
     sel->toggled = false;
-    crate_has_changed(sel);
+    do_crate_change(sel);
 }
 
 /* Toggle between the current crate and the 'all' crate */
@@ -229,7 +307,7 @@ void selector_toggle(struct selector *sel)
         sel->toggled = false;
     }
 
-    crate_has_changed(sel);
+    do_crate_change(sel);
 }
 
 /* Toggle between sort order */
@@ -238,7 +316,7 @@ void selector_toggle_order(struct selector *sel)
 {
     set_target(sel);
     sel->sort = (sel->sort + 1) % SORT_END;
-    crate_has_changed(sel);
+    do_content_change(sel);
 }
 
 /* Expand the search. Do not disrupt the running process on memory
@@ -250,7 +328,7 @@ void selector_search_expand(struct selector *sel)
         return;
 
     sel->search[--sel->search_len] = '\0';
-    crate_has_changed(sel);
+    do_content_change(sel);
 }
 
 /* Refine the search. Do not distrupt the running process on memory
@@ -274,4 +352,5 @@ void selector_search_refine(struct selector *sel, char key)
 
     listbox_set_entries(&sel->records, sel->view_index->entries);
     set_target(sel);
+    notify(sel);
 }
