@@ -62,8 +62,12 @@ static void retain_position(struct selector *sel)
 static struct index* initial(struct selector *sel)
 {
     struct crate *c;
+    int n;
 
-    c = sel->library->crate[sel->crates.selected];
+    n = listbox_current(&sel->crates);
+    assert(n != -1);
+
+    c = sel->library->crate[n];
     switch (sel->sort) {
     case SORT_ARTIST:
         return &c->listing.by_artist;
