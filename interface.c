@@ -1616,6 +1616,9 @@ static int interface_main(void)
         if (rplayers.h < 0 || rplayers.w < 0)
             decks_update = false;
 
+        if (!library_update && !decks_update && !status_update)
+            continue;
+
         LOCK(surface);
 
         if (library_update)
