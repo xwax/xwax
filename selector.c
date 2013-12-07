@@ -59,15 +59,27 @@ static void retain_position(struct selector *sel)
 /* Return the index which acts as the starting point before
  * string matching, based on the current crate */
 
-static struct index* initial(struct selector *sel)
+static struct crate* current_crate(struct selector *sel)
 {
-    struct crate *c;
     int n;
 
     n = listbox_current(&sel->crates);
-    assert(n != -1);
+    if (n == -1)
+        return NULL;
 
-    c = sel->library->crate[n];
+    return sel->library->crate[n];
+}
+
+/* Return the index which acts as the starting point before
+ * string matching, based on the current crate */
+
+static struct index* initial(struct selector *sel)
+{
+    struct crate *c;
+
+    c = current_crate(sel);
+    assert(c != NULL);
+
     switch (sel->sort) {
     case SORT_ARTIST:
         return &c->listing.by_artist;
