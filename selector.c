@@ -23,8 +23,10 @@
 
 #include "selector.h"
 
-/* Scroll to our target entry if it can be found, otherwise leave our
- * position unchanged */
+/*
+ * Scroll to our target entry if it can be found, otherwise leave our
+ * position unchanged
+ */
 
 static void retain_target(struct selector *sel)
 {
@@ -96,8 +98,10 @@ static struct crate* current_crate(struct selector *sel)
     return sel->library->crate[n];
 }
 
-/* Return the index which acts as the starting point before
- * string matching, based on the current crate */
+/*
+ * Return the index which acts as the starting point before
+ * string matching, based on the current crate
+ */
 
 static struct index* initial(struct selector *sel)
 {
@@ -123,8 +127,10 @@ static void notify(struct selector *s)
     fire(&s->changed, NULL);
 }
 
-/* When the crate has changed, update the current index to reflect
- * the crate and the search criteria */
+/*
+ * When the crate has changed, update the current index to reflect
+ * the crate and the search criteria
+ */
 
 static void do_content_change(struct selector *sel)
 {
@@ -211,8 +217,10 @@ struct record* selector_current(struct selector *sel)
     }
 }
 
-/* Make a note of the current selected record, and make it the
- * position we will try and retain if the crate is changed etc. */
+/*
+ * Make a note of the current selected record, and make it the
+ * position we will try and retain if the crate is changed etc.
+ */
 
 static void set_target(struct selector *sel)
 {
@@ -294,7 +302,9 @@ void selector_next(struct selector *sel)
     do_crate_change(sel);
 }
 
-/* Toggle between the current crate and the 'all' crate */
+/*
+ * Toggle between the current crate and the 'all' crate
+ */
 
 void selector_toggle(struct selector *sel)
 {
@@ -310,7 +320,9 @@ void selector_toggle(struct selector *sel)
     do_crate_change(sel);
 }
 
-/* Toggle between sort order */
+/*
+ * Toggle between sort order
+ */
 
 void selector_toggle_order(struct selector *sel)
 {
@@ -319,8 +331,10 @@ void selector_toggle_order(struct selector *sel)
     do_content_change(sel);
 }
 
-/* Expand the search. Do not disrupt the running process on memory
- * allocation failure, leave the view index incomplete */
+/*
+ * Expand the search. Do not disrupt the running process on memory
+ * allocation failure, leave the view index incomplete
+ */
 
 void selector_search_expand(struct selector *sel)
 {
@@ -331,8 +345,10 @@ void selector_search_expand(struct selector *sel)
     do_content_change(sel);
 }
 
-/* Refine the search. Do not distrupt the running process on memory
- * allocation failure, leave the view index incomplete */
+/*
+ * Refine the search. Do not distrupt the running process on memory
+ * allocation failure, leave the view index incomplete
+ */
 
 void selector_search_refine(struct selector *sel, char key)
 {
