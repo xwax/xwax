@@ -93,6 +93,7 @@ void selector_init(struct selector *sel, struct library *lib)
     sel->sort = SORT_ARTIST;
     sel->search[0] = '\0';
     sel->search_len = 0;
+    sel->target = NULL;
 
     index_init(&sel->index_a);
     index_init(&sel->index_b);
