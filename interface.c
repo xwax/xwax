@@ -1436,7 +1436,7 @@ static bool handle_key(SDLKey key, SDLMod mod)
             pl = &de->player;
             tc = &de->timecoder;
 
-            if (mod & KMOD_SHIFT) {
+            if (mod & KMOD_SHIFT && !(mod & KMOD_CTRL)) {
                 if (func < ndeck)
                     deck_clone(de, &deck[func]);
 
@@ -1452,7 +1452,9 @@ static bool handle_key(SDLKey key, SDLMod mod)
                 break;
 
             case FUNC_TIMECODE:
-                if (mod & KMOD_CTRL) {
+                if (mod & (KMOD_CTRL | KMOD_SHIFT)) {
+                    player_set_internal_playback(pl);
+                } else if (mod & KMOD_CTRL) {
                     timecoder_cycle_definition(tc);
                 } else {
                     (void)player_toggle_timecode_control(pl);
