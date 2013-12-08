@@ -150,7 +150,11 @@ static void merge_addition(struct observer *o, void *x)
     struct selector *s = container_of(o, struct selector, on_crate);
     struct record *r = x;
 
-    index_insert(s->view_index, r, s->sort);
+    if (s->sort == SORT_PLAYLIST)
+        index_add(s->view_index, r);
+    else
+        index_insert(s->view_index, r, s->sort);
+
     listbox_set_entries(&s->records, s->view_index->entries);
     hunt_target(s);
     notify(s);
