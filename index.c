@@ -31,6 +31,8 @@
 #define MAX_WORDS 32
 #define SEPARATOR ' '
 
+#define ARRAY_SIZE(x) (sizeof(x) / sizeof(*x))
+
 /*
  * Initialise a record index
  */
@@ -159,7 +161,7 @@ static int record_cmp_bpm(const struct record *a, const struct record *b)
  * Return: true if this is a match, otherwise false
  */
 
-static bool record_match(struct record *re, const char *match)
+static bool record_match_word(struct record *re, const char *match)
 {
     if (strcasestr(re->artist, match) != NULL)
         return true;
@@ -169,16 +171,19 @@ static bool record_match(struct record *re, const char *match)
 }
 
 /*
- * Check for a match against all the strings in a given
- * NULL-terminated array
+ * Check for a match against the given search criteria
  *
  * Return: true if the given record matches, otherwise false
  */
 
-static bool record_match_all(struct record *re, char **matches)
+static bool record_match(struct record *re, const struct match *h)
 {
+    char *const *matches;
+
+    matches = h->words;
+
     while (*matches != NULL) {
-        if (!record_match(re, *matches))
+        if (!record_match_word(re, *matches))
             return false;
         matches++;
     }
@@ -207,6 +212,42 @@ int index_copy(const struct index *src, struct index *dest)
 }
 
 /*
+ * Compile a search object from a given string
+ *
+ * Pre: search string is within length
+ */
+
+static void match_compile(struct match *h, const char *d)
+{
+    char *buf;
+    size_t n;
+
+    assert(strlen(d) < sizeof h->buf);
+    strcpy(h->buf, d);
+
+    buf = h->buf;
+    n = 0;
+    for (;;) {
+        char *s;
+
+        if (n == ARRAY_SIZE(h->words) - 1) {
+            fputs("Ignoring excessive words in match string.\n", stderr);
+            break;
+        }
+
+        h->words[n] = buf;
+        n++;
+
+        s = strchr(buf, SEPARATOR);
+        if (s == NULL)
+            break;
+        *s = '\0';
+        buf = s + 1; /* skip separator */
+    }
+    h->words[n] = NULL; /* terminate list */
+}
+
+/*
  * Find entries from the source index with match the given string
  *
  * Copy the subset of the source index which matches the given
@@ -221,38 +262,18 @@ int index_match(struct index *src, struct index *dest,
                 const char *match)
 {
     int n;
-    char *buf, *words[MAX_WORDS];
     struct record *re;
+    struct match h;
 
     fprintf(stderr, "Matching '%s'\n", match);
 
-    buf = strdupa(match);
-    n = 0;
-    for (;;) {
-        char *s;
-
-        if (n == MAX_WORDS - 1) {
-            fputs("Ignoring excessive words in match string.\n", stderr);
-            break;
-        }
-
-        words[n] = buf;
-        n++;
-
-        s = strchr(buf, SEPARATOR);
-        if (s == NULL)
-            break;
-        *s = '\0';
-        buf = s + 1; /* skip separator */
-    }
-    words[n] = NULL; /* terminate list */
-
+    match_compile(&h, match);
     index_blank(dest);
 
     for (n = 0; n < src->entries; n++) {
         re = src->record[n];
 
-        if (record_match_all(re, words)) {
+        if (record_match(re, &h)) {
             if (index_add(dest, re) == -1)
                 return -1;
         }

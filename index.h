@@ -39,6 +39,14 @@ struct index {
     size_t size, entries;
 };
 
+/* A 'compiled' search criteria, so we can repeat searches and
+ * matches efficiently */
+
+struct match {
+    char buf[512];
+    char *words[32]; /* NULL-terminated array */
+};
+
 void index_init(struct index *ls);
 void index_clear(struct index *ls);
 void index_blank(struct index *ls);
