@@ -288,11 +288,11 @@ static ssize_t pop(struct rb *rb, char **q)
 
 ssize_t get_line(int fd, struct rb *rb, char **string)
 {
-    ssize_t z;
+    ssize_t y, z;
 
-    z = top_up(rb, fd);
-    if (z <= 0)
-        return z;
+    y = top_up(rb, fd);
+    if (y < 0)
+        return y;
 
     z = pop(rb, string);
     if (z != 0)
@@ -300,8 +300,10 @@ ssize_t get_line(int fd, struct rb *rb, char **string)
 
     if (rb_is_full(rb))
         errno = ENOBUFS;
-    else
+    else if (y > 0)
         errno = EAGAIN;
+    else
+        return 0; /* true EOF: no more data and empty buffer */
 
     return -1;
 }
