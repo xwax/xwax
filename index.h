@@ -52,8 +52,9 @@ void index_clear(struct index *ls);
 void index_blank(struct index *ls);
 int index_add(struct index *li, struct record *lr);
 int index_copy(const struct index *src, struct index *dest);
+void match_compile(struct match *h, const char *d);
 int index_match(struct index *src, struct index *dest,
-                const char *match);
+                const struct match *match);
 struct record* index_insert(struct index *ls, struct record *item,
                             int sort);
 size_t index_find(struct index *ls, struct record *item, int sort);

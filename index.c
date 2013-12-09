@@ -217,7 +217,7 @@ int index_copy(const struct index *src, struct index *dest)
  * Pre: search string is within length
  */
 
-static void match_compile(struct match *h, const char *d)
+void match_compile(struct match *h, const char *d)
 {
     char *buf;
     size_t n;
@@ -248,32 +248,27 @@ static void match_compile(struct match *h, const char *d)
 }
 
 /*
- * Find entries from the source index with match the given string
+ * Find entries from the source index which match
  *
  * Copy the subset of the source index which matches the given
- * string into the destination. This function defines what constitutes
- * a match.
+ * string into the destination.
  *
  * Return: 0 on success, or -1 on memory allocation failure
  * Post: on failure, dest is valid but incomplete
  */
 
 int index_match(struct index *src, struct index *dest,
-                const char *match)
+                const struct match *match)
 {
     int n;
     struct record *re;
-    struct match h;
 
-    fprintf(stderr, "Matching '%s'\n", match);
-
-    match_compile(&h, match);
     index_blank(dest);
 
     for (n = 0; n < src->entries; n++) {
         re = src->record[n];
 
-        if (record_match(re, &h)) {
+        if (record_match(re, match)) {
             if (index_add(dest, re) == -1)
                 return -1;
         }

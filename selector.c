@@ -134,7 +134,7 @@ static void notify(struct selector *s)
 
 static void do_content_change(struct selector *sel)
 {
-    (void)index_match(initial(sel), sel->view_index, sel->search);
+    (void)index_match(initial(sel), sel->view_index, &sel->match);
     listbox_set_entries(&sel->records, sel->view_index->entries);
     retain_target(sel);
     notify(sel);
@@ -346,6 +346,8 @@ void selector_search_expand(struct selector *sel)
         return;
 
     sel->search[--sel->search_len] = '\0';
+    match_compile(&sel->match, sel->search);
+
     do_content_change(sel);
 }
 
@@ -363,8 +365,9 @@ void selector_search_refine(struct selector *sel, char key)
 
     sel->search[sel->search_len] = key;
     sel->search[++sel->search_len] = '\0';
+    match_compile(&sel->match, sel->search);
 
-    (void)index_match(sel->view_index, sel->swap_index, sel->search);
+    (void)index_match(sel->view_index, sel->swap_index, &sel->match);
 
     tmp = sel->view_index;
     sel->view_index = sel->swap_index;

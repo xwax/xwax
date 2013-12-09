@@ -43,6 +43,7 @@ struct selector {
 
     size_t search_len;
     char search[256];
+    struct match match; /* the compiled search, kept in-sync */
 
     struct event changed;
 };
