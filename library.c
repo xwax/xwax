@@ -438,7 +438,7 @@ int library_import(struct library *li, const char *scan, const char *path)
     if (crate == NULL)
         return -1;
 
-    if (excrate_get_by_scan(scan, path, crate) == NULL)
+    if (excrate_get_by_scan(scan, path, &li->all, crate) == NULL)
         return -1;
 
     return 0;

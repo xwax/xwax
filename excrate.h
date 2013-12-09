@@ -22,10 +22,11 @@ struct excrate {
     /* State of reader */
 
     struct rb rb;
-    struct crate *target;
+    struct crate *target, *storage;
 };
 
 struct excrate* excrate_get_by_scan(const char *script, const char *search,
+                                    struct crate *storage,
                                     struct crate *target);
 
 void excrate_get(struct excrate *e);
