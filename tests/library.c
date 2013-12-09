@@ -17,9 +17,17 @@
  *
  */
 
+#include <signal.h>
 #include <stdio.h>
 
 #include "library.h"
+#include "rig.h"
+#include "thread.h"
+
+void handle(int signum)
+{
+    rig_quit();
+}
 
 /*
  * Manual test of the record library. Mainly for use with
@@ -39,6 +47,17 @@ int main(int argc, char *argv[])
 
     scan = argv[1];
 
+    if (thread_global_init() == -1)
+        return -1;
+
+    if (rig_init() == -1)
+        return -1;
+
+    if (signal(SIGINT, handle) == SIG_ERR) {
+        perror("signal");
+        return -1;
+    }
+
     if (library_init(&lib) == -1)
         return -1;
 
@@ -47,7 +66,11 @@ int main(int argc, char *argv[])
             return -1;
     }
 
+    rig_main();
+
     library_clear(&lib);
+    rig_clear();
+    thread_global_clear();
 
     return 0;
 }
