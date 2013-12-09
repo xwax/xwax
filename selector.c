@@ -150,6 +150,9 @@ static void merge_addition(struct observer *o, void *x)
     struct selector *s = container_of(o, struct selector, on_crate);
     struct record *r = x;
 
+    if (!record_match(r, &s->match))
+        return;
+
     if (s->sort == SORT_PLAYLIST)
         index_add(s->view_index, r);
     else

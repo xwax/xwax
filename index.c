@@ -176,7 +176,7 @@ static bool record_match_word(struct record *re, const char *match)
  * Return: true if the given record matches, otherwise false
  */
 
-static bool record_match(struct record *re, const struct match *h)
+bool record_match(struct record *re, const struct match *h)
 {
     char *const *matches;
 
