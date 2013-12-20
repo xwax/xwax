@@ -39,6 +39,9 @@ struct crate {
     char *name;
     struct listing listing;
     struct event addition;
+
+    /* FIXME: need to retain a handle onto the excrate, so it
+     * can be cleaned on exit */
 };
 
 /* The complete music library, which consists of multiple crates */
