@@ -51,6 +51,13 @@ void listing_clear(struct listing *l)
     index_clear(&l->by_order);
 }
 
+static void listing_blank(struct listing *l)
+{
+    index_blank(&l->by_artist);
+    index_blank(&l->by_bpm);
+    index_blank(&l->by_order);
+}
+
 /*
  * Initialise a crate
  *
@@ -69,6 +76,7 @@ static int crate_init(struct crate *c, const char *name, bool is_fixed)
 
     c->is_fixed = is_fixed;
     listing_init(&c->listing);
+    event_init(&c->refresh);
     event_init(&c->addition);
     c->excrate = NULL;
 
@@ -94,7 +102,35 @@ static int crate_set_source(struct library *l, struct crate *c,
     if (e == NULL)
         return -1;
 
+    c->scan = scan;
+    c->path = path;
     c->excrate = e;
+
+    return 0;
+}
+
+/*
+ * Launch a new scan operation on this crate
+ *
+ * Return: 0 on success, -1 on error
+ */
+
+int crate_rescan(struct library *l, struct crate *c)
+{
+    struct excrate *e;
+
+    assert(c->excrate != NULL);
+
+    listing_blank(&c->listing);
+    fire(&c->refresh, NULL);
+
+    e = excrate_acquire_by_scan(c->scan, c->path, &l->all, c);
+    if (e == NULL)
+        return -1;
+
+    excrate_release(c->excrate);
+    c->excrate = e;
+
     return 0;
 }
 
@@ -109,6 +145,7 @@ static void crate_clear(struct crate *c)
 {
     if (c->excrate != NULL)
         excrate_release(c->excrate);
+    event_clear(&c->refresh);
     event_clear(&c->addition);
     listing_clear(&c->listing);
     free(c->name);

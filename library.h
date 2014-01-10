@@ -38,7 +38,7 @@ struct crate {
     bool is_fixed;
     char *name;
     struct listing listing;
-    struct event addition;
+    struct event refresh, addition;
 
     /* Optionally, the corresponding source */
     const char *scan, *path;
@@ -54,6 +54,7 @@ struct library {
 
 void listing_init(struct listing *l);
 void listing_clear(struct listing *l);
+int crate_rescan(struct library *l, struct crate *c);
 struct record* crate_add(struct crate *c, struct record *r);
 
 int library_init(struct library *li);

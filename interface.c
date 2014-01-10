@@ -1395,7 +1395,10 @@ static bool handle_key(SDLKey key, SDLMod mod)
 
     } else if (key == SDLK_TAB) {
         if (mod & KMOD_CTRL) {
-            selector_toggle_order(sel);
+            if (mod & KMOD_SHIFT)
+                selector_rescan(sel);
+            else
+                selector_toggle_order(sel);
         } else {
             selector_toggle(sel);
         }

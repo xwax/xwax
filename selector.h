@@ -39,7 +39,7 @@ struct selector {
     bool toggled;
     int toggle_back, sort;
     struct record *target;
-    struct observer on_addition;
+    struct observer on_refresh, on_addition;
 
     size_t search_len;
     char search[256];
@@ -66,6 +66,7 @@ void selector_prev(struct selector *sel);
 void selector_next(struct selector *sel);
 void selector_toggle(struct selector *sel);
 void selector_toggle_order(struct selector *sel);
+void selector_rescan(struct selector *sel);
 
 void selector_search_expand(struct selector *sel);
 void selector_search_refine(struct selector *sel, char key);

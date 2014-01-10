@@ -144,6 +144,21 @@ static void do_content_change(struct selector *sel)
 }
 
 /*
+ * Callback notification that the crate has changed, including
+ * removal of items
+ */
+
+static void handle_refresh(struct observer *o, void *x)
+{
+    struct selector *s = container_of(o, struct selector, on_refresh);
+
+    assert(x == NULL);
+
+    do_content_change(s);
+    notify(s);
+}
+
+/*
  * A new record has been added to the currently selected crate. Merge
  * this new addition into the current view, if applicable.
  */
@@ -152,6 +167,8 @@ static void merge_addition(struct observer *o, void *x)
 {
     struct selector *s = container_of(o, struct selector, on_addition);
     struct record *r = x;
+
+    assert(r != NULL);
 
     if (!record_match(r, &s->match))
         return;
@@ -164,6 +181,19 @@ static void merge_addition(struct observer *o, void *x)
     listbox_set_entries(&s->records, s->view_index->entries);
     hunt_target(s);
     notify(s);
+}
+
+/*
+ * Attach callbacks to the relevant crate
+ *
+ * So that we are notified when the crate content changes and
+ * can update the GUI accordingly.
+ */
+
+static void watch_crate(struct selector *s, struct crate *c)
+{
+    watch(&s->on_refresh, &c->refresh, handle_refresh);
+    watch(&s->on_addition, &c->addition, merge_addition);
 }
 
 void selector_init(struct selector *sel, struct library *lib)
@@ -189,7 +219,7 @@ void selector_init(struct selector *sel, struct library *lib)
     sel->swap_index = &sel->index_b;
 
     c = current_crate(sel);
-    watch(&sel->on_addition, &c->addition, merge_addition);
+    watch_crate(sel, c);
 
     (void)index_copy(initial(sel), sel->view_index);
     listbox_set_entries(&sel->records, sel->view_index->entries);
@@ -200,6 +230,7 @@ void selector_init(struct selector *sel, struct library *lib)
 void selector_clear(struct selector *sel)
 {
     event_clear(&sel->changed);
+    ignore(&sel->on_refresh);
     ignore(&sel->on_addition);
     index_clear(&sel->index_a);
     index_clear(&sel->index_b);
@@ -293,8 +324,9 @@ static void do_crate_change(struct selector *sel)
 
     c = current_crate(sel);
 
+    ignore(&sel->on_refresh);
     ignore(&sel->on_addition);
-    watch(&sel->on_addition, &c->addition, merge_addition);
+    watch_crate(sel, c);
     do_content_change(sel);
 }
 
@@ -339,6 +371,16 @@ void selector_toggle_order(struct selector *sel)
     set_target(sel);
     sel->sort = (sel->sort + 1) % SORT_END;
     do_content_change(sel);
+}
+
+/*
+ * Request a re-scan on the currently selected crate
+ */
+
+void selector_rescan(struct selector *sel)
+{
+    /* FIXME: not all crates can be scanned */
+    crate_rescan(sel->library, current_crate(sel));
 }
 
 /*
