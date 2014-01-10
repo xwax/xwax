@@ -37,10 +37,12 @@ struct listing {
 struct crate {
     bool is_fixed;
     char *name;
-    const char *scan, *path;
-    struct excrate *excrate;
     struct listing listing;
     struct event addition;
+
+    /* Optionally, the corresponding source */
+    const char *scan, *path;
+    struct excrate *excrate;
 };
 
 /* The complete music library, which consists of multiple crates */
