@@ -37,11 +37,10 @@ struct listing {
 struct crate {
     bool is_fixed;
     char *name;
+    const char *scan, *path;
+    struct excrate *excrate;
     struct listing listing;
     struct event addition;
-
-    /* FIXME: need to retain a handle onto the excrate, so it
-     * can be cleaned on exit */
 };
 
 /* The complete music library, which consists of multiple crates */

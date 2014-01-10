@@ -83,6 +83,7 @@ static int crate_init(struct crate *c, const char *name, bool is_fixed)
 
 static void crate_clear(struct crate *c)
 {
+    excrate_release(c->excrate);
     event_clear(&c->addition);
     listing_clear(&c->listing);
     free(c->name);
@@ -391,6 +392,7 @@ int library_import(struct library *li, const char *scan, const char *path)
 {
     char *cratename, *pathname;
     struct crate *crate;
+    struct excrate *excrate;
 
     fprintf(stderr, "Adding '%s'...\n", path);
 
@@ -410,8 +412,13 @@ int library_import(struct library *li, const char *scan, const char *path)
     if (add_crate(li, crate) == -1)
         goto fail_crate;
 
-    if (excrate_acquire_by_scan(scan, path, &li->all, crate) == NULL)
+    excrate = excrate_acquire_by_scan(scan, path, &li->all, crate);
+    if (excrate == NULL)
         goto fail_crate;
+
+    crate->scan = scan;
+    crate->path = path;
+    crate->excrate = excrate;
 
     return 0;
 
