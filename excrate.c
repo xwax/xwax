@@ -50,7 +50,7 @@ static void excrate_clear(struct excrate *e)
     list_del(&e->excrates);
 }
 
-struct excrate* excrate_get_by_scan(const char *script, const char *search,
+struct excrate* excrate_acquire_by_scan(const char *script, const char *search,
                                     struct crate *storage, struct crate *target)
 {
     struct excrate *e;
@@ -68,13 +68,13 @@ struct excrate* excrate_get_by_scan(const char *script, const char *search,
         return NULL;
     }
 
-    excrate_get(e);
+    excrate_acquire(e);
 
     debug("returning %p", e)
     return e;
 }
 
-void excrate_get(struct excrate *e)
+void excrate_acquire(struct excrate *e)
 {
     debug("get %p", e);
     e->refcount++;
@@ -93,7 +93,7 @@ static void terminate(struct excrate *e)
         abort();
 }
 
-void excrate_put(struct excrate *e)
+void excrate_release(struct excrate *e)
 {
     debug("put %p, refcount=%d", e, e->refcount);
     e->refcount--;
@@ -215,5 +215,5 @@ void excrate_handle(struct excrate *e)
 
     do_wait(e);
     list_del(&e->rig);
-    excrate_put(e); /* may invalidate e */
+    excrate_release(e); /* may invalidate e */
 }

@@ -228,7 +228,7 @@ void rig_post_track(struct track *t)
 
 void rig_post_excrate(struct excrate *e)
 {
-    excrate_get(e);
+    excrate_acquire(e);
     list_add(&e->rig, &excrates);
     post_event(EVENT_WAKE);
 }
