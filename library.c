@@ -214,43 +214,6 @@ struct crate* get_crate(struct library *lib, const char *name)
 }
 
 /*
- * Get an existing crate, or create a new one if necessary
- *
- * Return: pointer to crate, or NULL on memory allocation failure
- */
-
-struct crate* use_crate(struct library *lib, char *name)
-{
-    struct crate *new_crate;
-
-    /* does this crate already exist? then return existing crate */
-    new_crate = get_crate(lib, name);
-    if (new_crate != NULL) {
-        fprintf(stderr, "Crate '%s' already exists...\n", name);
-        return new_crate;
-    }
-
-    /* allocate and fill space for new crate */
-    new_crate = malloc(sizeof(struct crate));
-    if (new_crate == NULL) {
-        perror("malloc");
-        return NULL;
-    }
-
-    if (crate_init(new_crate, name, false) == -1)
-        goto fail;
-
-    if (add_crate(lib, new_crate) == -1)
-        goto fail;
-
-    return new_crate;
-
- fail:
-    free(new_crate);
-    return NULL;
-}
-
-/*
  * Initialise the record library
  *
  * Return: 0 on success or -1 on memory allocation failure
@@ -434,12 +397,28 @@ int library_import(struct library *li, const char *scan, const char *path)
     pathname = strdupa(path);
     cratename = basename(pathname); /* POSIX version, see basename(3) */
     assert(cratename != NULL);
-    crate = use_crate(li, cratename);
-    if (crate == NULL)
+
+    crate = malloc(sizeof *crate);
+    if (crate == NULL) {
+        perror("malloc");
         return -1;
+    }
+
+    if (crate_init(crate, cratename, false) == -1)
+        goto fail;
+
+    if (add_crate(li, crate) == -1)
+        goto fail_crate;
 
     if (excrate_acquire_by_scan(scan, path, &li->all, crate) == NULL)
-        return -1;
+        goto fail_crate;
 
     return 0;
+
+fail_crate:
+    crate_clear(crate);
+fail:
+    free(crate);
+    return -1;
+
 }
