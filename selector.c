@@ -179,7 +179,16 @@ static void merge_addition(struct observer *o, void *x)
         index_insert(s->view_index, r, s->sort);
 
     listbox_set_entries(&s->records, s->view_index->entries);
-    hunt_target(s);
+
+    /* If this addition is what we've been looking for, send the
+     * cursor to it (not optimal, in some cases we know the position
+     * from the insert above.) Otherwise track the target one step */
+
+    if (r == s->target)
+        retain_target(s);
+    else
+        hunt_target(s);
+
     notify(s);
 }
 
