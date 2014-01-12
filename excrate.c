@@ -18,7 +18,7 @@
 static struct list excrates = LIST_INIT(excrates);
 
 static int excrate_init(struct excrate *e, const char *script,
-                        const char *search)
+                        const char *search, struct listing *storage)
 {
     pid_t pid;
 
@@ -33,6 +33,7 @@ static int excrate_init(struct excrate *e, const char *script,
     e->refcount = 0;
     rb_reset(&e->rb);
     listing_init(&e->listing);
+    e->storage = storage;
 
     list_add(&e->excrates, &excrates);
     rig_post_excrate(e);
@@ -47,7 +48,8 @@ static void excrate_clear(struct excrate *e)
     listing_clear(&e->listing);
 }
 
-struct excrate* excrate_acquire_by_scan(const char *script, const char *search)
+struct excrate* excrate_acquire_by_scan(const char *script, const char *search,
+                                        struct listing *storage)
 {
     struct excrate *e;
 
@@ -59,7 +61,7 @@ struct excrate* excrate_acquire_by_scan(const char *script, const char *search)
         return NULL;
     }
 
-    if (excrate_init(e, script, search) == -1) {
+    if (excrate_init(e, script, search, storage) == -1) {
         free(e);
         return NULL;
     }
@@ -178,11 +180,15 @@ static int read_from_pipe(struct excrate *e)
             continue; /* ignore malformed entries */
         }
 
-        x = listing_add(&e->listing, d);
+        x = listing_add(e->storage, d);
         if (x == NULL)
             return -1;
         if (x != d) /* our new record is a duplicate */
             free(d);
+
+        x = listing_add(&e->listing, x);
+        if (x == NULL)
+            return -1;
     }
 }
 

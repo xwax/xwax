@@ -101,7 +101,7 @@ static int crate_init_all(struct library *l, struct crate *c, const char *name)
  * Return: 0 on success or -1 on error
  */
 
-static int crate_init_scan(struct crate *c, const char *name,
+static int crate_init_scan(struct library *l, struct crate *c, const char *name,
                            const char *scan, const char *path)
 {
     struct excrate *e;
@@ -111,7 +111,7 @@ static int crate_init_scan(struct crate *c, const char *name,
 
     c->is_fixed = false;
 
-    e = excrate_acquire_by_scan(scan, path);
+    e = excrate_acquire_by_scan(scan, path, &l->storage);
     if (e == NULL)
         return -1;
 
@@ -135,7 +135,7 @@ int crate_rescan(struct library *l, struct crate *c)
 
     assert(c->excrate != NULL);
 
-    e = excrate_acquire_by_scan(c->scan, c->path);
+    e = excrate_acquire_by_scan(c->scan, c->path, &l->storage);
     if (e == NULL)
         return -1;
 
@@ -280,6 +280,7 @@ int library_init(struct library *li)
 {
     li->crate = NULL;
     li->crates = 0;
+    listing_init(&li->storage);
 
     if (crate_init_all(li, &li->all, CRATE_ALL) == -1)
         return -1;
@@ -331,6 +332,7 @@ void library_clear(struct library *li)
     free(li->crate);
 
     crate_clear(&li->all);
+    listing_clear(&li->storage);
 }
 
 /*
@@ -461,7 +463,7 @@ int library_import(struct library *li, const char *scan, const char *path)
         return -1;
     }
 
-    if (crate_init_scan(crate, cratename, scan, path) == -1)
+    if (crate_init_scan(li, crate, cratename, scan, path) == -1)
         goto fail;
 
     if (add_crate(li, crate) == -1)
