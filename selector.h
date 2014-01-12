@@ -39,7 +39,7 @@ struct selector {
     bool toggled;
     int toggle_back, sort;
     struct record *target;
-    struct observer on_crate;
+    struct observer on_addition;
 
     size_t search_len;
     char search[256];

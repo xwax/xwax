@@ -150,7 +150,7 @@ static void do_content_change(struct selector *sel)
 
 static void merge_addition(struct observer *o, void *x)
 {
-    struct selector *s = container_of(o, struct selector, on_crate);
+    struct selector *s = container_of(o, struct selector, on_addition);
     struct record *r = x;
 
     if (!record_match(r, &s->match))
@@ -189,7 +189,7 @@ void selector_init(struct selector *sel, struct library *lib)
     sel->swap_index = &sel->index_b;
 
     c = current_crate(sel);
-    watch(&sel->on_crate, &c->addition, merge_addition);
+    watch(&sel->on_addition, &c->addition, merge_addition);
 
     (void)index_copy(initial(sel), sel->view_index);
     listbox_set_entries(&sel->records, sel->view_index->entries);
@@ -200,7 +200,7 @@ void selector_init(struct selector *sel, struct library *lib)
 void selector_clear(struct selector *sel)
 {
     event_clear(&sel->changed);
-    ignore(&sel->on_crate);
+    ignore(&sel->on_addition);
     index_clear(&sel->index_a);
     index_clear(&sel->index_b);
 }
@@ -293,8 +293,8 @@ static void do_crate_change(struct selector *sel)
 
     c = current_crate(sel);
 
-    ignore(&sel->on_crate);
-    watch(&sel->on_crate, &c->addition, merge_addition);
+    ignore(&sel->on_addition);
+    watch(&sel->on_addition, &c->addition, merge_addition);
     do_content_change(sel);
 }
 
