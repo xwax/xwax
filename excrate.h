@@ -11,6 +11,7 @@
 struct excrate {
     struct list excrates;
     unsigned int refcount;
+    struct listing listing;
 
     /* State of the external scan process */
 
@@ -22,12 +23,9 @@ struct excrate {
     /* State of reader */
 
     struct rb rb;
-    struct crate *target, *storage;
 };
 
-struct excrate* excrate_acquire_by_scan(const char *script, const char *search,
-                                        struct crate *storage,
-                                        struct crate *target);
+struct excrate* excrate_acquire_by_scan(const char *script, const char *search);
 
 void excrate_acquire(struct excrate *e);
 void excrate_release(struct excrate *e);

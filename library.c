@@ -98,7 +98,7 @@ static int crate_set_source(struct library *l, struct crate *c,
 {
     struct excrate *e;
 
-    e = excrate_acquire_by_scan(scan, path, &l->all, c);
+    e = excrate_acquire_by_scan(scan, path);
     if (e == NULL)
         return -1;
 
@@ -124,7 +124,7 @@ int crate_rescan(struct library *l, struct crate *c)
     listing_blank(&c->listing);
     fire(&c->refresh, NULL);
 
-    e = excrate_acquire_by_scan(c->scan, c->path, &l->all, c);
+    e = excrate_acquire_by_scan(c->scan, c->path);
     if (e == NULL)
         return -1;
 
@@ -174,7 +174,7 @@ static int crate_cmp(const struct crate *a, const struct crate *b)
  * Post: Record added to the crate
  */
 
-static struct record* listing_add(struct listing *l, struct record *r)
+struct record* listing_add(struct listing *l, struct record *r)
 {
     struct record *x;
 

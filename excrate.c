@@ -18,9 +18,7 @@
 static struct list excrates = LIST_INIT(excrates);
 
 static int excrate_init(struct excrate *e, const char *script,
-                        const char *search,
-                        struct crate *storage,
-                        struct crate *target)
+                        const char *search)
 {
     pid_t pid;
 
@@ -34,9 +32,7 @@ static int excrate_init(struct excrate *e, const char *script,
     e->pe = NULL;
     e->refcount = 0;
     rb_reset(&e->rb);
-    e->target = target;
-    assert(storage != NULL);
-    e->storage = storage;
+    listing_init(&e->listing);
 
     list_add(&e->excrates, &excrates);
     rig_post_excrate(e);
@@ -48,10 +44,10 @@ static void excrate_clear(struct excrate *e)
 {
     assert(e->pid == 0);
     list_del(&e->excrates);
+    listing_clear(&e->listing);
 }
 
-struct excrate* excrate_acquire_by_scan(const char *script, const char *search,
-                                    struct crate *storage, struct crate *target)
+struct excrate* excrate_acquire_by_scan(const char *script, const char *search)
 {
     struct excrate *e;
 
@@ -63,7 +59,7 @@ struct excrate* excrate_acquire_by_scan(const char *script, const char *search,
         return NULL;
     }
 
-    if (excrate_init(e, script, search, storage, target) == -1) {
+    if (excrate_init(e, script, search) == -1) {
         free(e);
         return NULL;
     }
@@ -182,21 +178,11 @@ static int read_from_pipe(struct excrate *e)
             continue; /* ignore malformed entries */
         }
 
-        /* Add to the 'storage' crate (ie. crate of all records)
-         * first. This could be generalised to an array of crates,
-         * but really this is the only case right now */
-
-        x = crate_add(e->storage, d);
+        x = listing_add(&e->listing, d);
         if (x == NULL)
             return -1;
         if (x != d) /* our new record is a duplicate */
             free(d);
-
-        if (e->target) {
-            x = crate_add(e->target, x);
-            if (x == NULL)
-                return -1;
-        }
     }
 }
 
