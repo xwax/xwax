@@ -51,13 +51,6 @@ void listing_clear(struct listing *l)
     index_clear(&l->by_order);
 }
 
-static void listing_blank(struct listing *l)
-{
-    index_blank(&l->by_artist);
-    index_blank(&l->by_bpm);
-    index_blank(&l->by_order);
-}
-
 /*
  * Base initialiser for a crate, shared by the other init functions
  *
