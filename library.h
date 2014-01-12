@@ -39,6 +39,7 @@ struct crate {
     bool is_fixed;
     char *name;
     struct listing *listing;
+    struct observer on_addition;
     struct event refresh, addition;
 
     /* Optionally, the corresponding source */

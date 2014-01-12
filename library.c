@@ -76,6 +76,17 @@ static int crate_init(struct crate *c, const char *name)
 }
 
 /*
+ * Propagate an addition event on the listing upwards -- as an
+ * addition event on this crate
+ */
+
+static void propagate_addition(struct observer *o, void *x)
+{
+    struct crate *c = container_of(o, struct crate, on_addition);
+    fire(&c->addition, x);
+}
+
+/*
  * Initialise the crate which shows the entire library content
  *
  * Return: 0 on success, -1 on memory allocation failure
@@ -88,6 +99,7 @@ static int crate_init_all(struct library *l, struct crate *c, const char *name)
 
     c->is_fixed = true;
     c->listing = &l->storage;
+    watch(&c->on_addition, &c->listing->addition, propagate_addition);
     c->excrate = NULL;
 
     return 0;
@@ -121,6 +133,7 @@ static int crate_init_scan(struct library *l, struct crate *c, const char *name,
     c->path = path;
     c->excrate = e;
     c->listing = &e->listing;
+    watch(&c->on_addition, &c->listing->addition, propagate_addition);
 
     return 0;
 }
@@ -158,6 +171,7 @@ int crate_rescan(struct library *l, struct crate *c)
 
 static void crate_clear(struct crate *c)
 {
+    ignore(&c->on_addition);
     if (c->excrate != NULL)
         excrate_release(c->excrate);
     event_clear(&c->refresh);
