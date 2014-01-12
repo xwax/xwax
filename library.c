@@ -59,14 +59,14 @@ static void listing_blank(struct listing *l)
 }
 
 /*
- * Initialise a crate
+ * Base initialiser for a crate, shared by the other init functions
  *
  * Note the deep copy of the crate name
  *
  * Return: 0 on success or -1 on memory allocation failure
  */
 
-static int crate_init(struct crate *c, const char *name, bool is_fixed)
+static int crate_init(struct crate *c, const char *name)
 {
     c->name = strdup(name);
     if (c->name == NULL) {
@@ -74,17 +74,32 @@ static int crate_init(struct crate *c, const char *name, bool is_fixed)
         return -1;
     }
 
-    c->is_fixed = is_fixed;
-    listing_init(&c->listing);
     event_init(&c->refresh);
     event_init(&c->addition);
+
+    return 0;
+}
+
+/*
+ * Initialise the crate which shows the entire library content
+ *
+ * Return: 0 on success, -1 on memory allocation failure
+ */
+
+static int crate_init_all(struct library *l, struct crate *c, const char *name)
+{
+    if (crate_init(c, name) == -1)
+        return -1;
+
+    c->is_fixed = true;
+    c->listing = &l->storage;
     c->excrate = NULL;
 
     return 0;
 }
 
 /*
- * Set this crate as having its own source scan
+ * Initialise a crate which has a fixed scan as its source
  *
  * Not all crates have a source (eg. 'all' crate.) This is also
  * convenient as in future there may be other sources such as virtual
@@ -93,10 +108,15 @@ static int crate_init(struct crate *c, const char *name, bool is_fixed)
  * Return: 0 on success or -1 on error
  */
 
-static int crate_set_source(struct library *l, struct crate *c,
-                            const char *scan, const char *path)
+static int crate_init_scan(struct crate *c, const char *name,
+                           const char *scan, const char *path)
 {
     struct excrate *e;
+
+    if (crate_init(c, name) == -1)
+        return -1;
+
+    c->is_fixed = false;
 
     e = excrate_acquire_by_scan(scan, path);
     if (e == NULL)
@@ -105,6 +125,7 @@ static int crate_set_source(struct library *l, struct crate *c,
     c->scan = scan;
     c->path = path;
     c->excrate = e;
+    c->listing = &e->listing;
 
     return 0;
 }
@@ -121,15 +142,14 @@ int crate_rescan(struct library *l, struct crate *c)
 
     assert(c->excrate != NULL);
 
-    listing_blank(&c->listing);
-    fire(&c->refresh, NULL);
-
     e = excrate_acquire_by_scan(c->scan, c->path);
     if (e == NULL)
         return -1;
 
     excrate_release(c->excrate);
     c->excrate = e;
+    c->listing = &e->listing;
+    fire(&c->refresh, NULL);
 
     return 0;
 }
@@ -147,7 +167,6 @@ static void crate_clear(struct crate *c)
         excrate_release(c->excrate);
     event_clear(&c->refresh);
     event_clear(&c->addition);
-    listing_clear(&c->listing);
     free(c->name);
 }
 
@@ -193,24 +212,6 @@ struct record* listing_add(struct listing *l, struct record *r)
         abort(); /* FIXME: remove from all indexes and return */
 
     return r;
-}
-
-/*
- * Add a record to the given crate
- *
- * Return: pointer to existing entry, NULL if out of memory
- * Post: unless NULL is returned, record is in the crate
- */
-
-struct record* crate_add(struct crate *c, struct record *r)
-{
-    struct record *q;
-
-    q = listing_add(&c->listing, r);
-    if (q == r)
-        fire(&c->addition, r);
-
-    return q;
 }
 
 /*
@@ -287,7 +288,7 @@ int library_init(struct library *li)
     li->crate = NULL;
     li->crates = 0;
 
-    if (crate_init(&li->all, CRATE_ALL, true) == -1)
+    if (crate_init_all(li, &li->all, CRATE_ALL) == -1)
         return -1;
 
     if (add_crate(li, &li->all) == -1) {
@@ -317,10 +318,10 @@ void library_clear(struct library *li)
 
     /* This object is responsible for all the record pointers */
 
-    for (n = 0; n < li->all.listing.by_artist.entries; n++) {
+    for (n = 0; n < li->storage.by_artist.entries; n++) {
         struct record *re;
 
-        re = li->all.listing.by_artist.record[n];
+        re = li->storage.by_artist.record[n];
         record_clear(re);
         free(re);
     }
@@ -467,13 +468,10 @@ int library_import(struct library *li, const char *scan, const char *path)
         return -1;
     }
 
-    if (crate_init(crate, cratename, false) == -1)
+    if (crate_init_scan(crate, cratename, scan, path) == -1)
         goto fail;
 
     if (add_crate(li, crate) == -1)
-        goto fail_crate;
-
-    if (crate_set_source(li, crate, scan, path) == -1)
         goto fail_crate;
 
     return 0;

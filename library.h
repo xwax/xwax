@@ -37,7 +37,7 @@ struct listing {
 struct crate {
     bool is_fixed;
     char *name;
-    struct listing listing;
+    struct listing *listing;
     struct event refresh, addition;
 
     /* Optionally, the corresponding source */
@@ -48,6 +48,7 @@ struct crate {
 /* The complete music library, which consists of multiple crates */
 
 struct library {
+    struct listing storage; /* owns the record pointers */
     struct crate all, **crate;
     size_t crates;
 };
@@ -56,7 +57,6 @@ void listing_init(struct listing *l);
 void listing_clear(struct listing *l);
 struct record* listing_add(struct listing *l, struct record *r);
 int crate_rescan(struct library *l, struct crate *c);
-struct record* crate_add(struct crate *c, struct record *r);
 
 int library_init(struct library *li);
 void library_clear(struct library *li);

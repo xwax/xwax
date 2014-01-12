@@ -112,11 +112,11 @@ static struct index* initial(struct selector *sel)
 
     switch (sel->sort) {
     case SORT_ARTIST:
-        return &c->listing.by_artist;
+        return &c->listing->by_artist;
     case SORT_BPM:
-        return &c->listing.by_bpm;
+        return &c->listing->by_bpm;
     case SORT_PLAYLIST:
-        return &c->listing.by_order;
+        return &c->listing->by_order;
     default:
         abort();
     }
