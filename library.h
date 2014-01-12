@@ -30,6 +30,7 @@
 
 struct listing {
     struct index by_artist, by_bpm, by_order;
+    struct event addition;
 };
 
 /* A single crate of records */

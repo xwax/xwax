@@ -42,6 +42,7 @@ void listing_init(struct listing *l)
     index_init(&l->by_artist);
     index_init(&l->by_bpm);
     index_init(&l->by_order);
+    event_init(&l->addition);
 }
 
 void listing_clear(struct listing *l)
@@ -49,6 +50,7 @@ void listing_clear(struct listing *l)
     index_clear(&l->by_artist);
     index_clear(&l->by_bpm);
     index_clear(&l->by_order);
+    event_clear(&l->addition);
 }
 
 /*
@@ -204,6 +206,7 @@ struct record* listing_add(struct listing *l, struct record *r)
     if (index_add(&l->by_order, r) != 0)
         abort(); /* FIXME: remove from all indexes and return */
 
+    fire(&l->addition, r);
     return r;
 }
 
