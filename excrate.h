@@ -7,11 +7,13 @@
 #include "external.h"
 #include "list.h"
 #include "library.h"
+#include "observer.h"
 
 struct excrate {
     struct list excrates;
     unsigned int refcount;
     struct listing listing, *storage;
+    struct event completion;
 
     /* State of the external scan process */
 

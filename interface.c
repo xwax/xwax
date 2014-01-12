@@ -1231,7 +1231,6 @@ static void draw_crate_row(const void *context,
     }
 
     split(rect, from_right(SORT_WIDTH, 0), &left, &right);
-    draw_text(surface, &left, crate->name, font, col, selected_col);
 
     switch (selector->sort) {
     case SORT_ARTIST:
@@ -1249,6 +1248,14 @@ static void draw_crate_row(const void *context,
     default:
         abort();
     }
+
+    if (crate->is_busy) {
+        split(left, from_right(25, 0), &left, &right);
+        draw_token(surface, &right, "BUSY", text_col,
+                   dim(alert_col, 2), selected_col);
+    }
+
+    draw_text(surface, &left, crate->name, font, col, selected_col);
 }
 
 /*

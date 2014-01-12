@@ -36,11 +36,12 @@ struct listing {
 /* A single crate of records */
 
 struct crate {
-    bool is_fixed;
+    bool is_fixed, is_busy;
     char *name;
     struct listing *listing;
-    struct observer on_addition;
-    struct event refresh, addition;
+    struct observer on_addition, on_completion;
+    struct event activity, /* at the crate level, not the listing */
+        refresh, addition;
 
     /* Optionally, the corresponding source */
     const char *scan, *path;

@@ -69,6 +69,9 @@ static int crate_init(struct crate *c, const char *name)
         return -1;
     }
 
+    c->is_busy = false;
+
+    event_init(&c->activity);
     event_init(&c->refresh);
     event_init(&c->addition);
 
@@ -84,6 +87,17 @@ static void propagate_addition(struct observer *o, void *x)
 {
     struct crate *c = container_of(o, struct crate, on_addition);
     fire(&c->addition, x);
+}
+
+/*
+ * Propagate notification that the scan has finished
+ */
+
+static void propagate_completion(struct observer *o, void *x)
+{
+    struct crate *c = container_of(o, struct crate, on_completion);
+    c->is_busy = false;
+    fire(&c->activity, NULL);
 }
 
 /*
@@ -113,7 +127,15 @@ static void hook_up_excrate(struct crate *c, struct excrate *e)
 {
     c->excrate = e;
     c->listing = &e->listing;
+
+    if (!c->is_busy) {
+        c->is_busy = true;
+        fire(&c->activity, NULL);
+    }
+
     watch(&c->on_addition, &c->listing->addition, propagate_addition);
+    watch(&c->on_completion, &e->completion, propagate_completion);
+    fire(&c->refresh, NULL);
 }
 
 /*
@@ -166,10 +188,10 @@ int crate_rescan(struct library *l, struct crate *c)
     if (e == NULL)
         return -1;
 
+    ignore(&c->on_completion);
     ignore(&c->on_addition);
     excrate_release(c->excrate);
     hook_up_excrate(c, e);
-    fire(&c->refresh, NULL);
 
     return 0;
 }
@@ -184,8 +206,11 @@ int crate_rescan(struct library *l, struct crate *c)
 static void crate_clear(struct crate *c)
 {
     ignore(&c->on_addition);
-    if (c->excrate != NULL)
+    if (c->excrate != NULL) {
+        ignore(&c->on_completion);
         excrate_release(c->excrate);
+    }
+    event_clear(&c->activity);
     event_clear(&c->refresh);
     event_clear(&c->addition);
     free(c->name);

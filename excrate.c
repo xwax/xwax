@@ -34,6 +34,7 @@ static int excrate_init(struct excrate *e, const char *script,
     rb_reset(&e->rb);
     listing_init(&e->listing);
     e->storage = storage;
+    event_init(&e->completion);
 
     list_add(&e->excrates, &excrates);
     rig_post_excrate(e);
@@ -46,6 +47,7 @@ static void excrate_clear(struct excrate *e)
     assert(e->pid == 0);
     list_del(&e->excrates);
     listing_clear(&e->listing);
+    event_clear(&e->completion);
 }
 
 struct excrate* excrate_acquire_by_scan(const char *script, const char *search,
@@ -206,6 +208,7 @@ void excrate_handle(struct excrate *e)
         return;
 
     do_wait(e);
+    fire(&e->completion, NULL);
     list_del(&e->rig);
     excrate_release(e); /* may invalidate e */
 }

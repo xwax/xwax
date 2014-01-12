@@ -144,6 +144,17 @@ static void do_content_change(struct selector *sel)
 }
 
 /*
+ * Callback notification that the crate has changed at the top
+ * level (eg. it's gone from busy to no longer busy)
+ */
+
+static void handle_activity(struct observer *o, void *x)
+{
+    struct selector *s = container_of(o, struct selector, on_activity);
+    notify(s);
+}
+
+/*
  * Callback notification that the crate has changed, including
  * removal of items
  */
@@ -201,6 +212,7 @@ static void merge_addition(struct observer *o, void *x)
 
 static void watch_crate(struct selector *s, struct crate *c)
 {
+    watch(&s->on_activity, &c->activity, handle_activity);
     watch(&s->on_refresh, &c->refresh, handle_refresh);
     watch(&s->on_addition, &c->addition, merge_addition);
 }
@@ -239,6 +251,7 @@ void selector_init(struct selector *sel, struct library *lib)
 void selector_clear(struct selector *sel)
 {
     event_clear(&sel->changed);
+    ignore(&sel->on_activity);
     ignore(&sel->on_refresh);
     ignore(&sel->on_addition);
     index_clear(&sel->index_a);
@@ -333,6 +346,7 @@ static void do_crate_change(struct selector *sel)
 
     c = current_crate(sel);
 
+    ignore(&sel->on_activity);
     ignore(&sel->on_refresh);
     ignore(&sel->on_addition);
     watch_crate(sel, c);
