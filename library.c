@@ -106,6 +106,17 @@ static int crate_init_all(struct library *l, struct crate *c, const char *name)
 }
 
 /*
+ * Wire in the excrate to this crate, including events
+ */
+
+static void hook_up_excrate(struct crate *c, struct excrate *e)
+{
+    c->excrate = e;
+    c->listing = &e->listing;
+    watch(&c->on_addition, &c->listing->addition, propagate_addition);
+}
+
+/*
  * Initialise a crate which has a fixed scan as its source
  *
  * Not all crates have a source (eg. 'all' crate.) This is also
@@ -131,9 +142,7 @@ static int crate_init_scan(struct library *l, struct crate *c, const char *name,
 
     c->scan = scan;
     c->path = path;
-    c->excrate = e;
-    c->listing = &e->listing;
-    watch(&c->on_addition, &c->listing->addition, propagate_addition);
+    hook_up_excrate(c, e);
 
     return 0;
 }
@@ -150,13 +159,16 @@ int crate_rescan(struct library *l, struct crate *c)
 
     assert(c->excrate != NULL);
 
+    /* Replace the excrate in-place. Care needed to re-wire
+     * everything back up again as before */
+
     e = excrate_acquire_by_scan(c->scan, c->path, &l->storage);
     if (e == NULL)
         return -1;
 
+    ignore(&c->on_addition);
     excrate_release(c->excrate);
-    c->excrate = e;
-    c->listing = &e->listing;
+    hook_up_excrate(c, e);
     fire(&c->refresh, NULL);
 
     return 0;
