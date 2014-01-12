@@ -12,6 +12,7 @@
 struct excrate {
     struct list excrates;
     unsigned int refcount;
+    const char *search;
     struct listing listing, *storage;
     struct event completion;
 
@@ -21,6 +22,7 @@ struct excrate {
     pid_t pid;
     int fd;
     struct pollfd *pe;
+    bool terminated;
 
     /* State of reader */
 

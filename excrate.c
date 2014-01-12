@@ -14,6 +14,7 @@
 #include "debug.h"
 #include "excrate.h"
 #include "rig.h"
+#include "status.h"
 
 static struct list excrates = LIST_INIT(excrates);
 
@@ -30,11 +31,13 @@ static int excrate_init(struct excrate *e, const char *script,
 
     e->pid = pid;
     e->pe = NULL;
+    e->terminated = false;
     e->refcount = 0;
     rb_reset(&e->rb);
     listing_init(&e->listing);
     e->storage = storage;
     event_init(&e->completion);
+    e->search = search;
 
     list_add(&e->excrates, &excrates);
     rig_post_excrate(e);
@@ -91,6 +94,8 @@ static void terminate(struct excrate *e)
 
     if (kill(e->pid, SIGTERM) == -1)
         abort();
+
+    e->terminated = true;
 }
 
 void excrate_release(struct excrate *e)
@@ -144,10 +149,13 @@ static void do_wait(struct excrate *e)
 
     debug("wait for pid %d returned %d", e->pid, status);
 
-    if (WIFEXITED(status) && WEXITSTATUS(status) == EXIT_SUCCESS)
+    if (WIFEXITED(status) && WEXITSTATUS(status) == EXIT_SUCCESS) {
         fprintf(stderr, "Scan completed\n");
-    else
+    } else {
         fprintf(stderr, "Scan completed with status %d\n", status);
+        if (!e->terminated)
+            status_printf(STATUS_ALERT, "Error scanning %s", e->search);
+    }
 
     e->pid = 0;
 }
