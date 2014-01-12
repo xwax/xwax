@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # Take a pathname as an argument and output a playlist to standard
 # output and errors to standard error.
@@ -9,6 +9,8 @@
 #
 # If the tab (\t) or newline (\n) characters appear in a filename,
 # unexpected things will happen.
+
+set -eu -o pipefail  # pipefail requires bash, not sh
 
 PATHNAME="$1"
 
