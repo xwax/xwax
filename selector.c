@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Mark Hills <mark@xwax.org>,
+ * Copyright (C) 2014 Mark Hills <mark@xwax.org>,
  *                    Yves Adler <yves.adler@googlemail.com>
  *
  * This program is free software; you can redistribute it and/or
