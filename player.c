@@ -460,6 +460,9 @@ void player_collect(struct player *pl, signed short *pcm, unsigned samples)
 
     pitch = pl->pitch * pl->sync_pitch;
 
+    /* We must return audio immediately to stay realtime. A spin
+     * lock protects us from changes to the audio source */
+
     if (!spin_try_lock(&pl->lock)) {
         r = build_silence(pcm, samples, pl->sample_dt, pitch);
     } else {
