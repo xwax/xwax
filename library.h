@@ -26,7 +26,7 @@
 #include "index.h"
 #include "observer.h"
 
-/* A list of records, with several optimised indexes */
+/* A set of records, with several optimised indexes */
 
 struct listing {
     struct index by_artist, by_bpm, by_order;
