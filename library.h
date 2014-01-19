@@ -59,7 +59,6 @@ struct library {
 void listing_init(struct listing *l);
 void listing_clear(struct listing *l);
 struct record* listing_add(struct listing *l, struct record *r);
-int crate_rescan(struct library *l, struct crate *c);
 
 int library_init(struct library *li);
 void library_clear(struct library *li);
@@ -67,5 +66,6 @@ void library_clear(struct library *li);
 struct record* get_record(char *line);
 
 int library_import(struct library *lib, const char *scan, const char *path);
+int library_rescan(struct library *l, struct crate *c);
 
 #endif

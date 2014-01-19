@@ -402,8 +402,10 @@ void selector_toggle_order(struct selector *sel)
 
 void selector_rescan(struct selector *sel)
 {
-    /* FIXME: not all crates can be scanned */
-    crate_rescan(sel->library, current_crate(sel));
+    /* Ignore any errors at this point. A rescan must not leak
+     * resources or cause a crash */
+
+    (void)library_rescan(sel->library, current_crate(sel));
 }
 
 /*

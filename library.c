@@ -170,12 +170,12 @@ static int crate_init_scan(struct library *l, struct crate *c, const char *name,
 }
 
 /*
- * Launch a new scan operation on this crate
+ * Re-run a crate which has a scan as its source
  *
  * Return: 0 on success, -1 on error
  */
 
-int crate_rescan(struct library *l, struct crate *c)
+static int crate_rescan(struct crate *c, struct library *l)
 {
     struct excrate *e;
 
@@ -533,4 +533,21 @@ fail:
     free(crate);
     return -1;
 
+}
+
+/*
+ * Request a rescan on the given crate
+ *
+ * Only crates with an external source can be rescanned, others result
+ * in a no-op.
+ *
+ * Return: -1 if scan is not possible, otherwise 0 on success
+ */
+
+int library_rescan(struct library *l, struct crate *c)
+{
+    if (!c->excrate)
+        return -1;
+    else
+        return crate_rescan(c, l);
 }
