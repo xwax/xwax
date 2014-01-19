@@ -237,7 +237,10 @@ static inline struct rect shrink(const struct rect in, int distance)
 
 static inline unsigned int count_rows(struct rect in, unsigned int row_height)
 {
-    return in.h / (row_height * in.scale);
+    unsigned int pixels;
+
+    pixels = row_height * in.scale;
+    return in.h / pixels;
 }
 
 #endif
