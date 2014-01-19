@@ -22,7 +22,6 @@
 #define SELECTOR_H
 
 #include <stdbool.h>
-#include <stddef.h>
 
 #include "library.h"
 #include "listbox.h"
