@@ -87,13 +87,16 @@ static void hunt_target(struct selector *s)
     }
 }
 
+/*
+ * Return: the currently selected crate
+ */
+
 static struct crate* current_crate(struct selector *sel)
 {
     int n;
 
     n = listbox_current(&sel->crates);
-    if (n == -1)
-        return NULL;
+    assert(n != -1);
 
     return sel->library->crate[n];
 }
@@ -226,6 +229,7 @@ void selector_init(struct selector *sel, struct library *lib)
     listbox_init(&sel->records);
     listbox_init(&sel->crates);
 
+    assert(lib->crates > 0);
     listbox_set_entries(&sel->crates, lib->crates);
 
     sel->toggled = false;
@@ -258,8 +262,18 @@ void selector_clear(struct selector *sel)
     index_clear(&sel->index_b);
 }
 
+/*
+ * Set the number of display lines in use
+ *
+ * If the selector is invisible, it must continue to exist with 1 or
+ * more lines to provide a current selected crate and/or record.
+ *
+ * Pre: lines is greater than zero
+ */
+
 void selector_set_lines(struct selector *sel, unsigned int lines)
 {
+    assert(lines > 0);
     listbox_set_lines(&sel->crates, lines);
     listbox_set_lines(&sel->records, lines);
 }
