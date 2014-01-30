@@ -187,6 +187,11 @@ static void merge_addition(struct observer *o, void *x)
     if (!record_match(r, &s->match))
         return;
 
+    /* If we're out of memory then silently drop it */
+
+    if (index_reserve(s->view_index, 1) == -1)
+        return;
+
     if (s->sort == SORT_PLAYLIST)
         index_add(s->view_index, r);
     else

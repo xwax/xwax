@@ -99,20 +99,28 @@ static int enlarge(struct index *ls, size_t target)
 }
 
 /*
- * Add a record to the index
- *
- * Return: 0 on success or -1 on memory allocation failure
+ * Return: false if the caller did not call index_reserve(), otherwise
+ * true
  */
 
-int index_add(struct index *ls, struct record *lr)
+static bool has_space(const struct index *i)
+{
+    return i->entries < i->size;
+}
+
+/*
+ * Add a record to the index
+ *
+ * Pre: at least one entry is reserved
+ * Post: lr is the record at the end of the index
+ */
+
+void index_add(struct index *ls, struct record *lr)
 {
     assert(lr != NULL);
-
-    if (enlarge(ls, ls->entries + 1) == -1)
-        return -1;
+    assert(has_space(ls));
 
     ls->record[ls->entries++] = lr;
-    return 0;
 }
 
 /*
@@ -203,10 +211,11 @@ int index_copy(const struct index *src, struct index *dest)
 
     index_blank(dest);
 
-    for (n = 0; n < src->entries; n++) {
-	if (index_add(dest, src->record[n]) != 0)
-	    return -1;
-    }
+    if (index_reserve(dest, src->entries) == -1)
+        return -1;
+
+    for (n = 0; n < src->entries; n++)
+        index_add(dest, src->record[n]);
 
     return 0;
 }
@@ -269,8 +278,9 @@ int index_match(struct index *src, struct index *dest,
         re = src->record[n];
 
         if (record_match(re, match)) {
-            if (index_add(dest, re) == -1)
+            if (index_reserve(dest, 1) == -1)
                 return -1;
+            index_add(dest, re);
         }
     }
 
@@ -334,7 +344,8 @@ static size_t bin_search(struct record **base, size_t n,
  * Insert or re-use an entry in a sorted index
  *
  * Pre: index is sorted
- * Return: pointer to item, or existing entry; NULL if out of memory
+ * Pre: at least one entry is reserved
+ * Return: pointer to item, or existing entry (ie. not NULL)
  * Post: index is sorted and contains item or a matching item
  */
 
@@ -348,10 +359,7 @@ struct record* index_insert(struct index *ls, struct record *item,
     if (found)
         return ls->record[z];
 
-    /* Insert the new item */
-
-    if (enlarge(ls, ls->entries + 1) == -1)
-        return NULL;
+    assert(has_space(ls));
 
     memmove(ls->record + z + 1, ls->record + z,
             sizeof(struct record*) * (ls->entries - z));
@@ -359,6 +367,21 @@ struct record* index_insert(struct index *ls, struct record *item,
     ls->entries++;
 
     return item;
+}
+
+/*
+ * Reserve space in the index for the addition of n new items
+ *
+ * This function exists separately to the insert and addition
+ * functions because it carries the error case.
+ *
+ * Return: -1 if not enough memory, otherwise zero
+ * Post: if zero is returned, index has at least n free slots
+ */
+
+int index_reserve(struct index *i, unsigned int n)
+{
+    return enlarge(i, i->entries + n);
 }
 
 /*

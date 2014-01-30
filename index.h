@@ -50,7 +50,7 @@ struct match {
 void index_init(struct index *ls);
 void index_clear(struct index *ls);
 void index_blank(struct index *ls);
-int index_add(struct index *li, struct record *lr);
+void index_add(struct index *li, struct record *lr);
 bool record_match(struct record *re, const struct match *h);
 int index_copy(const struct index *src, struct index *dest);
 void match_compile(struct match *h, const char *d);
@@ -58,6 +58,7 @@ int index_match(struct index *src, struct index *dest,
                 const struct match *match);
 struct record* index_insert(struct index *ls, struct record *item,
                             int sort);
+int index_reserve(struct index *i, unsigned int n);
 size_t index_find(struct index *ls, struct record *item, int sort);
 void index_debug(struct index *ls);
 

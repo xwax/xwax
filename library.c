@@ -232,8 +232,6 @@ static int crate_cmp(const struct crate *a, const struct crate *b)
 /*
  * Add a record into a crate and its various indexes
  *
- * FIXME: not all out-of-memory cases are implemented
- *
  * Return: Pointer to existing entry, NULL if out of memory
  * Post: Record added to the crate
  */
@@ -244,17 +242,25 @@ struct record* listing_add(struct listing *l, struct record *r)
 
     assert(r != NULL);
 
+    /* Do all the memory reservation up-front as we can't
+     * un-wind if it errors later */
+
+    if (index_reserve(&l->by_artist, 1) == -1)
+        return NULL;
+    if (index_reserve(&l->by_bpm, 1) == -1)
+        return NULL;
+    if (index_reserve(&l->by_order, 1) == -1)
+        return NULL;
+
     x = index_insert(&l->by_artist, r, SORT_ARTIST);
-    if (x != r) /* may be NULL */
+    assert(x != NULL);
+    if (x != r)
         return x;
 
     x = index_insert(&l->by_bpm, r, SORT_BPM);
-    if (x == NULL)
-        abort(); /* FIXME: remove from all indexes and return */
     assert(x == r);
 
-    if (index_add(&l->by_order, r) != 0)
-        abort(); /* FIXME: remove from all indexes and return */
+    index_add(&l->by_order, r);
 
     fire(&l->addition, r);
     return r;
