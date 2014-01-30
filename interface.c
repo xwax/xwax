@@ -1734,7 +1734,7 @@ static int parse_geometry(const char *s)
     case 0:
         break;
     case 2:
-        /* FIXME: Not a desirable way to get geometry information to
+        /* Not a desirable way to get geometry information to
          * SDL, but it seems to be the only way */
 
         sprintf(buf, "SDL_VIDEO_WINDOW_POS=%d,%d", x, y);
