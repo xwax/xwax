@@ -1,3 +1,12 @@
+v1.5 (work in progress)
+-----------------------
+
+* Scan the music library in the background on startup
+* Function to re-scan a crate
+* Performance improovement to audio resampler
+* Additional font paths
+* Minor bug fixes
+
 v1.4 (2013-06-08)
 -----------------
 
