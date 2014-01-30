@@ -497,11 +497,13 @@ int dicer_init(struct controller *c, struct rt *rt, const char *hw)
         d->right_led[n] = 0;
     }
 
-    controller_init(c, &dicer_ops);
-    c->local = d;
+    if (controller_init(c, &dicer_ops, d, rt) == -1)
+        goto fail_midi;
 
     return 0;
 
+fail_midi:
+    midi_close(&d->midi);
 fail:
     free(d);
     return -1;

@@ -560,13 +560,6 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    /* FIXME: move this to controller for proper error recovery */
-
-    for (n = 0; n < nctl; n++) {
-        if (rt_add_controller(&rt, &ctl[n]) == -1)
-            return -1;
-    }
-
     rc = EXIT_FAILURE; /* until clean exit */
 
     /* Order is important: launch realtime thread first, then mlock.

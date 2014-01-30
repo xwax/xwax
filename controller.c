@@ -25,11 +25,16 @@
 
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof(*x))
 
-void controller_init(struct controller *c, struct controller_ops *ops)
+int controller_init(struct controller *c, struct controller_ops *ops,
+                    void *local, struct rt *rt)
 {
     debug("%p", c);
+
     c->fault = false;
     c->ops = ops;
+    c->local = local;
+
+    return rt_add_controller(rt, c);
 }
 
 void controller_clear(struct controller *c)

@@ -26,6 +26,7 @@
 #include <sys/types.h>
 
 struct deck;
+struct rt;
 
 /*
  * Base state of a 'controller', which is a MIDI controller or HID
@@ -51,7 +52,8 @@ struct controller_ops {
     void (*clear)(struct controller *c);
 };
 
-void controller_init(struct controller *c, struct controller_ops *t);
+int controller_init(struct controller *c, struct controller_ops *t,
+                    void *local, struct rt *rt);
 void controller_clear(struct controller *c);
 
 void controller_add_deck(struct controller *c, struct deck *d);
