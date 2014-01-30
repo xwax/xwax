@@ -510,8 +510,6 @@ int library_import(struct library *li, const char *scan, const char *path)
     char *cratename, *pathname;
     struct crate *crate;
 
-    fprintf(stderr, "Adding '%s'...\n", path);
-
     pathname = strdupa(path);
     cratename = basename(pathname); /* POSIX version, see basename(3) */
     assert(cratename != NULL);
