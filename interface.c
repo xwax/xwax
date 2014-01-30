@@ -1325,11 +1325,25 @@ static void draw_library(SDL_Surface *surface, const struct rect *rect,
                          struct selector *sel)
 {
     struct rect rsearch, rlists, rcrates, rrecords;
+    unsigned int rows;
 
     split(*rect, from_top(SEARCH_HEIGHT, SPACER), &rsearch, &rlists);
-    draw_search(surface, &rsearch, sel);
 
-    selector_set_lines(sel, count_rows(rlists, FONT_SPACE));
+    rows = count_rows(rlists, FONT_SPACE);
+    if (rows == 0) {
+
+        /* Hide the selector: draw nothing, and make it a 'virtual'
+         * one row selector. This is enough to use it from the search
+         * field and status only */
+
+        draw_search(surface, rect, sel);
+        selector_set_lines(sel, 1);
+
+        return;
+    }
+
+    draw_search(surface, &rsearch, sel);
+    selector_set_lines(sel, rows);
 
     split(rlists, columns(0, 4, SPACER), &rcrates, &rrecords);
     if (rcrates.w > LIBRARY_MIN_WIDTH) {

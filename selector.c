@@ -137,9 +137,6 @@ static void notify(struct selector *s)
 
 static void do_content_change(struct selector *sel)
 {
-    /* FIXME: this is called when the UI is too small and no
-     * crate is selected, so initial() hits an assertion */
-
     (void)index_match(initial(sel), sel->view_index, &sel->match);
     listbox_set_entries(&sel->records, sel->view_index->entries);
     retain_target(sel);
