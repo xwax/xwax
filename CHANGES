@@ -1,5 +1,5 @@
-v1.5 (work in progress)
------------------------
+v1.5 (2014-02-09)
+-----------------
 
 * Scan the music library in the background on startup
 * Function to re-scan a crate
