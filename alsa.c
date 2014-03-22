@@ -111,8 +111,8 @@ static int pcm_open(struct alsa_pcm *alsa, const char *device_name,
 
     p = buffer_time * 1000; /* microseconds */
     dir = -1;
-    r = snd_pcm_hw_params_set_buffer_time_max(alsa->pcm, hw_params, &p, &dir);
-    if (!chk("hw_params_set_buffer_time_max", r)) {
+    r = snd_pcm_hw_params_set_buffer_time_near(alsa->pcm, hw_params, &p, &dir);
+    if (!chk("hw_params_set_buffer_time_near", r)) {
         fprintf(stderr, "Buffer of %dms may be too small for this hardware.\n",
                 buffer_time);
         return -1;
