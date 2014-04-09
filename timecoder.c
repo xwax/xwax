@@ -55,37 +55,31 @@ static struct timecode_def timecodes[] = {
         .name = "serato_2a",
         .desc = "Serato 2nd Ed., side A",
         .resolution = 1000,
-        .flags = 0,
         .bits = 20,
         .seed = 0x59017,
         .taps = 0x361e4,
         .length = 712000,
         .safe = 707000,
-        .lookup = false
     },
     {
         .name = "serato_2b",
         .desc = "Serato 2nd Ed., side B",
         .resolution = 1000,
-        .flags = 0,
         .bits = 20,
         .seed = 0x8f3c6,
         .taps = 0x4f0d8, /* reverse of side A */
         .length = 922000,
         .safe = 917000,
-        .lookup = false
     },
     {
         .name = "serato_cd",
         .desc = "Serato CD",
         .resolution = 1000,
-        .flags = 0,
         .bits = 20,
         .seed = 0xd8b40,
         .taps = 0x34d54,
         .length = 950000,
         .safe = 940000,
-        .lookup = false
     },
     {
         .name = "traktor_a",
@@ -97,7 +91,6 @@ static struct timecode_def timecodes[] = {
         .taps = 0x041040,
         .length = 1500000,
         .safe = 1480000,
-        .lookup = false
     },
     {
         .name = "traktor_b",
@@ -109,7 +102,6 @@ static struct timecode_def timecodes[] = {
         .taps = 0x041040, /* same as side A */
         .length = 2110000,
         .safe = 2090000,
-        .lookup = false
     },
     {
         .name = "mixvibes_v2",
@@ -121,7 +113,6 @@ static struct timecode_def timecodes[] = {
         .taps = 0x00008,
         .length = 950000,
         .safe = 923000,
-        .lookup = false
     },
     {
         .name = "mixvibes_7inch",
@@ -133,7 +124,6 @@ static struct timecode_def timecodes[] = {
         .taps = 0x00008,
         .length = 312000,
         .safe = 310000,
-        .lookup = false
     },
 };
 
