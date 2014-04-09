@@ -27,6 +27,7 @@
 #include <limits.h>
 #include <math.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #define BANNER "xwax timecode generator " \
     "(C) Copyright 2011 Mark Hills <mark@pogo.org.uk>"
