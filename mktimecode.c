@@ -133,13 +133,14 @@ int main(int argc, char *argv[])
             (double)length / RESOLUTION);
 
     fprintf(stderr, "\n");
-    fprintf(stderr, ".resolution = %d,\n", RESOLUTION);
-    fprintf(stderr, ".flags = 0,\n");
-    fprintf(stderr, ".bits = %d,\n", BITS);
-    fprintf(stderr, ".seed = 0x%08x,\n", SEED);
-    fprintf(stderr, ".taps = 0x%08x,\n", TAPS);
-    fprintf(stderr, ".length = %d,\n", length);
-    fprintf(stderr, ".safe = %d,\n", MAX(0, length - 4 * RESOLUTION));
+    fprintf(stderr, "    {\n");
+    fprintf(stderr, "        .resolution = %d,\n", RESOLUTION);
+    fprintf(stderr, "        .bits = %d,\n", BITS);
+    fprintf(stderr, "        .seed = 0x%08x,\n", SEED);
+    fprintf(stderr, "        .taps = 0x%08x,\n", TAPS);
+    fprintf(stderr, "        .length = %d,\n", length);
+    fprintf(stderr, "        .safe = %d,\n", MAX(0, length - 4 * RESOLUTION));
+    fprintf(stderr, "    }\n");
 
     return 0;
 }
