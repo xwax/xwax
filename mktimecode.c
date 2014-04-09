@@ -129,6 +129,9 @@ int main(int argc, char *argv[])
         }
     }
 
+    fprintf(stderr, "Generated %0.1f seconds of timecode\n",
+            (double)length / RESOLUTION);
+
     fprintf(stderr, "\n");
     fprintf(stderr, ".resolution = %d,\n", RESOLUTION);
     fprintf(stderr, ".flags = 0,\n");
