@@ -51,7 +51,9 @@ struct deck {
     struct controller *control[4];
 };
 
-int deck_init(struct deck *deck, struct rt *rt);
+int deck_init(struct deck *deck, struct rt *rt,
+              struct timecode_def *timecode,
+              double speed, bool phono);
 void deck_clear(struct deck *deck);
 
 bool deck_is_locked(const struct deck *deck);

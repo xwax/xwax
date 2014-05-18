@@ -288,10 +288,8 @@ int main(int argc, char *argv[])
 		  !strcmp(argv[0], "-j"))
 	{
             int r;
-            unsigned int sample_rate;
             struct deck *ld;
             struct device *device;
-            struct timecoder *timecoder;
 
             /* Create a deck */
 
@@ -310,7 +308,6 @@ int main(int argc, char *argv[])
 
             ld = &deck[ndeck];
             device = &ld->device;
-            timecoder = &ld->timecoder;
             ld->importer = importer;
             ld->protect = protect;
 
@@ -343,8 +340,6 @@ int main(int argc, char *argv[])
             if (r == -1)
                 return -1;
 
-	    sample_rate = device_sample_rate(device);
-
             /* Default timecode decoder where none is specified */
 
             if (timecode == NULL) {
@@ -352,11 +347,9 @@ int main(int argc, char *argv[])
                 assert(timecode != NULL);
             }
 
-            timecoder_init(timecoder, timecode, speed, sample_rate, phono);
-
             /* Connect up the elements to make an operational deck */
 
-            r = deck_init(ld, &rt);
+            r = deck_init(ld, &rt, timecode, speed, phono);
             if (r == -1)
                 return -1;
 
