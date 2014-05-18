@@ -50,6 +50,7 @@ OBJS = controller.o \
 	cues.o \
 	deck.o \
 	device.o \
+	dummy.o \
 	excrate.o \
 	external.o \
 	index.o \

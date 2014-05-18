@@ -30,6 +30,7 @@
 #include "controller.h"
 #include "device.h"
 #include "dicer.h"
+#include "dummy.h"
 #include "interface.h"
 #include "jack.h"
 #include "library.h"
@@ -95,7 +96,8 @@ static void usage(FILE *fd)
       "  -u             Allow all operations when playing\n"
       "  --line         Line level signal (default)\n"
       "  --phono        Tolerate cartridge level signal ('software pre-amp')\n"
-      "  -i <program>   Importer (default '%s')\n\n",
+      "  -i <program>   Importer (default '%s')\n"
+      "  --dummy        Build a dummy deck with no audio device\n\n",
       DEFAULT_IMPORTER);
 
 #ifdef WITH_OSS
@@ -382,6 +384,20 @@ int main(int argc, char *argv[])
 
             argv += 2;
             argc -= 2;
+
+        } else if (!strcmp(argv[0], "--dummy")) {
+
+            struct device *v;
+
+            v = start_deck("dummy");
+            if (v == NULL)
+                return -1;
+
+            dummy_init(v);
+            commit_deck();
+
+            argv++;
+            argc--;
 
         } else if (!strcmp(argv[0], "-t")) {
 
