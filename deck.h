@@ -53,7 +53,7 @@ struct deck {
 
 int deck_init(struct deck *deck, struct rt *rt,
               struct timecode_def *timecode,
-              double speed, bool phono);
+              double speed, bool phono, bool protect);
 void deck_clear(struct deck *deck);
 
 bool deck_is_locked(const struct deck *deck);
