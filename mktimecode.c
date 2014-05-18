@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011 Mark Hills <mark@pogo.org.uk>
+ * Copyright (C) 2014 Mark Hills <mark@xwax.org>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -30,7 +30,7 @@
 #include <stdlib.h>
 
 #define BANNER "xwax timecode generator " \
-    "(C) Copyright 2011 Mark Hills <mark@pogo.org.uk>"
+    "(C) Copyright 2014 Mark Hills <mark@xwax.org>"
 
 #define RATE 44100
 #define RESOLUTION 4000
