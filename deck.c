@@ -41,16 +41,14 @@ static const struct record no_record = {
  * A deck is a logical grouping of the various components which
  * reflects the user's view on a deck in the system.
  *
- * Pre: deck->device, deck->importer are valid
+ * Pre: deck->device is valid
  */
 
 int deck_init(struct deck *d, struct rt *rt,
-              struct timecode_def *timecode,
+              struct timecode_def *timecode, const char *importer,
               double speed, bool phono, bool protect)
 {
     unsigned int rate;
-
-    assert(d->importer != NULL);
 
     if (rt_add_device(rt, &d->device) == -1)
         return -1;
@@ -59,6 +57,8 @@ int deck_init(struct deck *d, struct rt *rt,
     d->record = &no_record;
     d->punch = NO_PUNCH;
     d->protect = protect;
+    assert(importer != NULL);
+    d->importer = importer;
     rate = device_sample_rate(&d->device);
     assert(timecode != NULL);
     timecoder_init(&d->timecoder, timecode, speed, rate, phono);

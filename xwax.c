@@ -308,7 +308,6 @@ int main(int argc, char *argv[])
 
             ld = &deck[ndeck];
             device = &ld->device;
-            ld->importer = importer;
 
             /* Work out which device type we are using, and initialise
              * an appropriate device. */
@@ -348,7 +347,7 @@ int main(int argc, char *argv[])
 
             /* Connect up the elements to make an operational deck */
 
-            r = deck_init(ld, &rt, timecode, speed, phono, protect);
+            r = deck_init(ld, &rt, timecode, importer, speed, phono, protect);
             if (r == -1)
                 return -1;
 
