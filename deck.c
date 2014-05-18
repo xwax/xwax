@@ -44,79 +44,79 @@ static const struct record no_record = {
  * Pre: deck->device, deck->timecoder, deck->importer are valid
  */
 
-int deck_init(struct deck *deck, struct rt *rt)
+int deck_init(struct deck *d, struct rt *rt)
 {
     unsigned int rate;
 
-    assert(deck->importer != NULL);
+    assert(d->importer != NULL);
 
-    if (rt_add_device(rt, &deck->device) == -1)
+    if (rt_add_device(rt, &d->device) == -1)
         return -1;
 
-    deck->ncontrol = 0;
-    deck->record = &no_record;
-    deck->punch = NO_PUNCH;
-    rate = device_sample_rate(&deck->device);
-    player_init(&deck->player, rate, track_acquire_empty(), &deck->timecoder);
-    cues_reset(&deck->cues);
+    d->ncontrol = 0;
+    d->record = &no_record;
+    d->punch = NO_PUNCH;
+    rate = device_sample_rate(&d->device);
+    player_init(&d->player, rate, track_acquire_empty(), &d->timecoder);
+    cues_reset(&d->cues);
 
     /* The timecoder and player are driven by requests from
      * the audio device */
 
-    device_connect_timecoder(&deck->device, &deck->timecoder);
-    device_connect_player(&deck->device, &deck->player);
+    device_connect_timecoder(&d->device, &d->timecoder);
+    device_connect_player(&d->device, &d->player);
 
     return 0;
 }
 
-void deck_clear(struct deck *deck)
+void deck_clear(struct deck *d)
 {
     /* FIXME: remove from rig and rt */
-    player_clear(&deck->player);
-    timecoder_clear(&deck->timecoder);
-    device_clear(&deck->device);
+    player_clear(&d->player);
+    timecoder_clear(&d->timecoder);
+    device_clear(&d->device);
 }
 
-bool deck_is_locked(const struct deck *deck)
+bool deck_is_locked(const struct deck *d)
 {
-    return (deck->protect && player_is_active(&deck->player));
+    return (d->protect && player_is_active(&d->player));
 }
 
 /*
  * Load a record from the library to a deck
  */
 
-void deck_load(struct deck *deck, struct record *record)
+void deck_load(struct deck *d, struct record *record)
 {
     struct track *t;
 
-    if (deck_is_locked(deck)) {
+    if (deck_is_locked(d)) {
         status_printf(STATUS_WARN, "Stop deck to load a different track");
         return;
     }
 
-    t = track_acquire_by_import(deck->importer, record->pathname);
+    t = track_acquire_by_import(d->importer, record->pathname);
     if (t == NULL)
         return;
 
-    deck->record = record;
-    player_set_track(&deck->player, t); /* passes reference */
+    d->record = record;
+    player_set_track(&d->player, t); /* passes reference */
 }
 
-void deck_recue(struct deck *deck)
+void deck_recue(struct deck *d)
 {
-    if (deck_is_locked(deck)) {
+    if (deck_is_locked(d)) {
         status_printf(STATUS_WARN, "Stop deck to recue");
         return;
     }
 
-    player_recue(&deck->player);
+    player_recue(&d->player);
 }
 
-void deck_clone(struct deck *deck, const struct deck *from)
+void deck_clone(struct deck *d, const struct deck *from)
 {
-    deck->record = from->record;
-    player_clone(&deck->player, &from->player);
+    d->record = from->record;
+    player_clone(&d->player, &from->player);
 }
 
 /*
