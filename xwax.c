@@ -61,6 +61,16 @@ char *banner = "xwax " VERSION \
 size_t ndeck;
 struct deck deck[3];
 
+static size_t nctl;
+static struct controller ctl[2];
+
+static struct rt rt;
+
+static double speed;
+static bool protect, phono;
+static const char *importer;
+static struct timecode_def *timecode;
+
 static void usage(FILE *fd)
 {
     fprintf(fd, "Usage: xwax [<options>]\n\n");
@@ -125,18 +135,55 @@ static void usage(FILE *fd)
       "See the xwax(1) man page for full information and examples.\n");
 }
 
+static struct device* start_deck(const char *desc)
+{
+    fprintf(stderr, "Initialising deck %zd (%s)...\n", ndeck, desc);
+
+    if (ndeck == ARRAY_SIZE(deck)) {
+        fprintf(stderr, "Too many decks.\n");
+        return NULL;
+    }
+
+    return &deck[ndeck].device;
+}
+
+static int commit_deck(void)
+{
+    int r;
+    struct deck *d;
+    size_t n;
+
+    /* Fallback to a default timecode. Don't initialise this at the
+     * front of the program to avoid buildling unnecessary LUTs */
+
+    if (timecode == NULL) {
+        timecode = timecoder_find_definition(DEFAULT_TIMECODE);
+        assert(timecode != NULL);
+    }
+
+    d = &deck[ndeck];
+
+    r = deck_init(d, &rt, timecode, importer, speed, phono, protect);
+    if (r == -1)
+        return -1;
+
+    /* Connect this deck to available controllers */
+
+    for (n = 0; n < nctl; n++)
+        controller_add_deck(&ctl[n], d);
+
+    ndeck++;
+
+    return 0;
+}
+
 int main(int argc, char *argv[])
 {
     int rc = -1, n, priority;
-    const char *importer, *scanner, *geo;
+    const char *scanner, *geo;
     char *endptr;
-    size_t nctl;
-    double speed;
-    struct timecode_def *timecode;
-    bool protect, use_mlock, phono;
+    bool use_mlock;
 
-    struct controller ctl[2];
-    struct rt rt;
     struct library library;
 
 #if defined WITH_OSS || WITH_ALSA
@@ -288,7 +335,6 @@ int main(int argc, char *argv[])
 		  !strcmp(argv[0], "-j"))
 	{
             int r;
-            struct deck *ld;
             struct device *device;
 
             /* Create a deck */
@@ -299,15 +345,9 @@ int main(int argc, char *argv[])
                 return -1;
             }
 
-            if (ndeck == ARRAY_SIZE(deck)) {
-                fprintf(stderr, "Too many decks; aborting.\n");
+            device = start_deck(argv[1]);
+            if (device == NULL)
                 return -1;
-            }
-
-            fprintf(stderr, "Initialising deck %zd (%s)...\n", ndeck, argv[1]);
-
-            ld = &deck[ndeck];
-            device = &ld->device;
 
             /* Work out which device type we are using, and initialise
              * an appropriate device. */
@@ -338,25 +378,7 @@ int main(int argc, char *argv[])
             if (r == -1)
                 return -1;
 
-            /* Default timecode decoder where none is specified */
-
-            if (timecode == NULL) {
-                timecode = timecoder_find_definition(DEFAULT_TIMECODE);
-                assert(timecode != NULL);
-            }
-
-            /* Connect up the elements to make an operational deck */
-
-            r = deck_init(ld, &rt, timecode, importer, speed, phono, protect);
-            if (r == -1)
-                return -1;
-
-            /* Connect this deck to available controllers */
-
-            for (n = 0; n < nctl; n++)
-                controller_add_deck(&ctl[n], &deck[ndeck]);
-
-            ndeck++;
+            commit_deck();
 
             argv += 2;
             argc -= 2;
