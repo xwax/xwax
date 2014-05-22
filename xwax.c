@@ -507,8 +507,7 @@ int main(int argc, char *argv[])
             /* Load in a music library */
 
             if (argc < 2) {
-                fprintf(stderr, "-%c requires a pathname as an argument.\n",
-                        argv[0][1]);
+                fprintf(stderr, "-l requires a pathname as an argument.\n");
                 return -1;
             }
 
