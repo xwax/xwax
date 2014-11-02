@@ -1,3 +1,9 @@
+v1.6 (work in progress)
+-----------------------
+
+* Added timecode creator (for the adventurous)
+* Correct interpretation of ALSA's buffer size
+
 v1.5 (2014-02-09)
 -----------------
 
