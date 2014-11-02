@@ -1,5 +1,6 @@
 TAGS
 xwax
+mktimecode
 *.o
 *.d
 .config
@@ -7,10 +8,11 @@ xwax
 dist
 
 tests/cues
+tests/external
 tests/library
 tests/midi
+tests/observer
 tests/scan-bpm
-tests/status
 tests/timecoder
 tests/track
 tests/ttf
