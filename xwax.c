@@ -30,6 +30,7 @@
 #include "controller.h"
 #include "device.h"
 #include "dicer.h"
+#include "dummy.h"
 #include "interface.h"
 #include "jack.h"
 #include "library.h"
@@ -61,6 +62,16 @@ char *banner = "xwax " VERSION \
 size_t ndeck;
 struct deck deck[3];
 
+static size_t nctl;
+static struct controller ctl[2];
+
+static struct rt rt;
+
+static double speed;
+static bool protect, phono;
+static const char *importer;
+static struct timecode_def *timecode;
+
 static void usage(FILE *fd)
 {
     fprintf(fd, "Usage: xwax [<options>]\n\n");
@@ -85,7 +96,8 @@ static void usage(FILE *fd)
       "  -u             Allow all operations when playing\n"
       "  --line         Line level signal (default)\n"
       "  --phono        Tolerate cartridge level signal ('software pre-amp')\n"
-      "  -i <program>   Importer (default '%s')\n\n",
+      "  -i <program>   Importer (default '%s')\n"
+      "  --dummy        Build a dummy deck with no audio device\n\n",
       DEFAULT_IMPORTER);
 
 #ifdef WITH_OSS
@@ -125,18 +137,55 @@ static void usage(FILE *fd)
       "See the xwax(1) man page for full information and examples.\n");
 }
 
+static struct device* start_deck(const char *desc)
+{
+    fprintf(stderr, "Initialising deck %zd (%s)...\n", ndeck, desc);
+
+    if (ndeck == ARRAY_SIZE(deck)) {
+        fprintf(stderr, "Too many decks.\n");
+        return NULL;
+    }
+
+    return &deck[ndeck].device;
+}
+
+static int commit_deck(void)
+{
+    int r;
+    struct deck *d;
+    size_t n;
+
+    /* Fallback to a default timecode. Don't initialise this at the
+     * front of the program to avoid buildling unnecessary LUTs */
+
+    if (timecode == NULL) {
+        timecode = timecoder_find_definition(DEFAULT_TIMECODE);
+        assert(timecode != NULL);
+    }
+
+    d = &deck[ndeck];
+
+    r = deck_init(d, &rt, timecode, importer, speed, phono, protect);
+    if (r == -1)
+        return -1;
+
+    /* Connect this deck to available controllers */
+
+    for (n = 0; n < nctl; n++)
+        controller_add_deck(&ctl[n], d);
+
+    ndeck++;
+
+    return 0;
+}
+
 int main(int argc, char *argv[])
 {
     int rc = -1, n, priority;
-    const char *importer, *scanner, *geo;
+    const char *scanner, *geo;
     char *endptr;
-    size_t nctl;
-    double speed;
-    struct timecode_def *timecode;
-    bool protect, use_mlock, phono;
+    bool use_mlock;
 
-    struct controller ctl[2];
-    struct rt rt;
     struct library library;
 
 #if defined WITH_OSS || WITH_ALSA
@@ -288,10 +337,7 @@ int main(int argc, char *argv[])
 		  !strcmp(argv[0], "-j"))
 	{
             int r;
-            unsigned int sample_rate;
-            struct deck *ld;
             struct device *device;
-            struct timecoder *timecoder;
 
             /* Create a deck */
 
@@ -301,18 +347,9 @@ int main(int argc, char *argv[])
                 return -1;
             }
 
-            if (ndeck == ARRAY_SIZE(deck)) {
-                fprintf(stderr, "Too many decks; aborting.\n");
+            device = start_deck(argv[1]);
+            if (device == NULL)
                 return -1;
-            }
-
-            fprintf(stderr, "Initialising deck %zd (%s)...\n", ndeck, argv[1]);
-
-            ld = &deck[ndeck];
-            device = &ld->device;
-            timecoder = &ld->timecoder;
-            ld->importer = importer;
-            ld->protect = protect;
 
             /* Work out which device type we are using, and initialise
              * an appropriate device. */
@@ -343,32 +380,24 @@ int main(int argc, char *argv[])
             if (r == -1)
                 return -1;
 
-	    sample_rate = device_sample_rate(device);
-
-            /* Default timecode decoder where none is specified */
-
-            if (timecode == NULL) {
-                timecode = timecoder_find_definition(DEFAULT_TIMECODE);
-                assert(timecode != NULL);
-            }
-
-            timecoder_init(timecoder, timecode, speed, sample_rate, phono);
-
-            /* Connect up the elements to make an operational deck */
-
-            r = deck_init(ld, &rt);
-            if (r == -1)
-                return -1;
-
-            /* Connect this deck to available controllers */
-
-            for (n = 0; n < nctl; n++)
-                controller_add_deck(&ctl[n], &deck[ndeck]);
-
-            ndeck++;
+            commit_deck();
 
             argv += 2;
             argc -= 2;
+
+        } else if (!strcmp(argv[0], "--dummy")) {
+
+            struct device *v;
+
+            v = start_deck("dummy");
+            if (v == NULL)
+                return -1;
+
+            dummy_init(v);
+            commit_deck();
+
+            argv++;
+            argc--;
 
         } else if (!strcmp(argv[0], "-t")) {
 
