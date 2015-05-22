@@ -17,7 +17,7 @@
  *
  */
 
-#define _BSD_SOURCE /* vfork() */
+#define _DEFAULT_SOURCE /* vfork() */
 #include <assert.h>
 #include <errno.h>
 #include <fcntl.h>
