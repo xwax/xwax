@@ -80,6 +80,7 @@ static void usage(FILE *fd)
       "  -k             Lock real-time memory into RAM\n"
       "  -q <n>         Real-time priority (0 for no priority, default %d)\n"
       "  -g <s>         Set display geometry (see man page)\n"
+      "  --no-decor     Request a window with no decorations\n"
       "  -h             Display this message to stdout and exit\n\n",
       DEFAULT_PRIORITY);
 
@@ -184,7 +185,7 @@ int main(int argc, char *argv[])
     int rc = -1, n, priority;
     const char *scanner, *geo;
     char *endptr;
-    bool use_mlock;
+    bool use_mlock, decor;
 
     struct library library;
 
@@ -212,6 +213,7 @@ int main(int argc, char *argv[])
 
     ndeck = 0;
     geo = "";
+    decor = true;
     nctl = 0;
     priority = DEFAULT_PRIORITY;
     importer = DEFAULT_IMPORTER;
@@ -501,6 +503,13 @@ int main(int argc, char *argv[])
             argv += 2;
             argc -= 2;
 
+        } else if (!strcmp(argv[0], "--no-decor")) {
+
+            decor = false;
+
+            argv++;
+            argc--;
+
         } else if (!strcmp(argv[0], "-i")) {
 
             /* Importer script for subsequent decks */
@@ -601,7 +610,7 @@ int main(int argc, char *argv[])
         goto out_rt;
     }
 
-    if (interface_start(&library, geo) == -1)
+    if (interface_start(&library, geo, decor) == -1)
         goto out_rt;
 
     if (rig_main() == -1)
