@@ -15,8 +15,8 @@ set -eu -o pipefail  # pipefail requires bash, not sh
 PATHNAME="$1"
 
 if [ -d "$PATHNAME" ]; then
-	find -L "$PATHNAME" -type f |
-		grep -iE '\.(ogg|oga|aac|cdaudio|mp3|flac|wav|aif|aiff|m4a|wma)$'
+	find -L "$PATHNAME" -type f -regextype posix-egrep \
+		-iregex '.*\.(ogg|oga|aac|cdaudio|mp3|flac|wav|aif|aiff|m4a|wma)'
 else
 	cat "$PATHNAME"
 fi |
