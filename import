@@ -16,18 +16,18 @@ RATE="$2"
 case "$FILE" in
 
 *.cdaudio)
-    echo "Calling CD extract..." >&2
-    exec cdparanoia -r `cat "$FILE"` -
-    ;;
+	echo "Calling CD extract..." >&2
+	exec cdparanoia -r `cat "$FILE"` -
+	;;
 
 *.mp3)
-    echo "Calling MP3 decoder..." >&2
-    exec mpg123 -q -s --rate "$RATE" --stereo "$FILE"
-    ;;
+	echo "Calling MP3 decoder..." >&2
+	exec mpg123 -q -s --rate "$RATE" --stereo "$FILE"
+	;;
 
 *)
-    echo "Calling fallback decoder..." >&2
-    exec ffmpeg -v 0 -i "$FILE" -f s16le -ar "$RATE" -
-    ;;
+	echo "Calling fallback decoder..." >&2
+	exec ffmpeg -v 0 -i "$FILE" -f s16le -ar "$RATE" -
+	;;
 
 esac
