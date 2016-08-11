@@ -27,7 +27,15 @@ case "$FILE" in
 
 *)
 	echo "Calling fallback decoder..." >&2
-	exec ffmpeg -v 0 -i "$FILE" -f s16le -ar "$RATE" -
+
+	FFMPEG=$(which ffmpeg 2> /dev/null || which avconv 2> /dev/null)
+
+	if [ -z "$FFMPEG" ]; then
+		echo "$0: no ffmpeg or avconv available to decode file" >&2
+		exit 1
+	fi
+
+	exec "$FFMPEG" -v 0 -i "$FILE" -f s16le -ar "$RATE" -
 	;;
 
 esac
