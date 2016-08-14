@@ -1,8 +1,14 @@
-v1.6 (work in progress)
------------------------
+v1.6 (2016-08-13)
+-----------------
 
 * Added timecode creator (for the adventurous)
 * Correct interpretation of ALSA's buffer size
+* Command-line flag to remove all window decorations (--no-decor)
+* A dummy deck for test cases
+* Internal restructing in preparation for new features
+* Build without warnings on modern compilers
+
+Acknowledgements: Daniel James, Alessio Treglia
 
 v1.5 (2014-02-09)
 -----------------
