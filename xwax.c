@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Mark Hills <mark@xwax.org>
+ * Copyright (C) 2016 Mark Hills <mark@xwax.org>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -57,7 +57,7 @@
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof(*x))
 
 char *banner = "xwax " VERSION \
-    " (C) Copyright 2015 Mark Hills <mark@xwax.org>";
+    " (C) Copyright 2016 Mark Hills <mark@xwax.org>";
 
 size_t ndeck;
 struct deck deck[3];

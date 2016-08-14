@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Mark Hills <mark@xwax.org>
+ * Copyright (C) 2016 Mark Hills <mark@xwax.org>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -30,7 +30,7 @@
 #include <stdlib.h>
 
 #define BANNER "xwax timecode generator " \
-    "(C) Copyright 2015 Mark Hills <mark@xwax.org>"
+    "(C) Copyright 2016 Mark Hills <mark@xwax.org>"
 
 #define RATE 44100
 #define RESOLUTION 4000
