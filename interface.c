@@ -1418,14 +1418,15 @@ static bool handle_key(SDLKey key, SDLMod mod)
         return true;
 
     } else if (key == SDLK_TAB) {
-        if (mod & KMOD_CTRL) {
-            if (mod & KMOD_SHIFT)
-                selector_rescan(sel);
-            else
-                selector_toggle_order(sel);
-        } else {
-            selector_toggle(sel);
-        }
+        selector_toggle(sel);
+        return true;
+
+    } else if (key == SDLK_LCTRL) {
+        selector_rescan(sel);
+        return true;
+
+    } else if (key == SDLK_LALT) {
+        selector_toggle_order(sel);
         return true;
 
     } else if ((key == SDLK_EQUALS) || (key == SDLK_PLUS)) {
