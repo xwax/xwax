@@ -1425,7 +1425,7 @@ static bool handle_key(SDLKey key, SDLMod mod)
         selector_rescan(sel);
         return true;
 
-    } else if (key == SDLK_LALT) {
+    } else if (key == SDLK_LSHIFT) {
         selector_toggle_order(sel);
         return true;
 
