@@ -1347,12 +1347,7 @@ static void draw_library(SDL_Surface *surface, const struct rect *rect,
     selector_set_lines(sel, rows);
 
     split(rlists, columns(0, 4, SPACER), &rcrates, &rrecords);
-    if (rcrates.w > LIBRARY_MIN_WIDTH) {
-        draw_index(surface, rrecords, sel);
-        draw_crates(surface, rcrates, sel);
-    } else {
-        draw_index(surface, *rect, sel);
-    }
+    draw_index(surface, *rect, sel);
 }
 
 /*
