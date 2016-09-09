@@ -79,8 +79,8 @@
 /* Dimensions in our own screen units */
 
 #define BORDER 12
-#define SPACER 8
-#define HALF_SPACER 4
+#define SPACER 4
+#define HALF_SPACER 2
 
 #define CURSOR_WIDTH 4
 
