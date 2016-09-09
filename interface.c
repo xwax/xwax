@@ -1345,9 +1345,7 @@ static void draw_library(SDL_Surface *surface, const struct rect *rect,
 
     draw_search(surface, &rsearch, sel);
     selector_set_lines(sel, rows);
-
-    split(rlists, columns(0, 4, SPACER), &rcrates, &rrecords);
-    draw_index(surface, *rect, sel);
+    draw_index(surface, rlists, sel);
 }
 
 /*
