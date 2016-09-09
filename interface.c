@@ -47,8 +47,8 @@
 
 /* Font definitions */
 
-#define FONT "DejaVuSans.ttf"
-#define FONT_SIZE 10
+#define FONT "DejaVuSans-Bold.ttf"
+#define FONT_SIZE 12
 #define FONT_SPACE 15
 
 #define EM_FONT "DejaVuSans-Oblique.ttf"
@@ -57,15 +57,15 @@
 #define BIG_FONT_SIZE 14
 #define BIG_FONT_SPACE 19
 
-#define CLOCK_FONT FONT
+#define CLOCK_FONT "DejaVuSans.ttf"
 #define CLOCK_FONT_SIZE 32
 
 #define DECI_FONT FONT
 #define DECI_FONT_SIZE 20
 
-#define DETAIL_FONT "DejaVuSansMono-Bold.ttf"
-#define DETAIL_FONT_SIZE 9
-#define DETAIL_FONT_SPACE 12
+#define DETAIL_FONT "DejaVuSansMono.ttf"
+#define DETAIL_FONT_SIZE 12
+#define DETAIL_FONT_SPACE 15
 
 /* Screen size (pixels) */
 
@@ -79,8 +79,8 @@
 /* Dimensions in our own screen units */
 
 #define BORDER 12
-#define SPACER 8
-#define HALF_SPACER 4
+#define SPACER 4
+#define HALF_SPACER 2
 
 #define CURSOR_WIDTH 4
 
@@ -1183,11 +1183,11 @@ static void draw_listbox(const struct listbox *lb, SDL_Surface *surface,
                          const struct rect rect,
                          const void *context, draw_row_t draw)
 {
-    struct rect left, remain;
+    struct rect scrollbar, remain;
     unsigned int row;
 
-    split(rect, from_left(SCROLLBAR_SIZE, SPACER), &left, &remain);
-    draw_scroll_bar(surface, &left, lb);
+    split(rect, from_right(SCROLLBAR_SIZE, SPACER), &remain, &scrollbar);
+    draw_scroll_bar(surface, &scrollbar, lb);
 
     row = 0;
 
@@ -1345,14 +1345,7 @@ static void draw_library(SDL_Surface *surface, const struct rect *rect,
 
     draw_search(surface, &rsearch, sel);
     selector_set_lines(sel, rows);
-
-    split(rlists, columns(0, 4, SPACER), &rcrates, &rrecords);
-    if (rcrates.w > LIBRARY_MIN_WIDTH) {
-        draw_index(surface, rrecords, sel);
-        draw_crates(surface, rcrates, sel);
-    } else {
-        draw_index(surface, *rect, sel);
-    }
+    draw_index(surface, rlists, sel);
 }
 
 /*
@@ -1418,14 +1411,15 @@ static bool handle_key(SDLKey key, SDLMod mod)
         return true;
 
     } else if (key == SDLK_TAB) {
-        if (mod & KMOD_CTRL) {
-            if (mod & KMOD_SHIFT)
-                selector_rescan(sel);
-            else
-                selector_toggle_order(sel);
-        } else {
-            selector_toggle(sel);
-        }
+        selector_toggle(sel);
+        return true;
+
+    } else if (key == SDLK_LCTRL) {
+        selector_rescan(sel);
+        return true;
+
+    } else if (key == SDLK_LSHIFT) {
+        selector_toggle_order(sel);
         return true;
 
     } else if ((key == SDLK_EQUALS) || (key == SDLK_PLUS)) {

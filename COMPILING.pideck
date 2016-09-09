@@ -1,0 +1,10 @@
+how to compile and test xwax GUI in a test system
+
+
+ln -s scan xwax-scan
+ln -s import xwax-import
+
+./configure --prefix /usr --enable-alsa --enable-jack
+make clean; make EXECDIR=.
+./xwax -a plughw:1,0 -g 800x430 --no-decor -l ~/Music
+
