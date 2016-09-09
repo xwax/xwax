@@ -48,7 +48,7 @@
 /* Font definitions */
 
 #define FONT "DejaVuSans.ttf"
-#define FONT_SIZE 10
+#define FONT_SIZE 12
 #define FONT_SPACE 15
 
 #define EM_FONT "DejaVuSans-Oblique.ttf"
@@ -64,8 +64,8 @@
 #define DECI_FONT_SIZE 20
 
 #define DETAIL_FONT "DejaVuSansMono-Bold.ttf"
-#define DETAIL_FONT_SIZE 9
-#define DETAIL_FONT_SPACE 12
+#define DETAIL_FONT_SIZE 12
+#define DETAIL_FONT_SPACE 15
 
 /* Screen size (pixels) */
 
