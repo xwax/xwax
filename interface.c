@@ -47,7 +47,7 @@
 
 /* Font definitions */
 
-#define FONT "DejaVuSans.ttf"
+#define FONT "DejaVuSans-Bold.ttf"
 #define FONT_SIZE 12
 #define FONT_SPACE 15
 
@@ -57,13 +57,13 @@
 #define BIG_FONT_SIZE 14
 #define BIG_FONT_SPACE 19
 
-#define CLOCK_FONT FONT
+#define CLOCK_FONT "DejaVuSans.ttf"
 #define CLOCK_FONT_SIZE 32
 
 #define DECI_FONT FONT
 #define DECI_FONT_SIZE 20
 
-#define DETAIL_FONT "DejaVuSansMono-Bold.ttf"
+#define DETAIL_FONT "DejaVuSansMono.ttf"
 #define DETAIL_FONT_SIZE 12
 #define DETAIL_FONT_SPACE 15
 
