@@ -1183,11 +1183,11 @@ static void draw_listbox(const struct listbox *lb, SDL_Surface *surface,
                          const struct rect rect,
                          const void *context, draw_row_t draw)
 {
-    struct rect left, remain;
+    struct rect scrollbar, remain;
     unsigned int row;
 
-    split(rect, from_left(SCROLLBAR_SIZE, SPACER), &left, &remain);
-    draw_scroll_bar(surface, &left, lb);
+    split(rect, from_right(SCROLLBAR_SIZE, SPACER), &remain, &scrollbar);
+    draw_scroll_bar(surface, &scrollbar, lb);
 
     row = 0;
 
