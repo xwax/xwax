@@ -75,8 +75,8 @@ static inline double cubic_interpolate(signed short y[4], double mu)
 
 double dither(void)
 {
-    short bit;
-    static short x = 0xbabe;
+    unsigned short bit;
+    static unsigned short x = 0xbabe;
 
     /* Use a 16-bit maximal-length LFSR as our random number.
      * This is faster than rand() */

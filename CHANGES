@@ -1,3 +1,5 @@
+* Fix a bug that prevented dithering from being used
+
 v1.6 (2016-08-13)
 -----------------
 
