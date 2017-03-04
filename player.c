@@ -75,16 +75,23 @@ static inline double cubic_interpolate(signed short y[4], double mu)
 
 double dither(void)
 {
-    unsigned short bit;
-    static unsigned short x = 0xbabe;
+    unsigned int bit, v;
+    static unsigned int x = 0xbeefface;
 
-    /* Use a 16-bit maximal-length LFSR as our random number.
-     * This is faster than rand() */
+    /* Maximum length LFSR sequence with 32-bit state */
 
-    bit = (x ^ (x >> 2) ^ (x >> 3) ^ (x >> 5)) & 1;
-    x = x >> 1 | (bit << 15);
+    bit = (x ^ (x >> 1) ^ (x >> 21) ^ (x >> 31)) & 1;
+    x = x << 1 | bit;
 
-    return (double)x / 65536 - 0.5; /* not quite whole range */
+    /* We can adjust the balance between randomness and performance
+     * by our chosen bit permutation; here we use a 12 bit subset
+     * of the state */
+
+    v = (x & 0x0000000f)
+        | ((x & 0x000f0000) >> 12)
+        | ((x & 0x0f000000) >> 16);
+
+    return (double)v / 4096 - 0.5; /* not quite whole range */
 }
 
 /*
