@@ -53,8 +53,7 @@ void index_init(struct index *ls)
 
 void index_clear(struct index *ls)
 {
-    if (ls->record != NULL)
-        free(ls->record);
+    free(ls->record); /* may be NULL */
 }
 
 /*
