@@ -19,6 +19,7 @@
 
 #include <assert.h>
 #include <errno.h>
+#include <iconv.h>
 #include <math.h>
 #include <pthread.h>
 #include <stdbool.h>
@@ -169,6 +170,7 @@ static int width = DEFAULT_WIDTH, height = DEFAULT_HEIGHT,
     meter_scale = DEFAULT_METER_SCALE;
 static Uint32 video_flags = SDL_RESIZABLE;
 static float scale = DEFAULT_SCALE;
+static iconv_t utf;
 static pthread_t ph;
 static struct selector selector;
 static struct observer on_status, on_selector;
@@ -387,14 +389,17 @@ static Uint32 palette(SDL_Surface *sf, SDL_Color *col)
 }
 
 /*
- * Draw text at the given coordinates
+ * Draw text
+ *
+ * Render the string "buf" text inside the given "rect".  If "locale"
+ * is set then a conversion from the system locale is done.
  *
  * Return: width of text drawn
  */
 
-static int draw_text(SDL_Surface *sf, const struct rect *rect,
-                     const char *buf, TTF_Font *font,
-                     SDL_Color fg, SDL_Color bg)
+static int do_draw_text(SDL_Surface *sf, const struct rect *rect,
+                        const char *buf, TTF_Font *font,
+                        SDL_Color fg, SDL_Color bg, bool locale)
 {
     SDL_Surface *rendered;
     SDL_Rect dst, src, fill;
@@ -408,7 +413,27 @@ static int draw_text(SDL_Surface *sf, const struct rect *rect,
         src.h = 0;
 
     } else {
-        rendered = TTF_RenderText_Shaded(font, buf, fg, bg);
+        if (!locale) {
+            rendered = TTF_RenderText_Shaded(font, buf, fg, bg);
+        } else {
+            char ubuf[256], /* fixed buffer is reasonable for rendering */
+                *in, *out;
+            size_t len, fill;
+
+            out = ubuf;
+            fill = sizeof(ubuf) - 1; /* always leave space for \0 */
+
+            if (iconv(utf, NULL, NULL, &out, &fill) == -1)
+                abort();
+
+            in = strdupa(buf);
+            len = strlen(in);
+
+            (void)iconv(utf, &in, &len, &out, &fill);
+            *out = '\0';
+
+            rendered = TTF_RenderUTF8_Shaded(font, ubuf, fg, bg);
+        }
 
         src.x = 0;
         src.y = 0;
@@ -441,6 +466,20 @@ static int draw_text(SDL_Surface *sf, const struct rect *rect,
     }
 
     return src.w;
+}
+
+static int draw_text(SDL_Surface *sf, const struct rect *rect,
+                     const char *buf, TTF_Font *font,
+                     SDL_Color fg, SDL_Color bg)
+{
+    return do_draw_text(sf, rect, buf, font, fg, bg, false);
+}
+
+static int draw_text_in_locale(SDL_Surface *sf, const struct rect *rect,
+                               const char *buf, TTF_Font *font,
+                               SDL_Color fg, SDL_Color bg)
+{
+    return do_draw_text(sf, rect, buf, font, fg, bg, true);
 }
 
 /*
@@ -614,8 +653,8 @@ static void draw_record(SDL_Surface *surface, const struct rect *rect,
     struct rect artist, title, left, right;
 
     split(*rect, from_top(BIG_FONT_SPACE, 0), &artist, &title);
-    draw_text(surface, &artist, record->artist,
-              big_font, text_col, background_col);
+    draw_text_in_locale(surface, &artist, record->artist,
+                        big_font, text_col, background_col);
 
     /* Layout changes slightly if BPM is known */
 
@@ -627,7 +666,8 @@ static void draw_record(SDL_Surface *surface, const struct rect *rect,
         draw_rect(surface, &left, background_col);
     }
 
-    draw_text(surface, &title, record->title, font, text_col, background_col);
+    draw_text_in_locale(surface, &title, record->title,
+                        font, text_col, background_col);
 }
 
 /*
@@ -1093,7 +1133,7 @@ static void draw_status(SDL_Surface *sf, const struct rect *rect)
         bg = background_col;
     }
 
-    draw_text(sf, rect, status(), detail_font, fg, bg);
+    draw_text_in_locale(sf, rect, status(), detail_font, fg, bg);
 }
 
 /*
@@ -1229,7 +1269,8 @@ static void draw_crate_row(const void *context,
         col = text_col;
 
     if (!selected) {
-        draw_text(surface, &rect, crate->name, font, col, background_col);
+        draw_text_in_locale(surface, &rect, crate->name,
+                            font, col, background_col);
         return;
     }
 
@@ -1258,7 +1299,7 @@ static void draw_crate_row(const void *context,
                    dim(alert_col, 2), selected_col);
     }
 
-    draw_text(surface, &left, crate->name, font, col, selected_col);
+    draw_text_in_locale(surface, &left, crate->name, font, col, selected_col);
 }
 
 /*
@@ -1299,11 +1340,11 @@ static void draw_record_row(const void *context,
     draw_rect(surface, &left, col);
 
     split(right, from_left(width, 0), &left, &right);
-    draw_text(surface, &left, record->artist, font, text_col, col);
+    draw_text_in_locale(surface, &left, record->artist, font, text_col, col);
 
     split(right, from_left(SPACER, 0), &left, &right);
     draw_rect(surface, &left, col);
-    draw_text(surface, &right, record->title, font, text_col, col);
+    draw_text_in_locale(surface, &right, record->title, font, text_col, col);
 }
 
 /*
@@ -1834,6 +1875,12 @@ int interface_start(struct library *lib, const char *geo, bool decor)
     if (load_fonts() == -1)
         return -1;
 
+    utf = iconv_open("UTF8", "");
+    if (utf == (iconv_t)-1) {
+        perror("iconv_open");
+        return -1;
+    }
+
     fprintf(stderr, "Launching interface thread...\n");
 
     if (pthread_create(&ph, NULL, launch, NULL)) {
@@ -1865,6 +1912,9 @@ void interface_stop(void)
     ignore(&on_selector);
     selector_clear(&selector);
     clear_fonts();
+
+    if (iconv_close(utf) == -1)
+        abort();
 
     TTF_Quit();
     SDL_Quit();

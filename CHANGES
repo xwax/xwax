@@ -1,4 +1,5 @@
 * Fix a bug that prevented dithering from being used
+* Honour the system locale; allow the full character set in track names
 
 v1.6 (2016-08-13)
 -----------------
