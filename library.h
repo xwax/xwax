@@ -56,6 +56,9 @@ struct library {
     size_t crates;
 };
 
+int library_global_init(void);
+void library_global_clear(void);
+
 void listing_init(struct listing *l);
 void listing_clear(struct listing *l);
 struct record* listing_add(struct listing *l, struct record *r);

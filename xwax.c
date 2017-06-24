@@ -211,6 +211,8 @@ int main(int argc, char *argv[])
 
     if (thread_global_init() == -1)
         return -1;
+    if (library_global_init() == -1)
+        return -1;
 
     if (rig_init() == -1)
         return -1;
@@ -640,6 +642,7 @@ out_rt:
     library_clear(&library);
     rt_clear(&rt);
     rig_clear();
+    library_global_clear();
     thread_global_clear();
 
     if (rc == EXIT_SUCCESS)

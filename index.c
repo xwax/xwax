@@ -170,10 +170,19 @@ static int record_cmp_bpm(const struct record *a, const struct record *b)
 
 static bool record_match_word(struct record *re, const char *match)
 {
-    if (strcasestr(re->artist, match) != NULL)
-        return true;
-    if (strcasestr(re->title, match) != NULL)
-        return true;
+    /* Some records provide a dedicated string for matching against,
+     * in the same locale as "match" */
+
+    if (re->match) {
+        if (strcasestr(re->match, match) != NULL)
+            return true;
+    } else {
+        if (strcasestr(re->artist, match) != NULL)
+            return true;
+        if (strcasestr(re->title, match) != NULL)
+            return true;
+    }
+
     return false;
 }
 

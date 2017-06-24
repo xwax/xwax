@@ -20,6 +20,7 @@
 #define _GNU_SOURCE /* strdupa() */
 #include <assert.h>
 #include <errno.h>
+#include <iconv.h>
 #include <libgen.h> /*  basename() */
 #include <math.h> /* isfinite() */
 #include <stdbool.h>
@@ -33,6 +34,31 @@
 #define CRATE_ALL "All records"
 
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof(*x))
+
+/* The locale used for searches */
+
+static iconv_t ascii = (iconv_t)-1;
+
+int library_global_init(void)
+{
+    assert(ascii == (iconv_t)-1);
+
+    ascii = iconv_open("ASCII//TRANSLIT", "");
+    if (ascii == (iconv_t)-1) {
+        perror("iconv_open");
+        return -1;
+    }
+
+    return 0;
+}
+
+void library_global_clear(void)
+{
+    assert(ascii != (iconv_t)-1);
+
+    if (iconv_close(ascii) == -1)
+        abort();
+}
 
 void listing_init(struct listing *l)
 {
@@ -359,6 +385,7 @@ int library_init(struct library *li)
 static void record_clear(struct record *re)
 {
     free(re->pathname);
+    free(re->match); /* may be NULL */
 }
 
 /*
@@ -445,6 +472,57 @@ static size_t split(char *s, char *x[], size_t len)
 }
 
 /*
+ * Construct a string for matching against
+ *
+ * Only construct the string if the given "artist" and "title" contain
+ * characters which require converting to the ASCII locale which is
+ * used for searches.
+ *
+ * Return: string with responsibility, or NULL if not required
+ */
+
+static char* matchable(const char *artist, const char *title)
+{
+    char *buf, *in, *out;
+    size_t len, fill, nonrev;
+
+    /*
+     * Append all the strings of interest into a single buffer
+     */
+
+    len = strlen(artist) + strlen(title) + 1;
+
+    buf = alloca(len + 1); /* include \0 terminator */
+    assert(buf);
+
+    sprintf(buf, "%s %s", artist, title);
+
+    /*
+     * Perform iconv
+     *
+     * We know ASCII is the shorter encoding, so we can use the input
+     * buffer as also the output buffer
+     */
+
+    out = buf;
+    fill = len; /* does not include \0 */
+
+    assert(ascii != (iconv_t)-1);
+    if (iconv(ascii, NULL, NULL, &out, &fill) == -1)
+        abort();
+
+    in = buf;
+
+    nonrev = iconv(ascii, &in, &len, &out, &fill);
+    *out = '\0';
+
+    if (nonrev == 0)
+        return NULL;
+
+    return strdup(buf);
+}
+
+/*
  * Convert a line from the scan script to a record structure in memory
  *
  * Return: pointer to alloc'd record, or NULL on error
@@ -488,6 +566,11 @@ struct record* get_record(char *line)
         fprintf(stderr, "Malformed record '%s'\n", line);
         goto bad;
     }
+
+    /* Decide if this record needs a character-equivalent in the
+     * locale used for searching */
+
+    x->match = matchable(x->artist, x->title);
 
     return x;
 
