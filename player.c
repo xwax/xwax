@@ -73,7 +73,7 @@ static inline double cubic_interpolate(signed short y[4], double mu)
  * Return: Random dither, between -0.5 and 0.5
  */
 
-double dither(void)
+static double dither(void)
 {
     unsigned int bit, v;
     static unsigned int x = 0xbeefface;
