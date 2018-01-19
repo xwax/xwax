@@ -1,3 +1,6 @@
+v1.7 (2018-01-19)
+-----------------
+
 * Fix a bug that prevented dithering from being used
 * Honour the system locale; allow the full character set in track names
 * When searching, match characters in other locales
