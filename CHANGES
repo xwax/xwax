@@ -5,6 +5,8 @@ v1.7 (2018-01-19)
 * Honour the system locale; allow the full character set in track names
 * When searching, match characters in other locales
 
+Acknowledgements: Stefan Berg-Johansen
+
 v1.6 (2016-08-13)
 -----------------
 
