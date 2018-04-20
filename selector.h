@@ -68,6 +68,7 @@ void selector_toggle_order(struct selector *sel);
 void selector_rescan(struct selector *sel);
 
 void selector_search_expand(struct selector *sel);
+void selector_search_expand_by_word(struct selector *sel);
 void selector_search_refine(struct selector *sel, char key);
 
 #endif

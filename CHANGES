@@ -1,3 +1,10 @@
+Unreleased
+----------
+
+* Pressing CTRL and w clears the previous word in the search input.
+
+Acknowledgements: Louis Pilfold
+
 v1.7 (2018-01-19)
 -----------------
 
