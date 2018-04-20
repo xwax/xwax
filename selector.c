@@ -441,6 +441,26 @@ void selector_search_expand(struct selector *sel)
 }
 
 /*
+ * Expand the search by a single space delimited word. Do not disrupt
+ * the running process on memory allocation failure, leave the view
+ * index incomplete
+ */
+
+void selector_search_expand_by_word(struct selector *sel)
+{
+    if (sel->search_len == 0)
+        return;
+
+    sel->search[--sel->search_len] = '\0';
+
+    while (!(sel->search_len == 0 || sel->search[sel->search_len - 1] == ' '))
+        sel->search[--sel->search_len] = '\0';
+
+    match_compile(&sel->match, sel->search);
+    do_content_change(sel);
+}
+
+/*
  * Refine the search. Do not distrupt the running process on memory
  * allocation failure, leave the view index incomplete
  */

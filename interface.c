@@ -1406,7 +1406,11 @@ static bool handle_key(SDLKey key, SDLMod mod)
 {
     struct selector *sel = &selector;
 
-    if (key >= SDLK_a && key <= SDLK_z) {
+    if (mod & KMOD_CTRL && key == SDLK_w) {
+        selector_search_expand_by_word(sel);
+        return true;
+
+    } else if (key >= SDLK_a && key <= SDLK_z) {
         selector_search_refine(sel, (key - SDLK_a) + 'a');
         return true;
 
@@ -1898,7 +1902,7 @@ int interface_start(struct library *lib, const char *geo, bool decor)
 void interface_stop(void)
 {
     size_t n;
- 
+
     push_event(EVENT_QUIT);
 
     if (pthread_join(ph, NULL) != 0)
