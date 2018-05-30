@@ -29,6 +29,7 @@
 #include "player.h"
 #include "track.h"
 #include "timecoder.h"
+#include "mpu6050control.h"
 
 /* Bend playback speed to compensate for the difference between our
  * current position and that given by the timecode */
@@ -197,7 +198,7 @@ void player_set_timecoder(struct player *pl, struct timecoder *tc)
  */
 
 void player_init(struct player *pl, unsigned int sample_rate,
-                 struct track *track, struct timecoder *tc)
+                 struct track *track, struct timecoder *tc, struct mpu6050control *mp)
 {
     assert(track != NULL);
     assert(sample_rate != 0);
@@ -207,12 +208,14 @@ void player_init(struct player *pl, unsigned int sample_rate,
     pl->sample_dt = 1.0 / sample_rate;
     pl->track = track;
     player_set_timecoder(pl, tc);
+	pl->mpu6050 = mp;
 
     pl->position = 0.0;
     pl->offset = 0.0;
     pl->target_position = TARGET_UNKNOWN;
     pl->last_difference = 0.0;
 
+	
     pl->pitch = 0.0;
     pl->sync_pitch = 1.0;
     pl->volume = 0.0;
@@ -251,6 +254,7 @@ bool player_toggle_timecode_control(struct player *pl)
     pl->timecode_control = !pl->timecode_control;
     if (pl->timecode_control)
         pl->recalibrate = true;
+	else     pl->pitch = 1.0;
     return pl->timecode_control;
 }
 
@@ -370,6 +374,14 @@ static int sync_to_timecode(struct player *pl)
 
     return 0;
 }
+static int sync_to_mpu6050(struct player *pl)
+{
+	pl->target_position = TARGET_UNKNOWN;
+    double pitch = mpu6050control_get_pitch(pl->mpu6050);
+//	fprintf(stderr, "yyy %lf\n", pitch);
+	pl->pitch = pitch;
+    return 0;
+}
 
 /*
  * Synchronise to the position given by the timecoder without
@@ -441,8 +453,9 @@ void player_collect(struct player *pl, signed short *pcm, unsigned samples)
     dt = pl->sample_dt * samples;
 
     if (pl->timecode_control) {
-        if (sync_to_timecode(pl) == -1)
-            pl->timecode_control = false;
+		sync_to_mpu6050(pl);
+/*        if (sync_to_timecode(pl) == -1)
+            pl->timecode_control = false;*/
     }
 
     if (pl->target_position != TARGET_UNKNOWN) {
@@ -468,6 +481,8 @@ void player_collect(struct player *pl, signed short *pcm, unsigned samples)
     /* Sync pitch is applied post-filtering */
 
     pitch = pl->pitch * pl->sync_pitch;
+	
+//	fprintf(stderr, "%lf", pitch);
 
     /* We must return audio immediately to stay realtime. A spin
      * lock protects us from changes to the audio source */

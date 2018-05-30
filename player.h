@@ -46,12 +46,13 @@ struct player {
     /* Timecode control */
 
     struct timecoder *timecoder;
+	struct mpu6050control *mpu6050;
     bool timecode_control,
         recalibrate; /* re-sync offset at next opportunity */
 };
 
 void player_init(struct player *pl, unsigned int sample_rate,
-                 struct track *track, struct timecoder *timecoder);
+                 struct track *track, struct timecoder *timecoder, struct mpu6050control *mpu6050);
 void player_clear(struct player *pl);
 
 void player_set_timecoder(struct player *pl, struct timecoder *tc);
