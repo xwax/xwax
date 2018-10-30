@@ -22,6 +22,7 @@
 #include <errno.h>
 #include <iconv.h>
 #include <libgen.h> /*  basename() */
+#include <locale.h>
 #include <math.h> /* isfinite() */
 #include <stdbool.h>
 #include <stdio.h>
@@ -436,7 +437,9 @@ static double parse_bpm(const char *s)
         return 0.0;
 
     errno = 0;
+    setlocale(LC_NUMERIC, "C");
     bpm = strtod(s, &endptr);
+    setlocale(LC_NUMERIC, "");
     if (errno == ERANGE || *endptr != '\0' || !isfinite(bpm) || bpm <= 0.0)
         return INFINITY;
 

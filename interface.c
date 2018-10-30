@@ -20,6 +20,7 @@
 #include <assert.h>
 #include <errno.h>
 #include <iconv.h>
+#include <locale.h>
 #include <math.h>
 #include <pthread.h>
 #include <stdbool.h>
@@ -1803,7 +1804,9 @@ static int parse_geometry(const char *s)
         return -1;
     }
 
+    setlocale(LC_NUMERIC, "C");
     n = sscanf(s, "/%f%n", &scale, &len);
+    setlocale(LC_NUMERIC, "");
     switch (n) {
     case EOF:
         return 0;
