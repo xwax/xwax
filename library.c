@@ -437,7 +437,10 @@ static double parse_bpm(const char *s)
         return 0.0;
 
     errno = 0;
-    setlocale(LC_NUMERIC, "C");
+    setlocale(LC_NUMERIC, "C"); /* Use '.' as default decimal delimiter,
+                                 * so we always expect '100.0' (default in
+                                 * C locale) and not e.g. '100,0' (in de_DE).
+                                 */
     bpm = strtod(s, &endptr);
     setlocale(LC_NUMERIC, "");
     if (errno == ERANGE || *endptr != '\0' || !isfinite(bpm) || bpm <= 0.0)

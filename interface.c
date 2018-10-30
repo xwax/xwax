@@ -1804,7 +1804,10 @@ static int parse_geometry(const char *s)
         return -1;
     }
 
-    setlocale(LC_NUMERIC, "C");
+    setlocale(LC_NUMERIC, "C"); /* Use '.' as default decimal delimiter,
+                                 * so we always expect '1.5' (default in
+                                 * C locale) and not e.g. '1,5' (in de_DE).
+                                 */
     n = sscanf(s, "/%f%n", &scale, &len);
     setlocale(LC_NUMERIC, "");
     switch (n) {
