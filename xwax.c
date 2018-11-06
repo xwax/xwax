@@ -209,6 +209,14 @@ int main(int argc, char *argv[])
         return -1;
     }
 
+    /* Explicit formatting for numbers; parsing and printing.  Match
+     * the user's expectations, and the documentation */
+
+    if (setlocale(LC_NUMERIC, "POSIX") == NULL) {
+        fprintf(stderr, "Could not set numeric encoding\n");
+        return -1;
+    }
+
     if (thread_global_init() == -1)
         return -1;
     if (library_global_init() == -1)

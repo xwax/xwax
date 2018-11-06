@@ -1,3 +1,5 @@
+* Fix a bug where decimal numbers are parsed in an unexpected way
+
 v1.7 (2018-01-19)
 -----------------
 
