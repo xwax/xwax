@@ -228,25 +228,25 @@ xwax \-l ~/music \-d /dev/dsp \-d /dev/dsp1
 As above, but using ALSA devices:
 .sp
 .RS
-xwax \-l ~/music \-d hw:0 \-d hw:1
+xwax \-l ~/music \-a hw:0 \-a hw:1
 .RE
 .P
 2-deck setup using a different timecode on each deck:
 .sp
 .RS
-xwax \-l ~/music \-t serato_2a \-d hw:0 \-t mixvibes_v2 \-d hw:1
+xwax \-l ~/music \-t serato_2a \-a hw:0 \-t mixvibes_v2 \-a hw:1
 .RE
 .P
 As above, but with the second deck at 45 RPM:
 .sp
 .RS
-xwax \-l ~/music \-t serato_2a \-d hw:0 \-t mixvibes_v2 \-45 \-d hw:1
+xwax \-l ~/music \-t serato_2a \-a hw:0 \-t mixvibes_v2 \-45 \-a hw:1
 .RE
 .P
 Default to the same timecode, but allow switching at runtime:
 .sp
 .RS
-xwax \-l ~/music \-t serato_2a \-t mixvibes_v2 \-d hw:0 \-d hw:1
+xwax \-l ~/music \-t serato_2a \-t mixvibes_v2 \-a hw:0 \-a hw:1
 .RE
 .P
 3-deck setup with the third deck at a higher sample rate:
