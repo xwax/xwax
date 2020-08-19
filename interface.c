@@ -1751,12 +1751,12 @@ static void* launch(void *p)
  * Parse and action the given geometry string
  *
  * Geometry string includes size, position and scale. The format is
- * "[<n>x<n>][+<n>+<n>][@<f>]". Some examples:
+ * "[<n>x<n>][+<n>+<n>][/<f>]". Some examples:
  *
  *   960x720
  *   +10+10
  *   960x720+10+10
- *   @1.6
+ *   /1.6
  *   1920x1200@1.6
  *
  * Return: -1 if string could not be actioned, otherwise 0
