@@ -34,4 +34,6 @@
 #define dassert(x)
 #endif
 
+#define not_implemented() abort()
+
 #endif

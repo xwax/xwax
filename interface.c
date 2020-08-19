@@ -33,6 +33,7 @@
 #include <SDL.h>
 #include <SDL_ttf.h>
 
+#include "debug.h"
 #include "interface.h"
 #include "layout.h"
 #include "player.h"
@@ -1825,84 +1826,12 @@ static int parse_geometry(const char *s)
 }
 
 /*
- * Start the SDL interface
- *
- * FIXME: There are multiple points where resources are leaked on
- * error
+ * Cleanup resources associated with this user interface
  */
 
-int interface_start(struct library *lib, const char *geo, bool decor)
+static void cleanup()
 {
     size_t n;
-
-    if (parse_geometry(geo) == -1) {
-        fprintf(stderr, "Window geometry ('%s') is not valid.\n", geo);
-        return -1;
-    }
-
-    if (!decor)
-        video_flags |= SDL_NOFRAME;
-
-    for (n = 0; n < ndeck; n++) {
-        if (timecoder_monitor_init(&deck[n].timecoder, zoom(SCOPE_SIZE)) == -1)
-            return -1;
-    }
-
-    if (init_spinner(zoom(SPINNER_SIZE)) == -1)
-        return -1;
-
-    selector_init(&selector, lib);
-    watch(&on_status, &status_changed, defer_status_redraw);
-    watch(&on_selector, &selector.changed, defer_selector_redraw);
-    status_set(STATUS_VERBOSE, banner);
-
-    fprintf(stderr, "Initialising SDL...\n");
-
-    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) == -1) {
-        fprintf(stderr, "%s\n", SDL_GetError());
-        return -1;
-    }
-    SDL_WM_SetCaption(banner, NULL);
-    SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
-
-    /* Initialise the fonts */
-
-    if (TTF_Init() == -1) {
-        fprintf(stderr, "%s\n", TTF_GetError());
-        return -1;
-    }
-
-    if (load_fonts() == -1)
-        return -1;
-
-    utf = iconv_open("UTF8", "");
-    if (utf == (iconv_t)-1) {
-        perror("iconv_open");
-        return -1;
-    }
-
-    fprintf(stderr, "Launching interface thread...\n");
-
-    if (pthread_create(&ph, NULL, launch, NULL)) {
-        perror("pthread_create");
-        return -1;
-    }
-
-    return 0;
-}
-
-/*
- * Synchronise with the SDL interface and exit
- */
-
-void interface_stop(void)
-{
-    size_t n;
- 
-    push_event(EVENT_QUIT);
-
-    if (pthread_join(ph, NULL) != 0)
-        abort();
 
     for (n = 0; n < ndeck; n++)
         timecoder_monitor_clear(&deck[n].timecoder);
@@ -1918,4 +1847,114 @@ void interface_stop(void)
 
     TTF_Quit();
     SDL_Quit();
+}
+
+/*
+ * Start the SDL interface
+ */
+
+int interface_start(struct library *lib, const char *geo, bool decor)
+{
+    size_t n;
+
+    if (parse_geometry(geo) == -1) {
+        fprintf(stderr, "Window geometry ('%s') is not valid.\n", geo);
+        return -1;
+    }
+
+    if (!decor)
+        video_flags |= SDL_NOFRAME;
+
+    /*
+     * Start allocating resources
+     *
+     * Many exit paths here; get the ones most likely to fail (user error)
+     * out of the way first.
+     */
+
+    /*
+     * Fonts
+     */
+
+    fprintf(stderr, "Initialising fonts...\n");
+
+    if (TTF_Init() == -1) {
+        fprintf(stderr, "%s\n", TTF_GetError());
+        return -1;
+    }
+
+    if (load_fonts() == -1) {
+        goto fail_fonts;
+    }
+
+    /*
+     * SDL
+     */
+
+    fprintf(stderr, "Initialising SDL...\n");
+
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) == -1) {
+        fprintf(stderr, "%s\n", SDL_GetError());
+        goto fail_fonts;
+    }
+
+    SDL_WM_SetCaption(banner, NULL);
+    SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
+
+    /*
+     * Character translations; internally UTF8 is used
+     */
+
+    utf = iconv_open("UTF8", "");
+    if (utf == (iconv_t)-1) {
+        perror("iconv_open");
+        goto fail_sdl;
+    }
+
+    /*
+     * Timecode monitors
+     */
+
+    if (init_spinner(zoom(SPINNER_SIZE)) == -1)
+        goto fail_sdl;
+
+    for (n = 0; n < ndeck; n++) {
+        if (timecoder_monitor_init(&deck[n].timecoder, zoom(SCOPE_SIZE)) == -1)
+            not_implemented();
+    }
+
+    selector_init(&selector, lib);
+    watch(&on_status, &status_changed, defer_status_redraw);
+    watch(&on_selector, &selector.changed, defer_selector_redraw);
+    status_set(STATUS_VERBOSE, banner);
+
+    fprintf(stderr, "Launching interface thread...\n");
+
+    if (pthread_create(&ph, NULL, launch, NULL)) {
+        perror("pthread_create");
+        cleanup();
+        return -1;
+    }
+
+    return 0;
+
+fail_sdl:
+    SDL_Quit();
+fail_fonts:
+    TTF_Quit();
+    return -1;
+}
+
+/*
+ * Synchronise with the SDL interface and exit
+ */
+
+void interface_stop(void)
+{
+    push_event(EVENT_QUIT);
+
+    if (pthread_join(ph, NULL) != 0)
+        abort();
+
+    cleanup();
 }
