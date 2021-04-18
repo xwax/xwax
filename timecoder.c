@@ -405,7 +405,7 @@ static void update_monitor(struct timecoder *tc, signed int x, signed int y)
 
     assert(ref > 0);
 
-    /* ref_level is half the prevision of signal level */
+    /* ref_level is half the precision of signal level */
     px = size / 2 + (long long)x * size / ref / 8;
     py = size / 2 + (long long)y * size / ref / 8;
 
