@@ -566,7 +566,7 @@ static struct timecode_def* next_definition(struct timecode_def *def)
     do {
         def++;
 
-        if (def > timecodes + ARRAY_SIZE(timecodes))
+        if (def >= timecodes + ARRAY_SIZE(timecodes))
             def = timecodes;
 
     } while (!def->lookup);
