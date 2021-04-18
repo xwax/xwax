@@ -22,12 +22,19 @@
 
 #include <stdio.h>
 
-#ifdef DEBUG
-#define debug(...) { \
+/*
+ * Enable a specific debug message by prefixing with an underscore,
+ * otherwise -DDEBUG to enable all within that particular compile.
+ */
+
+#define _debug(...) { \
     fprintf(stderr, "%s:%d: ", __FILE__, __LINE__); \
     fprintf(stderr, __VA_ARGS__); \
     fputc('\n', stderr); \
 }
+
+#ifdef DEBUG
+#define debug(...) _debug(__VA_ARGS__)
 #else
 #define debug(...)
 #endif
