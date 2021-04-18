@@ -242,30 +242,26 @@ static int build_lookup(struct timecode_def *def)
 /*
  * Find a timecode definition by name
  *
- * Return: pointer to timecode definition, or NULL if not found
+ * Return: pointer to timecode definition, or NULL if not available
  */
 
 struct timecode_def* timecoder_find_definition(const char *name)
 {
-    struct timecode_def *def, *end;
+    unsigned int n;
 
-    def = &timecodes[0];
-    end = def + ARRAY_SIZE(timecodes);
+    for (n = 0; n < ARRAY_SIZE(timecodes); n++) {
+        struct timecode_def *def = &timecodes[n];
 
-    for (;;) {
-        if (!strcmp(def->name, name))
-            break;
+        if (strcmp(def->name, name) != 0)
+            continue;
 
-        def++;
+        if (build_lookup(def) == -1)
+            return NULL;  /* error */
 
-        if (def == end)
-            return NULL;
+        return def;
     }
 
-    if (build_lookup(def) == -1)
-        return NULL;
-
-    return def;
+    return NULL;  /* not found */
 }
 
 /*
@@ -273,15 +269,13 @@ struct timecode_def* timecoder_find_definition(const char *name)
  */
 
 void timecoder_free_lookup(void) {
-    struct timecode_def *def, *end;
+    unsigned int n;
 
-    def = &timecodes[0];
-    end = def + ARRAY_SIZE(timecodes);
+    for (n = 0; n < ARRAY_SIZE(timecodes); n++) {
+        struct timecode_def *def = &timecodes[n];
 
-    while (def < end) {
         if (def->lookup)
             lut_clear(&def->lut);
-        def++;
     }
 }
 
