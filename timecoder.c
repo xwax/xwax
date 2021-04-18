@@ -224,12 +224,12 @@ static int build_lookup(struct timecode_def *def)
         bits_t next;
 
         /* timecode must not wrap */
-        dassert(lut_lookup(&def->lut, current) == (unsigned)-1);
+        assert(lut_lookup(&def->lut, current) == (unsigned)-1);
         lut_push(&def->lut, current);
 
         /* check symmetry of the lfsr functions */
         next = fwd(current, def);
-        dassert(rev(next, def) == current);
+        assert(rev(next, def) == current);
 
         current = next;
     }

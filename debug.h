@@ -28,10 +28,8 @@
     fprintf(stderr, __VA_ARGS__); \
     fputc('\n', stderr); \
 }
-#define dassert(x) assert(x)
 #else
 #define debug(...)
-#define dassert(x)
 #endif
 
 #define not_implemented() abort()
