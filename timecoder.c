@@ -125,6 +125,28 @@ static struct timecode_def timecodes[] = {
         .length = 312000,
         .safe = 310000,
     },
+    {
+        .name = "pioneer_a",
+        .desc = "Pioneer RekordBox DVS Control Vinyl, side A",
+        .resolution = 1000,
+        .flags = SWITCH_POLARITY,
+        .bits = 20,
+        .seed = 0x78370,
+        .taps = 0x7933a,
+        .length = 635000,
+        .safe = 614000,
+    },
+    {
+        .name = "pioneer_b",
+        .desc = "Pioneer RekordBox DVS Control Vinyl, side B",
+        .resolution = 1000,
+        .flags = SWITCH_POLARITY,
+        .bits = 20,
+        .seed = 0xf7012,
+        .taps = 0x2ef1c,
+        .length = 918500,
+        .safe = 913000,
+    },
 };
 
 /*
