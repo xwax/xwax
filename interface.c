@@ -193,7 +193,7 @@ static int zoom(int d)
  * Convert the given time (in milliseconds) to displayable time
  */
 
-static void time_to_clock(char *buf, char *deci, int t)
+static void time_to_clock(char buf[9], char deci[4], int t)
 {
     int minutes, seconds, frac;
     bool neg;
@@ -678,7 +678,7 @@ static void draw_record(SDL_Surface *surface, const struct rect *rect,
 static void draw_clock(SDL_Surface *surface, const struct rect *rect, int t,
                        SDL_Color col)
 {
-    char hms[8], deci[8];
+    char hms[9], deci[4];
     short int v;
     struct rect sr;
 
