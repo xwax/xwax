@@ -1,7 +1,7 @@
 * Compatibility with Pioneer DJ "RekordBox" vinyls
 * Fix a bug where decimal numbers are parsed in an unexpected way
 
-Acknowledgements: Hugh Frater, Kilian
+Acknowledgements: Hugh Frater, Kilian, Yves Adler
 
 v1.7 (2018-01-19)
 -----------------

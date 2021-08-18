@@ -1,6 +1,5 @@
 /*
- * Copyright (C) 2018 Mark Hills <mark@xwax.org>,
- *                    Yves Adler <yves.adler@googlemail.com>
+ * Copyright (C) 2018 Mark Hills <mark@xwax.org>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
