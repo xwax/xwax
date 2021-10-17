@@ -36,14 +36,13 @@ struct alsa_pcm {
     struct pollfd *pe;
     size_t pe_count; /* number of pollfd entries */
 
-    signed short *buf;
-    snd_pcm_uframes_t period;
     int rate;
 };
 
 
 struct alsa {
     struct alsa_pcm capture, playback;
+    bool playing;
 };
 
 
@@ -68,9 +67,8 @@ static int pcm_open(struct alsa_pcm *alsa, const char *device_name,
                     snd_pcm_stream_t stream, int rate, int buffer_time)
 {
     int r, dir;
-    unsigned int p;
-    size_t bytes;
     snd_pcm_hw_params_t *hw_params;
+    snd_pcm_uframes_t frames;
     
     r = snd_pcm_open(&alsa->pcm, device_name, stream, SND_PCM_NONBLOCK);
     if (!chk("open", r))
@@ -83,7 +81,7 @@ static int pcm_open(struct alsa_pcm *alsa, const char *device_name,
         return -1;
     
     r = snd_pcm_hw_params_set_access(alsa->pcm, hw_params,
-                                     SND_PCM_ACCESS_RW_INTERLEAVED);
+                                     SND_PCM_ACCESS_MMAP_INTERLEAVED);
     if (!chk("hw_params_set_access", r))
         return -1;
     
@@ -109,43 +107,39 @@ static int pcm_open(struct alsa_pcm *alsa, const char *device_name,
         return -1;
     }
 
-    p = buffer_time * 1000; /* microseconds */
-    dir = -1;
-    r = snd_pcm_hw_params_set_buffer_time_near(alsa->pcm, hw_params, &p, &dir);
-    if (!chk("hw_params_set_buffer_time_near", r)) {
-        fprintf(stderr, "Buffer of %dms may be too small for this hardware.\n",
-                buffer_time);
-        return -1;
-    }
+    /* This is fundamentally a latency-sensitive application that is
+     * likely to be the primary application running, so assume we want
+     * the hardware to be giving us immediate wakeups */
 
-    p = 2; /* double buffering */
-    dir = 1;
-    r = snd_pcm_hw_params_set_periods_min(alsa->pcm, hw_params, &p, &dir);
-    if (!chk("hw_params_set_periods_min", r)) {
-        fprintf(stderr, "Buffer of %dms may be too small for this hardware.\n",
-                buffer_time);
+    r = snd_pcm_hw_params_set_period_size_first(alsa->pcm, hw_params, &frames, &dir);
+    if (!chk("hw_params_set_buffer_time_near", r))
         return -1;
+
+    switch (stream) {
+    case SND_PCM_STREAM_CAPTURE:
+        /* Maximum buffer to minimise drops */
+        r = snd_pcm_hw_params_set_buffer_size_last(alsa->pcm, hw_params, &frames);
+        if (!chk("hw_params_set_buffer_size_last", r))
+            return -1;
+        break;
+
+    case SND_PCM_STREAM_PLAYBACK:
+        /* Smallest possible buffer to keep latencies low */
+        r = snd_pcm_hw_params_set_buffer_time(alsa->pcm, hw_params, buffer_time * 1000, 0);
+        if (!chk("hw_params_set_buffer_time", r)) {
+            fprintf(stderr, "Buffer of %dms is probably too small; try increasing it with -m\n",
+                    buffer_time);
+            return -1;
+        }
+        break;
+
+    default:
+        abort();
     }
 
     r = snd_pcm_hw_params(alsa->pcm, hw_params);
     if (!chk("hw_params", r))
         return -1;
-    
-    r = snd_pcm_hw_params_get_period_size(hw_params, &alsa->period, &dir);
-    if (!chk("get_period_size", r))
-        return -1;
-
-    bytes = alsa->period * DEVICE_CHANNELS * sizeof(signed short);
-    alsa->buf = malloc(bytes);
-    if (!alsa->buf) {
-        perror("malloc");
-        return -1;
-    }
-
-    /* snd_pcm_readi() returns uninitialised memory on first call,
-     * possibly caused by premature POLLIN. Keep valgrind happy. */
-
-    memset(alsa->buf, 0, bytes);
 
     return 0;
 }
@@ -155,7 +149,6 @@ static void pcm_close(struct alsa_pcm *alsa)
 {
     if (snd_pcm_close(alsa->pcm) < 0)
         abort();
-    free(alsa->buf);
 }
 
 
@@ -236,7 +229,21 @@ static ssize_t pollfds(struct device *dv, struct pollfd *pe, size_t z)
     
     return total;
 }
-    
+
+
+/* Access the interleaved area presented by the ALSA library.  The
+ * device is opened SND_PCM_FORMAT_S16 which is in the local endianess
+ * and therefore is "signed short" */
+
+static signed short *buffer(const snd_pcm_channel_area_t *area,
+                          snd_pcm_uframes_t offset)
+{
+    assert(area->first % 8 == 0);
+    assert(area->step == 32);  /* 2 channel 16-bit interleaved */
+
+    return area->addr + area->first / 8 + offset * area->step / 8;
+}
+
 
 /* Collect audio from the player and push it into the device's buffer,
  * for playback */
@@ -244,18 +251,40 @@ static ssize_t pollfds(struct device *dv, struct pollfd *pe, size_t z)
 static int playback(struct device *dv)
 {
     int r;
+    snd_pcm_state_t state;
+    snd_pcm_uframes_t frames, offset;
+    const snd_pcm_channel_area_t *area;
     struct alsa *alsa = (struct alsa*)dv->local;
 
-    device_collect(dv, alsa->playback.buf, alsa->playback.period);
+    state = snd_pcm_state(alsa->capture.pcm);
+    if (state == SND_PCM_STATE_XRUN)
+        return -EPIPE;
 
-    r = snd_pcm_writei(alsa->playback.pcm, alsa->playback.buf,
-                       alsa->playback.period);
+    frames = snd_pcm_avail_update(alsa->playback.pcm);
+    if (frames < 0)
+        return (int)frames;
+
+    r = snd_pcm_mmap_begin(alsa->playback.pcm, &area, &offset, &frames);
     if (r < 0)
         return r;
-        
-    if (r < alsa->playback.period) {
-        fprintf(stderr, "alsa: playback underrun %d/%ld.\n", r,
-                alsa->playback.period);
+
+    assert(frames > 0);  /* otherwise we were woken unnecessarily */
+
+    device_collect(dv, buffer(&area[0], offset), frames);
+
+    r = snd_pcm_mmap_commit(alsa->playback.pcm, offset, frames);
+    if (r < 0)
+        return r;
+
+    /* If this is the initial write, assume the buffer gets filled to
+     * the maximum and it's time to consume the buffer */
+
+    if (!alsa->playing) {
+        r = snd_pcm_start(alsa->playback.pcm);
+        if (r < 0)
+            return r;
+
+        alsa->playing = true;
     }
 
     return 0;
@@ -268,19 +297,30 @@ static int playback(struct device *dv)
 static int capture(struct device *dv)
 {
     int r;
+    snd_pcm_state_t state;
+    snd_pcm_uframes_t frames, offset;
+    const snd_pcm_channel_area_t *area;
     struct alsa *alsa = (struct alsa*)dv->local;
 
-    r = snd_pcm_readi(alsa->capture.pcm, alsa->capture.buf,
-                      alsa->capture.period);
+    state = snd_pcm_state(alsa->capture.pcm);
+    if (state == SND_PCM_STATE_XRUN)
+        return -EPIPE;
+
+    frames = snd_pcm_avail(alsa->capture.pcm);
+    if (frames < 0)
+        return (int)frames;
+
+    r = snd_pcm_mmap_begin(alsa->capture.pcm, &area, &offset, &frames);
     if (r < 0)
         return r;
-    
-    if (r < alsa->capture.period) {
-        fprintf(stderr, "alsa: capture underrun %d/%ld.\n",
-                r, alsa->capture.period);
-    }
 
-    device_submit(dv, alsa->capture.buf, r);
+    assert(frames > 0);  /* otherwise we were woken unnecessarily */
+
+    device_submit(dv, buffer(&area[0], offset), frames);
+
+    r = snd_pcm_mmap_commit(alsa->capture.pcm, offset, frames);
+    if (r < 0)
+        return r;
 
     return 0;
 }
@@ -346,8 +386,10 @@ static int handle(struct device *dv)
                     return -1;
                 }
 
-                /* The device starts when data is written. POLLOUT
-                 * events are generated in prepared state. */
+                alsa->playing = false;
+
+                /* POLLOUT events will be generated now, and we
+                 * explicitly start the device when writing */
 
             } else {
                 alsa_error("playback", r);
@@ -401,6 +443,8 @@ int alsa_init(struct device *dv, const char *device_name,
         perror("malloc");
         return -1;
     }
+
+    alsa->playing = false;
 
     if (pcm_open(&alsa->capture, device_name, SND_PCM_STREAM_CAPTURE,
                 rate, buffer_time) < 0)
