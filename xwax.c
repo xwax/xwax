@@ -135,7 +135,9 @@ static void usage(FILE *fd)
       "manual for details.\n\n"
       "Available timecodes (for use with -t):\n"
       "  serato_2a (default), serato_2b, serato_cd,\n"
-      "  traktor_a, traktor_b, mixvibes_v2, mixvibes_7inch\n\n"
+      "  pioneer_a, pioneer_b,\n"
+      "  traktor_a, traktor_b,\n"
+      "  mixvibes_v2, mixvibes_7inch\n\n"
       "See the xwax(1) man page for full information and examples.\n");
 }
 
