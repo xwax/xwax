@@ -1,5 +1,6 @@
 * Replaced ALSA '-m' flag with a new '--buffer' in samples
 * Revised ALSA buffer handling to improve latencies
+* Renamed '-r' flag to '--rate'
 
 v1.8 (2021-08-18)
 -----------------

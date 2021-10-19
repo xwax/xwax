@@ -105,7 +105,7 @@ static void usage(FILE *fd)
 #ifdef WITH_OSS
     fprintf(fd, "OSS device options:\n"
       "  -d <device>    Build a deck connected to OSS audio device\n"
-      "  -r <hz>        Sample rate (default %dHz)\n"
+      "  --rate <hz>    Sample rate (default %dHz)\n"
       "  -b <n>         Number of buffers (default %d)\n"
       "  -f <n>         Buffer size to request (2^n bytes, default %d)\n\n",
       DEFAULT_RATE, DEFAULT_OSS_BUFFERS, DEFAULT_OSS_FRAGMENT);
@@ -114,7 +114,7 @@ static void usage(FILE *fd)
 #ifdef WITH_ALSA
     fprintf(fd, "ALSA device options:\n"
       "  -a <device>    Build a deck connected to ALSA audio device\n"
-      "  -r <hz>        Sample rate (default %dHz)\n"
+      "  --rate <hz>    Sample rate (default %dHz)\n"
       "  --buffer <n>   Buffer size (default %d samples)\n\n",
       DEFAULT_RATE, DEFAULT_ALSA_BUFFER);
 #endif
@@ -312,18 +312,18 @@ int main(int argc, char *argv[])
 #endif
 
 #if defined WITH_OSS || WITH_ALSA
-        } else if (!strcmp(argv[0], "-r")) {
+        } else if (!strcmp(argv[0], "--rate")) {
 
             /* Set sample rate for subsequence devices */
 
             if (argc < 2) {
-                fprintf(stderr, "-r requires an integer argument.\n");
+                fprintf(stderr, "--rate requires an integer argument.\n");
                 return -1;
             }
 
             rate = strtoul(argv[1], &endptr, 10);
             if (*endptr != '\0') {
-                fprintf(stderr, "-r requires an integer argument.\n");
+                fprintf(stderr, "--rate requires an integer argument.\n");
                 return -1;
             }
 

@@ -103,7 +103,7 @@ ALSA support.
 .B \-a \fIdevice\fR
 Create a deck which uses the given ALSA device (eg. plughw:0).
 .TP
-.B \-r \fIhz\fR
+.B \-\-rate \fIhz\fR
 Set the sample rate for subsequent decks.
 .TP
 .B \-\-buffer \fIsamples\fR
@@ -130,7 +130,7 @@ OSS support.
 .B \-d \fIpathname\fR
 Create a deck which uses the given OSS device (eg. /dev/dsp).
 .TP
-.B \-r \fIhz\fR
+.B \-\-rate \fIhz\fR
 Set the sample rate for subsequent decks.
 .TP
 .B \-b \fIn\fR
@@ -255,7 +255,7 @@ xwax \-l ~/music \-t serato_2a \-t mixvibes_v2 \-a hw:0 \-a hw:1
 3-deck setup with the third deck at a higher sample rate:
 .sp
 .RS
-xwax \-l ~/music \-r 48000 \-a hw:0 \-a hw:1 \-r 96000 \-a hw:2
+xwax \-l ~/music \-\-rate 48000 \-a hw:0 \-a hw:1 \-\-rate 96000 \-a hw:2
 .RE
 .P
 Using all three device types simultaneously, one deck on each:
