@@ -69,7 +69,7 @@ static int pcm_open(struct alsa_pcm *alsa, const char *device_name,
     int r, dir;
     snd_pcm_hw_params_t *hw_params;
     snd_pcm_uframes_t frames;
-    
+
     r = snd_pcm_open(&alsa->pcm, device_name, stream, SND_PCM_NONBLOCK);
     if (!chk("open", r))
         return -1;
@@ -79,12 +79,12 @@ static int pcm_open(struct alsa_pcm *alsa, const char *device_name,
     r = snd_pcm_hw_params_any(alsa->pcm, hw_params);
     if (!chk("hw_params_any", r))
         return -1;
-    
+
     r = snd_pcm_hw_params_set_access(alsa->pcm, hw_params,
                                      SND_PCM_ACCESS_MMAP_INTERLEAVED);
     if (!chk("hw_params_set_access", r))
         return -1;
-    
+
     r = snd_pcm_hw_params_set_format(alsa->pcm, hw_params, SND_PCM_FORMAT_S16);
     if (!chk("hw_params_set_format", r)) {
         fprintf(stderr, "16-bit signed format is not available. "
@@ -186,7 +186,7 @@ static int pcm_revents(struct alsa_pcm *alsa, unsigned short *revents) {
         alsa_error("poll_descriptors_revents", r);
         return -1;
     }
-    
+
     return 0;
 }
 
@@ -216,17 +216,17 @@ static ssize_t pollfds(struct device *dv, struct pollfd *pe, size_t z)
     r = pcm_pollfds(&alsa->capture, pe, z);
     if (r < 0)
         return -1;
-    
+
     pe += r;
     z -= r;
     total += r;
-    
+
     r = pcm_pollfds(&alsa->playback, pe, z);
     if (r < 0)
         return -1;
-    
+
     total += r;
-    
+
     return total;
 }
 
@@ -336,14 +336,14 @@ static int handle(struct device *dv)
     struct alsa *alsa = (struct alsa*)dv->local;
 
     /* Check input buffer for timecode capture */
-    
+
     r = pcm_revents(&alsa->capture, &revents);
     if (r < 0)
         return -1;
-    
+
     if (revents & POLLIN) {
         r = capture(dv);
-        
+
         if (r < 0) {
             if (r == -EPIPE) {
                 fputs("ALSA: capture xrun.\n", stderr);
@@ -364,22 +364,22 @@ static int handle(struct device *dv)
                 alsa_error("capture", r);
                 return -1;
             }
-        } 
+        }
     }
-    
+
     /* Check the output buffer for playback */
-    
+
     r = pcm_revents(&alsa->playback, &revents);
     if (r < 0)
         return -1;
-    
+
     if (revents & POLLOUT) {
         r = playback(dv);
-        
+
         if (r < 0) {
             if (r == -EPIPE) {
                 fputs("ALSA: playback xrun.\n", stderr);
-                
+
                 r = snd_pcm_prepare(alsa->playback.pcm);
                 if (r < 0) {
                     alsa_error("prepare", r);
@@ -452,7 +452,7 @@ int alsa_init(struct device *dv, const char *device_name,
         fputs("Failed to open device for capture.\n", stderr);
         goto fail;
     }
-    
+
     if (pcm_open(&alsa->playback, device_name, SND_PCM_STREAM_PLAYBACK,
                 rate, buffer) < 0)
     {
