@@ -106,8 +106,11 @@ Create a deck which uses the given ALSA device (eg. plughw:0).
 .B \-r \fIhz\fR
 Set the sample rate for subsequent decks.
 .TP
-.B \-m \fImilliseconds\fR
-Set the ALSA buffer time for subsequent decks.
+.B \-\-buffer \fIsamples\fR
+Set the ALSA buffer size for subsequent decks.
+Smaller is better for lower latencies and greater responsiveness.
+Set too low and audible glitches will occur, with reports of underruns
+to the console.
 .SH "JACK DEVICE OPTIONS"
 .P
 The following options are available only when xwax is compiled with

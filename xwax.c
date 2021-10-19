@@ -46,7 +46,7 @@
 #define DEFAULT_OSS_BUFFERS 8
 #define DEFAULT_OSS_FRAGMENT 7
 
-#define DEFAULT_ALSA_BUFFER 8 /* milliseconds */
+#define DEFAULT_ALSA_BUFFER 256 /* samples */
 
 #define DEFAULT_RATE 44100
 #define DEFAULT_PRIORITY 80
@@ -115,7 +115,7 @@ static void usage(FILE *fd)
     fprintf(fd, "ALSA device options:\n"
       "  -a <device>    Build a deck connected to ALSA audio device\n"
       "  -r <hz>        Sample rate (default %dHz)\n"
-      "  -m <ms>        Buffer time (default %dms)\n\n",
+      "  --buffer <n>   Buffer size (default %d samples)\n\n",
       DEFAULT_RATE, DEFAULT_ALSA_BUFFER);
 #endif
 
@@ -332,18 +332,18 @@ int main(int argc, char *argv[])
 #endif
 
 #ifdef WITH_ALSA
-        } else if (!strcmp(argv[0], "-m")) {
+        } else if (!strcmp(argv[0], "--buffer")) {
 
             /* Set size of ALSA buffer for subsequence devices */
 
             if (argc < 2) {
-                fprintf(stderr, "-m requires an integer argument.\n");
+                fprintf(stderr, "--buffer requires an integer argument.\n");
                 return -1;
             }
 
             alsa_buffer = strtoul(argv[1], &endptr, 10);
             if (*endptr != '\0') {
-                fprintf(stderr, "-m requires an integer argument.\n");
+                fprintf(stderr, "--buffer requires an integer argument.\n");
                 return -1;
             }
 

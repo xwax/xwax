@@ -64,7 +64,7 @@ static bool chk(const char *s, int r)
 
 
 static int pcm_open(struct alsa_pcm *alsa, const char *device_name,
-                    snd_pcm_stream_t stream, int rate, int buffer_time)
+                    snd_pcm_stream_t stream, int rate, int buffer)
 {
     int r, dir;
     snd_pcm_hw_params_t *hw_params;
@@ -125,10 +125,10 @@ static int pcm_open(struct alsa_pcm *alsa, const char *device_name,
 
     case SND_PCM_STREAM_PLAYBACK:
         /* Smallest possible buffer to keep latencies low */
-        r = snd_pcm_hw_params_set_buffer_time(alsa->pcm, hw_params, buffer_time * 1000, 0);
-        if (!chk("hw_params_set_buffer_time", r)) {
-            fprintf(stderr, "Buffer of %dms is probably too small; try increasing it with -m\n",
-                    buffer_time);
+        r = snd_pcm_hw_params_set_buffer_size(alsa->pcm, hw_params, buffer);
+        if (!chk("hw_params_set_buffer_size", r)) {
+            fprintf(stderr, "Buffer of %u samples is probably too small; try increasing it with -m\n",
+                    buffer);
             return -1;
         }
         break;
@@ -434,7 +434,7 @@ static struct device_ops alsa_ops = {
 /* Open ALSA device. Do not operate on audio until device_start() */
 
 int alsa_init(struct device *dv, const char *device_name,
-              unsigned int rate, unsigned int buffer_time)
+              unsigned int rate, unsigned int buffer)
 {
     struct alsa *alsa;
 
@@ -447,14 +447,14 @@ int alsa_init(struct device *dv, const char *device_name,
     alsa->playing = false;
 
     if (pcm_open(&alsa->capture, device_name, SND_PCM_STREAM_CAPTURE,
-                rate, buffer_time) < 0)
+                rate, buffer) < 0)
     {
         fputs("Failed to open device for capture.\n", stderr);
         goto fail;
     }
     
     if (pcm_open(&alsa->playback, device_name, SND_PCM_STREAM_PLAYBACK,
-                rate, buffer_time) < 0)
+                rate, buffer) < 0)
     {
         fputs("Failed to open device for playback.\n", stderr);
         goto fail_capture;
