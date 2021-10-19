@@ -434,7 +434,7 @@ static struct device_ops alsa_ops = {
 /* Open ALSA device. Do not operate on audio until device_start() */
 
 int alsa_init(struct device *dv, const char *device_name,
-              int rate, int buffer_time)
+              unsigned int rate, unsigned int buffer_time)
 {
     struct alsa *alsa;
 

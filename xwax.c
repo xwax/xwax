@@ -191,7 +191,7 @@ int main(int argc, char *argv[])
     struct library library;
 
 #if defined WITH_OSS || WITH_ALSA
-    int rate;
+    unsigned int rate;
 #endif
 
 #ifdef WITH_OSS
@@ -199,7 +199,7 @@ int main(int argc, char *argv[])
 #endif
 
 #ifdef WITH_ALSA
-    int alsa_buffer;
+    unsigned int alsa_buffer;
 #endif
 
     fprintf(stderr, "%s\n\n" NOTICE "\n\n", banner);
@@ -321,7 +321,7 @@ int main(int argc, char *argv[])
                 return -1;
             }
 
-            rate = strtol(argv[1], &endptr, 10);
+            rate = strtoul(argv[1], &endptr, 10);
             if (*endptr != '\0') {
                 fprintf(stderr, "-r requires an integer argument.\n");
                 return -1;
@@ -341,7 +341,7 @@ int main(int argc, char *argv[])
                 return -1;
             }
 
-            alsa_buffer = strtol(argv[1], &endptr, 10);
+            alsa_buffer = strtoul(argv[1], &endptr, 10);
             if (*endptr != '\0') {
                 fprintf(stderr, "-m requires an integer argument.\n");
                 return -1;
