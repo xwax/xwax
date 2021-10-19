@@ -46,9 +46,9 @@
 #define DEFAULT_OSS_BUFFERS 8
 #define DEFAULT_OSS_FRAGMENT 7
 
-#define DEFAULT_ALSA_BUFFER 256 /* samples */
+#define DEFAULT_ALSA_BUFFER 240 /* samples */
 
-#define DEFAULT_RATE 44100
+#define DEFAULT_RATE 48000
 #define DEFAULT_PRIORITY 80
 
 #define DEFAULT_IMPORTER EXECDIR "/xwax-import"
