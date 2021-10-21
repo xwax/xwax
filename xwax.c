@@ -48,7 +48,6 @@
 
 #define DEFAULT_ALSA_BUFFER 240 /* samples */
 
-#define DEFAULT_RATE 48000
 #define DEFAULT_PRIORITY 80
 
 #define DEFAULT_IMPORTER EXECDIR "/xwax-import"
@@ -105,18 +104,18 @@ static void usage(FILE *fd)
 #ifdef WITH_OSS
     fprintf(fd, "OSS device options:\n"
       "  -d <device>    Build a deck connected to OSS audio device\n"
-      "  --rate <hz>    Sample rate (default %dHz)\n"
+      "  --rate <hz>    Sample rate (default 48000Hz)\n"
       "  -b <n>         Number of buffers (default %d)\n"
       "  -f <n>         Buffer size to request (2^n bytes, default %d)\n\n",
-      DEFAULT_RATE, DEFAULT_OSS_BUFFERS, DEFAULT_OSS_FRAGMENT);
+      DEFAULT_OSS_BUFFERS, DEFAULT_OSS_FRAGMENT);
 #endif
 
 #ifdef WITH_ALSA
     fprintf(fd, "ALSA device options:\n"
       "  -a <device>    Build a deck connected to ALSA audio device\n"
-      "  --rate <hz>    Sample rate (default %dHz)\n"
+      "  --rate <hz>    Sample rate (default is automatic)\n"
       "  --buffer <n>   Buffer size (default %d samples)\n\n",
-      DEFAULT_RATE, DEFAULT_ALSA_BUFFER);
+      DEFAULT_ALSA_BUFFER);
 #endif
 
 #ifdef WITH_JACK
@@ -193,7 +192,7 @@ int main(int argc, char *argv[])
     struct library library;
 
 #if defined WITH_OSS || WITH_ALSA
-    unsigned int rate;
+    unsigned int rate;  /* or 0 for 'automatic' */
 #endif
 
 #ifdef WITH_OSS
@@ -243,7 +242,7 @@ int main(int argc, char *argv[])
     use_mlock = false;
 
 #if defined WITH_OSS || WITH_ALSA
-    rate = DEFAULT_RATE;
+    rate = 0; /* automatic */
 #endif
 
 #ifdef WITH_ALSA
@@ -329,6 +328,11 @@ int main(int argc, char *argv[])
                 return -1;
             }
 
+            if (rate < 8000) {
+                fprintf(stderr, "--rate must be a positive integer, in Hz.\n");
+                return -1;
+            }
+
             argv += 2;
             argc -= 2;
 #endif
@@ -378,7 +382,8 @@ int main(int argc, char *argv[])
 
 #ifdef WITH_OSS
             case 'd':
-                r = oss_init(device, argv[1], rate, oss_buffers, oss_fragment);
+                r = oss_init(device, argv[1], rate ? rate : 48000,
+                             oss_buffers, oss_fragment);
                 break;
 #endif
 #ifdef WITH_ALSA

@@ -63,8 +63,10 @@ static bool chk(const char *s, int r)
 }
 
 
+/* "rate" of zero means automatically select an appropriate rate */
+
 static int pcm_open(struct alsa_pcm *alsa, const char *device_name,
-                    snd_pcm_stream_t stream, int rate, int buffer)
+                    snd_pcm_stream_t stream, unsigned int rate, int buffer)
 {
     int r, dir;
     snd_pcm_hw_params_t *hw_params;
@@ -92,12 +94,39 @@ static int pcm_open(struct alsa_pcm *alsa, const char *device_name,
         return -1;
     }
 
-    r = snd_pcm_hw_params_set_rate(alsa->pcm, hw_params, rate, 0);
-    if (!chk("hw_params_set_rate", r )) {
-        fprintf(stderr, "%dHz sample rate not available. You may need to use "
-                "a 'plughw' device.\n", rate);
+    /* Prevent accidentally introducing excess resamplers. There is
+     * already one on the signal path to handle pitch adjustments.
+     * This is even if a 'plug' device is used, which effectively lets
+     * the user unknowingly select any sample rate. */
+
+    r = snd_pcm_hw_params_set_rate_resample(alsa->pcm, hw_params, 0);
+    if (!chk("hw_params_set_rate_resample", r))
         return -1;
+
+    if (rate) {
+        r = snd_pcm_hw_params_set_rate(alsa->pcm, hw_params, rate, 0);
+        if (!chk("hw_params_set_rate", r)) {
+            fprintf(stderr, "Sample rate of %dHz is not implemented by the hardware.\n",
+                    rate);
+            return -1;
+        }
+
+    } else {
+        /* The 'best' sample rate on this hardware.  Prefer 48kHz over
+         * 44.1kHz because it typically allows for smaller buffers.
+         * No need to match the source material; it's never playing at
+         * a fixed sample rate anyway. */
+
+        dir = -1;
+        rate = 48000;
+
+        r = snd_pcm_hw_params_set_rate_near(alsa->pcm, hw_params, &rate, &dir);
+        if (!chk("hw_params_set_rate_near", r))
+            return -1;
+
+        /* "rate" is set on return */
     }
+
     alsa->rate = rate;
 
     r = snd_pcm_hw_params_set_channels(alsa->pcm, hw_params, DEVICE_CHANNELS);

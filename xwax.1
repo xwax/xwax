@@ -105,6 +105,10 @@ Create a deck which uses the given ALSA device (eg. plughw:0).
 .TP
 .B \-\-rate \fIhz\fR
 Set the sample rate for subsequent decks.
+The default is to prefer 48000Hz, but use 44100Hz if that is
+not available.
+To maintain best performance, only sample rates implemented by
+the hardware are available.
 .TP
 .B \-\-buffer \fIsamples\fR
 Set the ALSA buffer size for subsequent decks.
@@ -131,7 +135,8 @@ OSS support.
 Create a deck which uses the given OSS device (eg. /dev/dsp).
 .TP
 .B \-\-rate \fIhz\fR
-Set the sample rate for subsequent decks.
+Set the sample rate for subsequent decks. The default for OSS devices
+is 48000Hz.
 .TP
 .B \-b \fIn\fR
 Set the number of OSS buffers for subsequent decks.
