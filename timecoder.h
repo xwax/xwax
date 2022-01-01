@@ -30,7 +30,7 @@
 typedef unsigned int bits_t;
 
 struct timecode_def {
-    char *name, *desc;
+    const char *name, *desc;
     int bits, /* number of bits in string */
         resolution, /* wave cycles per second */
         flags;

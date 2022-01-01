@@ -2,6 +2,9 @@
 * Revised ALSA buffer handling to improve latencies
 * Renamed '-r' flag to '--rate'
 * Restrict ALSA sample rates to those implemented in hardware
+* Minor fixes
+
+Acknowledgements: Daniel Schürmann
 
 v1.8 (2021-08-18)
 -----------------
