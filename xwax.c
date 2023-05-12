@@ -313,7 +313,10 @@ int main(int argc, char *argv[])
 #endif
 
 #if defined WITH_OSS || WITH_ALSA
-        } else if (!strcmp(argv[0], "--rate")) {
+        } else if (!strcmp(argv[0], "--rate") || !strcmp(argv[0], "-r")) {
+
+            if (!strcmp(argv[0], "-r"))
+                fprintf(stderr, "-r will be removed in future, use --rate instead\n");
 
             /* Set sample rate for subsequence devices */
 
