@@ -341,6 +341,10 @@ int main(int argc, char *argv[])
 #endif
 
 #ifdef WITH_ALSA
+        } else if (!strcmp(argv[0], "-m")) {
+            fprintf(stderr, "-m is no longer available, check the man page for --buffer in samples\n");
+            return -1;
+
         } else if (!strcmp(argv[0], "--buffer")) {
 
             /* Set size of ALSA buffer for subsequence devices */
