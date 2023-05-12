@@ -2,6 +2,7 @@
 * Revised ALSA buffer handling to improve latencies
 * Renamed '-r' flag to '--rate'
 * Restrict ALSA sample rates to those implemented in hardware
+* Fixes for compatibility with musl C library
 * Minor fixes
 
 Acknowledgements: Daniel Schürmann
