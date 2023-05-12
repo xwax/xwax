@@ -39,24 +39,21 @@
 static int raise_priority(int priority)
 {
     int max_pri;
+    const int policy = SCHED_FIFO;
     struct sched_param sp;
 
-    max_pri = sched_get_priority_max(SCHED_FIFO);
+    max_pri = sched_get_priority_max(policy);
 
     if (priority > max_pri) {
         fprintf(stderr, "Invalid scheduling priority (maximum %d).\n", max_pri);
         return -1;
     }
 
-    if (sched_getparam(0, &sp)) {
-        perror("sched_getparam");
-        return -1;
-    }
-
     sp.sched_priority = priority;
 
-    if (sched_setscheduler(0, SCHED_FIFO, &sp)) {
-        perror("sched_setscheduler");
+    errno = pthread_setschedparam(pthread_self(), policy, &sp);
+    if (errno) {
+        perror("pthread_setschedparam");
         fprintf(stderr, "Failed to get realtime priorities\n");
         return -1;
     }
