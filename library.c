@@ -43,7 +43,17 @@ int library_global_init(void)
 {
     assert(ascii == (iconv_t)-1);
 
+    /* A simplified conversion is used to broaden text searches */
+
     ascii = iconv_open("ASCII//TRANSLIT", "");
+
+    /* Transliteration is not available on some platforms, eg. musl. */
+
+    if (ascii == (iconv_t)-1 && errno == EINVAL) {
+        fprintf(stderr, "Text searches are compromised; no transliteration on this system\n");
+        ascii = iconv_open("ASCII", "");
+    }
+
     if (ascii == (iconv_t)-1) {
         perror("iconv_open");
         return -1;
