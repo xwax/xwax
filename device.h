@@ -20,8 +20,8 @@
 #ifndef DEVICE_H
 #define DEVICE_H
 
+#include <poll.h>
 #include <stdbool.h>
-#include <sys/poll.h>
 #include <sys/types.h>
 
 #define DEVICE_CHANNELS 2

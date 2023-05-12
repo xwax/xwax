@@ -20,7 +20,7 @@
 #ifndef EXCRATE_H
 #define EXCRATE_H
 
-#include <sys/poll.h>
+#include <poll.h>
 #include <sys/types.h>
 
 #include "external.h"

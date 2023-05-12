@@ -17,10 +17,10 @@
  *
  */
 
+#include <poll.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
-#include <sys/poll.h>
 #include <alsa/asoundlib.h>
 
 #include "alsa.h"

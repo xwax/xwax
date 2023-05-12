@@ -19,9 +19,9 @@
 
 #include <assert.h>
 #include <errno.h>
+#include <poll.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <sys/poll.h>
 #include <sys/wait.h>
 
 #include "external.h"

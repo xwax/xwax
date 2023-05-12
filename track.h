@@ -20,8 +20,8 @@
 #ifndef TRACK_H
 #define TRACK_H
 
+#include <poll.h>
 #include <stdbool.h>
-#include <sys/poll.h>
 #include <sys/types.h>
 
 #include "list.h"

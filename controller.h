@@ -20,9 +20,9 @@
 #ifndef CONTROLLER_H
 #define CONTROLLER_H
 
+#include <poll.h>
 #include <stdbool.h>
 #include <stdlib.h>
-#include <sys/poll.h>
 #include <sys/types.h>
 
 struct deck;
