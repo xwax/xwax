@@ -17,6 +17,19 @@
  *
  */
 
+/*
+ * IMPORTANT
+ *
+ * This open source license comes with certain obligations.  In
+ * particular, it does not permit the copying of this code into
+ * proprietary software. This requires a separate license.
+ *
+ * If you wish to incorporate timecode functionality into software
+ * which is not compatible with this license, contact the author for
+ * information.
+ *
+ */
+
 #include <assert.h>
 #include <limits.h>
 #include <stdio.h>
