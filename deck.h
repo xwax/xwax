@@ -28,12 +28,14 @@
 #include "player.h"
 #include "realtime.h"
 #include "timecoder.h"
+#include "mpu6050control.h"
 
 #define NO_PUNCH (HUGE_VAL)
 
 struct deck {
     struct device device;
     struct timecoder timecoder;
+	struct mpu6050control mpu6050;
     const char *importer;
     bool protect;
 
@@ -52,7 +54,7 @@ struct deck {
 };
 
 int deck_init(struct deck *deck, struct rt *rt,
-              struct timecode_def *timecode, const char *importer,
+              struct timecode_def *timecode, const char* btmac, const char *importer,
               double speed, bool phono, bool protect);
 void deck_clear(struct deck *deck);
 

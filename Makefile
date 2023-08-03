@@ -67,6 +67,7 @@ OBJS = controller.o \
 	thread.o \
 	timecoder.o \
 	track.o \
+	mpu6050control.o \
 	xwax.o
 DEVICE_CPPFLAGS =
 DEVICE_LIBS =
@@ -118,8 +119,8 @@ VERSION = $(shell ./mkversion)
 # Main binary
 
 xwax:		$(OBJS)
-xwax:		LDLIBS += $(SDL_LIBS) $(DEVICE_LIBS) -lm
-xwax:		LDFLAGS += -pthread
+xwax:		LDLIBS += $(SDL_LIBS) $(DEVICE_LIBS) -lm -lbluetooth
+xwax:		LDFLAGS += -pthread 
 
 interface.o:	CFLAGS += $(SDL_CFLAGS)
 

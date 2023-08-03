@@ -45,7 +45,7 @@ static const struct record no_record = {
  */
 
 int deck_init(struct deck *d, struct rt *rt,
-              struct timecode_def *timecode, const char *importer,
+              struct timecode_def *timecode, const char* btmac, const char *importer,
               double speed, bool phono, bool protect)
 {
     unsigned int rate;
@@ -61,8 +61,14 @@ int deck_init(struct deck *d, struct rt *rt,
     d->importer = importer;
     rate = device_sample_rate(&d->device);
     assert(timecode != NULL);
-    timecoder_init(&d->timecoder, timecode, speed, rate, phono);
-    player_init(&d->player, rate, track_acquire_empty(), &d->timecoder);
+	timecoder_init(&d->timecoder, timecode, speed, rate, phono);
+	if (btmac != NULL)
+	{
+		strncpy(d->mpu6050.btmac, btmac, 18);
+		mpu6050control_start(&d->mpu6050);
+		
+	}
+    player_init(&d->player, rate, track_acquire_empty(), &d->timecoder, &d->mpu6050);
     cues_reset(&d->cues);
 
     /* The timecoder and player are driven by requests from
@@ -79,6 +85,7 @@ void deck_clear(struct deck *d)
     /* FIXME: remove from rig and rt */
     player_clear(&d->player);
     timecoder_clear(&d->timecoder);
+	mpu6050control_stop(&d->mpu6050);
     device_clear(&d->device);
 }
 

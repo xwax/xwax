@@ -71,6 +71,7 @@ static double speed;
 static bool protect, phono;
 static const char *importer;
 static struct timecode_def *timecode;
+static char *btmac=NULL;
 
 static void usage(FILE *fd)
 {
@@ -90,6 +91,7 @@ static void usage(FILE *fd)
       DEFAULT_SCANNER);
 
     fprintf(fd, "Deck options:\n"
+      "  -bt <mac>      MPU6050 Bluetooth mac (example -bt 20:17:12:04:51:21)\n"
       "  -t <name>      Timecode name\n"
       "  -33            Use timecode at 33.3RPM (default)\n"
       "  -45            Use timecode at 45RPM\n"
@@ -148,7 +150,7 @@ static struct device* start_deck(const char *desc)
         fprintf(stderr, "Too many decks.\n");
         return NULL;
     }
-
+    
     return &deck[ndeck].device;
 }
 
@@ -168,7 +170,7 @@ static int commit_deck(void)
 
     d = &deck[ndeck];
 
-    r = deck_init(d, &rt, timecode, importer, speed, phono, protect);
+    r = deck_init(d, &rt, timecode, btmac, importer, speed, phono, protect);
     if (r == -1)
         return -1;
 
@@ -364,6 +366,12 @@ int main(int argc, char *argv[])
             argc -= 2;
 #endif
 
+        } else if (!strcmp(argv[0], "-bt"))
+	{
+		btmac=argv[1];
+        argv += 2;
+        argc -= 2;
+		
         } else if (!strcmp(argv[0], "-d") || !strcmp(argv[0], "-a") ||
 		  !strcmp(argv[0], "-j"))
 	{
