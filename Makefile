@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2021 Mark Hills <mark@xwax.org>
+# Copyright (C) 2024 Mark Hills <mark@xwax.org>
 #
 # This file is part of "xwax".
 #

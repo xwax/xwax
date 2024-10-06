@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Mark Hills <mark@xwax.org>
+ * Copyright (C) 2024 Mark Hills <mark@xwax.org>
  *
  * This file is part of "xwax".
  *
@@ -57,7 +57,7 @@
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof(*x))
 
 char *banner = "xwax " VERSION \
-    " (C) Copyright 2021 Mark Hills <mark@xwax.org>";
+    " (C) Copyright 2024 Mark Hills <mark@xwax.org>";
 
 size_t ndeck;
 struct deck deck[3];
