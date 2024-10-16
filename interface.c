@@ -135,8 +135,6 @@
 
 #define LOCK(sf) if (SDL_MUSTLOCK(sf)) SDL_LockSurface(sf)
 #define UNLOCK(sf) if (SDL_MUSTLOCK(sf)) SDL_UnlockSurface(sf)
-#define UPDATE(sf, rect) SDL_UpdateRect(sf, (rect)->x, (rect)->y, \
-                                        (rect)->w, (rect)->h)
 
 /* List of directories to use as search path for fonts. */
 
@@ -170,10 +168,10 @@ static unsigned short *spinner_angle, spinner_size;
 
 static int width = DEFAULT_WIDTH, height = DEFAULT_HEIGHT,
     meter_scale = DEFAULT_METER_SCALE;
-static Uint32 video_flags = SDL_RESIZABLE;
 static float scale = DEFAULT_SCALE;
 static iconv_t utf;
 static pthread_t ph;
+SDL_Window *window;
 static struct selector selector;
 static struct observer on_status, on_selector;
 
@@ -1404,7 +1402,7 @@ static void draw_library(SDL_Surface *surface, const struct rect *rect,
  * Return: true if the selector needs to be redrawn, otherwise false
  */
 
-static bool handle_key(SDLKey key, SDLMod mod)
+static bool handle_key(SDL_Keycode key, Uint16 mod)
 {
     struct selector *sel = &selector;
 
@@ -1551,7 +1549,7 @@ static SDL_Surface* set_size(int w, int h, struct rect *r)
 {
     SDL_Surface *surface;
 
-    surface = SDL_SetVideoMode(w, h, 32, video_flags);
+    surface = SDL_GetWindowSurface(window);
     if (surface == NULL) {
         fprintf(stderr, "%s\n", SDL_GetError());
         return NULL;
@@ -1568,7 +1566,7 @@ static void push_event(int t)
 {
     SDL_Event e;
 
-    if (!SDL_PeepEvents(&e, 1, SDL_PEEKEVENT, SDL_EVENTMASK(t))) {
+    if (!SDL_PeepEvents(&e, 1, SDL_PEEKEVENT, t, t)) {
         e.type = t;
         if (SDL_PushEvent(&e) == -1)
             abort();
@@ -1597,6 +1595,16 @@ static void defer_status_redraw(struct observer *o, void *x)
 static void defer_selector_redraw(struct observer *o, void *x)
 {
     push_event(EVENT_SELECTOR);
+}
+
+static SDL_Rect to_sdl_rect(struct rect ours)
+{
+    return (SDL_Rect) {
+        .x = ours.x,
+        .y = ours.y,
+        .w = ours.w,
+        .h = ours.h,
+    };
 }
 
 /*
@@ -1628,6 +1636,7 @@ static int interface_main(void)
     rig_lock();
 
     for (;;) {
+        SDL_Rect areas[3], *damaged;
 
         rig_unlock();
 
@@ -1642,14 +1651,19 @@ static int interface_main(void)
                 return -1;
             break;
 
-        case SDL_VIDEORESIZE:
-            surface = set_size(event.resize.w, event.resize.h, &rworkspace);
-            if (!surface)
-                return -1;
+        case SDL_WINDOWEVENT:
+            switch (event.window.event) {
+            case SDL_WINDOWEVENT_RESIZED:
+                surface = set_size(event.window.data1, event.window.data2, &rworkspace);
+                if (!surface)
+                    return -1;
 
-            library_update = true;
-            decks_update = true;
-            status_update = true;
+                library_update = true;
+                decks_update = true;
+                status_update = true;
+
+                break;
+            }
 
             break;
 
@@ -1717,20 +1731,27 @@ static int interface_main(void)
 
         UNLOCK(surface);
 
+        damaged = areas;
+
         if (library_update) {
-            UPDATE(surface, &rlibrary);
+            *damaged = to_sdl_rect(rlibrary);
+            damaged++;
             library_update = false;
         }
 
         if (status_update) {
-            UPDATE(surface, &rstatus);
+            *damaged = to_sdl_rect(rstatus);
+            damaged++;
             status_update = false;
         }
 
         if (decks_update) {
-            UPDATE(surface, &rplayers);
+            *damaged = to_sdl_rect(rplayers);
+            damaged++;
             decks_update = false;
         }
+
+        SDL_UpdateWindowSurfaceRects(window, areas, damaged - areas);
 
     } /* main loop */
 
@@ -1857,6 +1878,7 @@ static void cleanup()
 int interface_start(struct library *lib, const char *geo, bool decor)
 {
     size_t n;
+    Uint32 window_flags = SDL_WINDOW_RESIZABLE;
 
     if (parse_geometry(geo) == -1) {
         fprintf(stderr, "Window geometry ('%s') is not valid.\n", geo);
@@ -1864,7 +1886,7 @@ int interface_start(struct library *lib, const char *geo, bool decor)
     }
 
     if (!decor)
-        video_flags |= SDL_NOFRAME;
+        window_flags |= SDL_WINDOW_BORDERLESS;
 
     /*
      * Start allocating resources
@@ -1894,13 +1916,21 @@ int interface_start(struct library *lib, const char *geo, bool decor)
 
     fprintf(stderr, "Initialising SDL...\n");
 
-    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) == -1) {
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) < 0) {
         fprintf(stderr, "%s\n", SDL_GetError());
         goto fail_fonts;
     }
 
-    SDL_WM_SetCaption(banner, NULL);
-    SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
+    window = SDL_CreateWindow(banner,
+                              SDL_WINDOWPOS_UNDEFINED,
+                              SDL_WINDOWPOS_UNDEFINED,
+                              width, height,
+                              window_flags);
+
+    if (!window) {
+        fprintf(stderr, "%s\n", SDL_GetError());
+        goto fail_sdl;
+    }
 
     /*
      * Character translations; internally UTF8 is used

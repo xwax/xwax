@@ -46,12 +46,13 @@ void draw(void)
 
     SDL_BlitSurface(rendered, &source, surface, &dest);
     SDL_FreeSurface(rendered);
-
-    SDL_UpdateRect(surface, 0, 0, source.w, source.h);
 }
 
 int main(int argc, char *argv[])
 {
+    SDL_Window *window;
+    SDL_Renderer *renderer;
+
     if (argc != 2) {
         fputs("usage: test-ttf <font-file>\n", stderr);
         return 1;
@@ -72,7 +73,16 @@ int main(int argc, char *argv[])
 #endif
     TTF_SetFontKerning(font, 1);
 
-    surface = SDL_SetVideoMode(400, 200, 32, 0);
+    window = SDL_CreateWindow(argv[0],
+                              SDL_WINDOWPOS_UNDEFINED,
+                              SDL_WINDOWPOS_UNDEFINED,
+                              400, 200, 0);
+
+    renderer = SDL_CreateRenderer(window, -1, 0);
+    if (renderer == NULL)
+        abort();
+
+    surface = SDL_GetWindowSurface(window);
     if (surface == NULL)
         abort();
 
@@ -88,6 +98,7 @@ int main(int argc, char *argv[])
         }
 
         draw();
+        SDL_UpdateWindowSurface(window);
     }
 done:
 

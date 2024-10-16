@@ -25,8 +25,6 @@
 #include <unistd.h>
 #include <sys/mman.h> /* mlockall() */
 
-#include <SDL.h> /* may override main() */
-
 #include "alsa.h"
 #include "controller.h"
 #include "device.h"
