@@ -156,7 +156,7 @@ static int pcm_open(struct alsa_pcm *alsa, const char *device_name,
         /* Smallest possible buffer to keep latencies low */
         r = snd_pcm_hw_params_set_buffer_size(alsa->pcm, hw_params, buffer);
         if (!chk("hw_params_set_buffer_size", r)) {
-            fprintf(stderr, "Buffer of %u samples is probably too small; try increasing it with -m\n",
+            fprintf(stderr, "Buffer of %u samples is probably too small; try increasing it with --buffer\n",
                     buffer);
             return -1;
         }
