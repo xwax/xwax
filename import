@@ -21,7 +21,7 @@ case "$FILE" in
 	;;
 
 *)
-	exec ffmpeg -v 0 -i "$FILE" -f s16le -ar "$RATE" -
+	exec ffmpeg -v 0 -i "$FILE" -f s16le -ac 2 -ar "$RATE" -
 	;;
 
 esac
