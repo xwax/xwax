@@ -166,8 +166,7 @@ static SDL_Color background_col = {0, 0, 0, 255},
 
 static unsigned short *spinner_angle, spinner_size;
 
-static int width = DEFAULT_WIDTH, height = DEFAULT_HEIGHT,
-    meter_scale = DEFAULT_METER_SCALE;
+static int meter_scale = DEFAULT_METER_SCALE;
 static float scale = DEFAULT_SCALE;
 static iconv_t utf;
 static pthread_t ph;
@@ -1545,7 +1544,7 @@ static bool handle_key(SDL_Keycode key, Uint16 mod)
  * Action on size change event on the main window
  */
 
-static SDL_Surface* set_size(int w, int h, struct rect *r)
+static SDL_Surface* set_size(struct rect *r)
 {
     SDL_Surface *surface;
 
@@ -1555,9 +1554,10 @@ static SDL_Surface* set_size(int w, int h, struct rect *r)
         return NULL;
     }
 
-    *r = shrink(rect(0, 0, w, h, scale), BORDER);
+    *r = shrink(rect(0, 0, surface->w, surface->h, scale), BORDER);
 
-    fprintf(stderr, "New interface size is %dx%d.\n", w, h);
+    fprintf(stderr, "New interface size is %dx%d.\n",
+            surface->w, surface->h);
 
     return surface;
 }
@@ -1621,7 +1621,7 @@ static int interface_main(void)
 
     struct rect rworkspace, rplayers, rlibrary, rstatus, rtmp;
 
-    surface = set_size(width, height, &rworkspace);
+    surface = set_size(&rworkspace);
     if (!surface)
         return -1;
 
@@ -1654,7 +1654,7 @@ static int interface_main(void)
         case SDL_WINDOWEVENT:
             switch (event.window.event) {
             case SDL_WINDOWEVENT_RESIZED:
-                surface = set_size(event.window.data1, event.window.data2, &rworkspace);
+                surface = set_size(&rworkspace);
                 if (!surface)
                     return -1;
 
@@ -1770,7 +1770,7 @@ static void* launch(void *p)
 }
 
 /*
- * Parse and action the given geometry string
+ * Parse the given geometry string into the given variables
  *
  * Geometry string includes size, position and scale. The format is
  * "[<n>x<n>][+<n>+<n>][/<f>]". Some examples:
@@ -1784,14 +1784,17 @@ static void* launch(void *p)
  * Return: -1 if string could not be actioned, otherwise 0
  */
 
-static int parse_geometry(const char *s)
+static int parse_geometry(const char *s,
+                          int *x, int *y,
+                          int *width, int *height,
+                          float *scale)
 {
-    int n, x, y, len;
+    int n, len;
     char buf[128];
 
     /* The %n in format strings is not a token, see scanf(3) man page */
 
-    n = sscanf(s, "%[0-9]x%d%n", buf, &height, &len);
+    n = sscanf(s, "%[0-9]x%d%n", buf, height, &len);
     switch (n) {
     case EOF:
         return 0;
@@ -1799,41 +1802,34 @@ static int parse_geometry(const char *s)
         break;
     case 2:
         /* we used a format to prevent parsing the '+' in the next block */
-        width = atoi(buf);
+        *width = atoi(buf);
         s += len;
         break;
     default:
         return -1;
     }
 
-    n = sscanf(s, "+%d+%d%n", &x, &y, &len);
+    n = sscanf(s, "+%d+%d%n", x, y, &len);
     switch (n) {
     case EOF:
         return 0;
     case 0:
         break;
     case 2:
-        /* Not a desirable way to get geometry information to
-         * SDL, but it seems to be the only way */
-
-        sprintf(buf, "SDL_VIDEO_WINDOW_POS=%d,%d", x, y);
-        if (putenv(buf) != 0)
-            return -1;
-
         s += len;
         break;
     default:
         return -1;
     }
 
-    n = sscanf(s, "/%f%n", &scale, &len);
+    n = sscanf(s, "/%f%n", scale, &len);
     switch (n) {
     case EOF:
         return 0;
     case 0:
         break;
     case 1:
-        if (scale <= 0.0)
+        if (*scale <= 0.0)
             return -1;
         s += len;
         break;
@@ -1877,10 +1873,14 @@ static void cleanup()
 
 int interface_start(struct library *lib, const char *geo, bool decor)
 {
+    int x = SDL_WINDOWPOS_UNDEFINED,
+        y = SDL_WINDOWPOS_UNDEFINED,
+        width = DEFAULT_WIDTH,
+        height = DEFAULT_HEIGHT;
     size_t n;
     Uint32 window_flags = SDL_WINDOW_RESIZABLE;
 
-    if (parse_geometry(geo) == -1) {
+    if (parse_geometry(geo, &x, &y, &width, &height, &scale) == -1) {
         fprintf(stderr, "Window geometry ('%s') is not valid.\n", geo);
         return -1;
     }
@@ -1921,12 +1921,7 @@ int interface_start(struct library *lib, const char *geo, bool decor)
         goto fail_fonts;
     }
 
-    window = SDL_CreateWindow(banner,
-                              SDL_WINDOWPOS_UNDEFINED,
-                              SDL_WINDOWPOS_UNDEFINED,
-                              width, height,
-                              window_flags);
-
+    window = SDL_CreateWindow(banner, x, y, width, height, window_flags);
     if (!window) {
         fprintf(stderr, "%s\n", SDL_GetError());
         goto fail_sdl;
