@@ -1396,6 +1396,24 @@ static void draw_library(SDL_Surface *surface, const struct rect *rect,
 }
 
 /*
+ * Text "input" from SDL is a unicode string
+ */
+
+static void handle_text(const char *input)
+{
+    char k = input[0];
+
+    switch (k) {
+    case '.':
+    case ' ':
+    case 'a' ... 'z':
+    case 'A' ... 'Z':
+    case '0' ... '9':
+        selector_search_refine(&selector, k);
+    }
+}
+
+/*
  * Handle a single key event
  *
  * Return: true if the selector needs to be redrawn, otherwise false
@@ -1405,24 +1423,8 @@ static bool handle_key(SDL_Keycode key, Uint16 mod)
 {
     struct selector *sel = &selector;
 
-    if (key >= SDLK_a && key <= SDLK_z) {
-        selector_search_refine(sel, (key - SDLK_a) + 'a');
-        return true;
-
-    } else if (key >= SDLK_0 && key <= SDLK_9) {
-        selector_search_refine(sel, (key - SDLK_0) + '0');
-        return true;
-
-    } else if (key == SDLK_SPACE) {
-        selector_search_refine(sel, ' ');
-        return true;
-
-    } else if (key == SDLK_BACKSPACE) {
+    if (key == SDLK_BACKSPACE) {
         selector_search_expand(sel);
-        return true;
-
-    } else if (key == SDLK_PERIOD) {
-        selector_search_refine(sel, '.');
         return true;
 
     } else if (key == SDLK_HOME) {
@@ -1636,6 +1638,7 @@ static int interface_main(void)
     rig_lock();
 
     for (;;) {
+        bool status_sync = false;
         SDL_Rect areas[3], *damaged;
 
         rig_unlock();
@@ -1682,20 +1685,27 @@ static int interface_main(void)
             library_update = true;
             break;
 
+        case SDL_TEXTINPUT:
+            handle_text(event.text.text);
+            status_sync = true;
+            break;
+
         case SDL_KEYDOWN:
             if (handle_key(event.key.keysym.sym, event.key.keysym.mod))
-            {
-                struct record *r;
-
-                r = selector_current(&selector);
-                if (r != NULL) {
-                    status_set(STATUS_VERBOSE, r->pathname);
-                } else {
-                    status_set(STATUS_VERBOSE, "No search results found");
-                }
-            }
+                status_sync = true;
+            break;
 
         } /* switch(event.type) */
+
+        if (status_sync) {
+            struct record *r;
+
+            r = selector_current(&selector);
+            if (r != NULL)
+                status_set(STATUS_VERBOSE, r->pathname);
+            else
+                status_set(STATUS_VERBOSE, "No search results found");
+        }
 
         /* Split the display into the various areas. If an area is too
          * small, abandon any actions to happen in that area. */

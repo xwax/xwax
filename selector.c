@@ -440,8 +440,13 @@ void selector_search_expand(struct selector *sel)
 }
 
 /*
- * Refine the search. Do not distrupt the running process on memory
- * allocation failure, leave the view index incomplete
+ * Refine the search
+ *
+ * Append the single character "key" to the string, which must be
+ * ASCII and not UTF8 or unicode.
+ *
+ * Do not distrupt the running process on memory allocation failure,
+ * leave the view index incomplete
  */
 
 void selector_search_refine(struct selector *sel, char key)
