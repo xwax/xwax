@@ -1615,7 +1615,10 @@ static SDL_Rect to_sdl_rect(struct rect ours)
 
 static int interface_main(void)
 {
-    bool library_update, decks_update, status_update;
+    static const unsigned int REDRAW_BACKGROUND = 0x1,
+        REDRAW_DECKS = 0x2,
+        REDRAW_STATUS = 0x4,
+        REDRAW_LIBRARY = 0x8;
 
     SDL_Event event;
     SDL_TimerID timer;
@@ -1627,10 +1630,6 @@ static int interface_main(void)
     if (!surface)
         return -1;
 
-    decks_update = true;
-    status_update = true;
-    library_update = true;
-
     /* The final action is to add the timer which triggers refresh */
 
     timer = SDL_AddTimer(REFRESH, ticker, NULL);
@@ -1639,7 +1638,8 @@ static int interface_main(void)
 
     for (;;) {
         bool status_sync = false;
-        SDL_Rect areas[3], *damaged;
+        unsigned int redraw = 0;
+        SDL_Rect areas[3], *damaged = areas;
 
         rig_unlock();
 
@@ -1663,27 +1663,25 @@ static int interface_main(void)
 
                 /* fall-through */
             case SDL_WINDOWEVENT_EXPOSED:
-                library_update = true;
-                decks_update = true;
-                status_update = true;
+                redraw = (unsigned)-1;
                 break;
             }
 
             break;
 
         case EVENT_TICKER:
-            decks_update = true;
+            redraw |= REDRAW_DECKS;
             break;
 
         case EVENT_QUIT: /* internal request to finish this thread */
             goto finish;
 
         case EVENT_STATUS:
-            status_update = true;
+            redraw |= REDRAW_STATUS;
             break;
 
         case EVENT_SELECTOR:
-            library_update = true;
+            redraw |= REDRAW_LIBRARY;
             break;
 
         case SDL_TEXTINPUT:
@@ -1714,55 +1712,52 @@ static int interface_main(void)
         split(rworkspace, from_bottom(STATUS_HEIGHT, SPACER), &rtmp, &rstatus);
         if (rtmp.h < 128 || rtmp.w < 0) {
             rtmp = rworkspace;
-            status_update = false;
+            redraw &= ~REDRAW_STATUS;
         }
 
         split(rtmp, from_top(PLAYER_HEIGHT, SPACER), &rplayers, &rlibrary);
         if (rlibrary.h < LIBRARY_MIN_HEIGHT || rlibrary.w < LIBRARY_MIN_WIDTH) {
             rplayers = rtmp;
-            library_update = false;
+            redraw &= ~REDRAW_LIBRARY;
         }
 
         if (rplayers.h < 0 || rplayers.w < 0)
-            decks_update = false;
+            redraw &= ~REDRAW_DECKS;
 
-        if (!library_update && !decks_update && !status_update)
+        if (!redraw)
             continue;
 
         LOCK(surface);
 
-        if (library_update)
+        if (redraw & REDRAW_BACKGROUND) {
+            SDL_Rect whole = {0, 0, surface->w, surface->h};
+            SDL_FillRect(surface, &whole, palette(surface, &background_col));
+        }
+
+        if (redraw & REDRAW_LIBRARY) {
             draw_library(surface, &rlibrary, &selector);
+            *damaged++ = to_sdl_rect(rlibrary);
+        }
 
-        if (status_update)
+        if (redraw & REDRAW_STATUS) {
             draw_status(surface, &rstatus);
+            *damaged++ = to_sdl_rect(rstatus);
+        }
 
-        if (decks_update)
+        if (redraw & REDRAW_DECKS) {
             draw_decks(surface, &rplayers, deck, ndeck, meter_scale);
+            *damaged++ = to_sdl_rect(rplayers);
+        }
 
         UNLOCK(surface);
 
-        damaged = areas;
+        /* These calls cannot be checked for errors, because
+         * errors happen when the window has been resized */
 
-        if (library_update) {
-            *damaged = to_sdl_rect(rlibrary);
-            damaged++;
-            library_update = false;
-        }
-
-        if (status_update) {
-            *damaged = to_sdl_rect(rstatus);
-            damaged++;
-            status_update = false;
-        }
-
-        if (decks_update) {
-            *damaged = to_sdl_rect(rplayers);
-            damaged++;
-            decks_update = false;
-        }
-
-        SDL_UpdateWindowSurfaceRects(window, areas, damaged - areas);
+        if (redraw & REDRAW_BACKGROUND)
+            (void)SDL_UpdateWindowSurface(window);
+        else
+            (void)SDL_UpdateWindowSurfaceRects(window, areas, damaged - areas);
 
     } /* main loop */
 
