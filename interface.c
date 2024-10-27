@@ -1661,10 +1661,11 @@ static int interface_main(void)
                 if (!surface)
                     return -1;
 
+                /* fall-through */
+            case SDL_WINDOWEVENT_EXPOSED:
                 library_update = true;
                 decks_update = true;
                 status_update = true;
-
                 break;
             }
 
