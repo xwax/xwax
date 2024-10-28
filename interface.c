@@ -1418,11 +1418,12 @@ static SDL_Rect to_sdl_rect(struct rect ours)
 static void draw(SDL_Surface *surface, unsigned int redraw)
 {
     SDL_Rect areas[3], *damaged = areas;
-    struct rect rworkspace, rplayers, rlibrary, rstatus, rtmp;
+    struct rect whole, rworkspace, rplayers, rlibrary, rstatus, rtmp;
 
     /* Split the display into the various areas. If an area is too
      * small, abandon any actions to happen in that area. */
 
+    whole = rect(0, 0, surface->w, surface->h, scale);
     rworkspace = shrink(rect(0, 0, surface->w, surface->h, scale), BORDER);
 
     split(rworkspace, from_bottom(STATUS_HEIGHT, SPACER), &rtmp, &rstatus);
@@ -1445,10 +1446,8 @@ static void draw(SDL_Surface *surface, unsigned int redraw)
 
     LOCK(surface);
 
-    if (redraw & REDRAW_BACKGROUND) {
-        SDL_Rect whole = {0, 0, surface->w, surface->h};
-        SDL_FillRect(surface, &whole, palette(surface, &background_col));
-    }
+    if (redraw & REDRAW_BACKGROUND)
+        draw_rect(surface, &whole, background_col);
 
     if (redraw & REDRAW_LIBRARY) {
         draw_library(surface, &rlibrary, &selector);
