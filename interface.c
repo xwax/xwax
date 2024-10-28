@@ -138,7 +138,6 @@
 /* Macro functions */
 
 #define MIN(x,y) ((x)<(y)?(x):(y))
-#define SQ(x) ((x)*(x))
 
 #define LOCK(sf) if (SDL_MUSTLOCK(sf)) SDL_LockSurface(sf)
 #define UNLOCK(sf) if (SDL_MUSTLOCK(sf)) SDL_UnlockSurface(sf)
