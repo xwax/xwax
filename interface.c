@@ -1758,7 +1758,6 @@ static bool handle_sdl_event(SDL_Event *event,
 
 static int interface_main(void)
 {
-    SDL_Event event;
     SDL_TimerID timer;
     SDL_Surface *surface;
 
@@ -1774,6 +1773,7 @@ static int interface_main(void)
 
     for (;;) {
         unsigned int redraw = 0;
+        SDL_Event event;
 
         rig_unlock();
 
