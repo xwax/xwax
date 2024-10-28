@@ -128,6 +128,13 @@
 #define EVENT_STATUS (SDL_USEREVENT + 2)
 #define EVENT_SELECTOR (SDL_USEREVENT + 3)
 
+/* Types of redraw event */
+
+#define REDRAW_BACKGROUND  0x1
+#define REDRAW_DECKS       0x2
+#define REDRAW_STATUS      0x4
+#define REDRAW_LIBRARY     0x8
+
 /* Macro functions */
 
 #define MIN(x,y) ((x)<(y)?(x):(y))
@@ -1546,7 +1553,7 @@ static bool handle_key(SDL_Keycode key, Uint16 mod)
  * Action on size change event on the main window
  */
 
-static SDL_Surface* set_size(struct rect *r)
+static SDL_Surface* set_size(void)
 {
     SDL_Surface *surface;
 
@@ -1555,8 +1562,6 @@ static SDL_Surface* set_size(struct rect *r)
         fprintf(stderr, "%s\n", SDL_GetError());
         return NULL;
     }
-
-    *r = shrink(rect(0, 0, surface->w, surface->h, scale), BORDER);
 
     fprintf(stderr, "New interface size is %dx%d.\n",
             surface->w, surface->h);
@@ -1609,24 +1614,92 @@ static SDL_Rect to_sdl_rect(struct rect ours)
     };
 }
 
+static void sync_status_from_selector(void)
+{
+    const char *text = "No search results found";
+    struct record *record;
+
+    record = selector_current(&selector);
+
+    if (record)
+        text = record->pathname;
+
+    status_set(STATUS_VERBOSE, text);
+}
+
+/*
+ * Handle one SDL event
+ *
+ * Update the provided variables.
+ *
+ * Return: false if asked to exit the main loop, otherwise true
+ */
+
+static bool handle_sdl_event(SDL_Event *event,
+                             unsigned int *redraw, SDL_Surface **surface)
+{
+    switch(event->type) {
+    case SDL_QUIT: /* user request to quit application; eg. window close */
+        if (rig_quit() == -1)
+            return -1;
+        break;
+
+    case SDL_WINDOWEVENT:
+        switch (event->window.event) {
+        case SDL_WINDOWEVENT_RESIZED:
+            *surface = set_size();
+            if (!surface)
+                return false;
+
+            /* fall-through */
+        case SDL_WINDOWEVENT_EXPOSED:
+            *redraw = (unsigned)-1;
+            break;
+        }
+
+        break;
+
+    case EVENT_TICKER:
+        *redraw |= REDRAW_DECKS;
+        break;
+
+    case EVENT_QUIT: /* internal request to finish this thread */
+        return false;
+
+    case EVENT_STATUS:
+        *redraw |= REDRAW_STATUS;
+        break;
+
+    case EVENT_SELECTOR:
+        *redraw |= REDRAW_LIBRARY;
+        break;
+
+    case SDL_TEXTINPUT:
+        handle_text(event->text.text);
+        sync_status_from_selector();
+        break;
+
+    case SDL_KEYDOWN:
+        if (handle_key(event->key.keysym.sym, event->key.keysym.mod))
+            sync_status_from_selector();
+    }
+
+    return true;
+}
+
 /*
  * The SDL interface thread
  */
 
 static int interface_main(void)
 {
-    static const unsigned int REDRAW_BACKGROUND = 0x1,
-        REDRAW_DECKS = 0x2,
-        REDRAW_STATUS = 0x4,
-        REDRAW_LIBRARY = 0x8;
-
     SDL_Event event;
     SDL_TimerID timer;
     SDL_Surface *surface;
 
     struct rect rworkspace, rplayers, rlibrary, rstatus, rtmp;
 
-    surface = set_size(&rworkspace);
+    surface = set_size();
     if (!surface)
         return -1;
 
@@ -1637,7 +1710,6 @@ static int interface_main(void)
     rig_lock();
 
     for (;;) {
-        bool status_sync = false;
         unsigned int redraw = 0;
         SDL_Rect areas[3], *damaged = areas;
 
@@ -1648,66 +1720,13 @@ static int interface_main(void)
 
         rig_lock();
 
-        switch(event.type) {
-        case SDL_QUIT: /* user request to quit application; eg. window close */
-            if (rig_quit() == -1)
-                return -1;
-            break;
-
-        case SDL_WINDOWEVENT:
-            switch (event.window.event) {
-            case SDL_WINDOWEVENT_RESIZED:
-                surface = set_size(&rworkspace);
-                if (!surface)
-                    return -1;
-
-                /* fall-through */
-            case SDL_WINDOWEVENT_EXPOSED:
-                redraw = (unsigned)-1;
-                break;
-            }
-
-            break;
-
-        case EVENT_TICKER:
-            redraw |= REDRAW_DECKS;
-            break;
-
-        case EVENT_QUIT: /* internal request to finish this thread */
+        if (!handle_sdl_event(&event, &redraw, &surface))
             goto finish;
-
-        case EVENT_STATUS:
-            redraw |= REDRAW_STATUS;
-            break;
-
-        case EVENT_SELECTOR:
-            redraw |= REDRAW_LIBRARY;
-            break;
-
-        case SDL_TEXTINPUT:
-            handle_text(event.text.text);
-            status_sync = true;
-            break;
-
-        case SDL_KEYDOWN:
-            if (handle_key(event.key.keysym.sym, event.key.keysym.mod))
-                status_sync = true;
-            break;
-
-        } /* switch(event.type) */
-
-        if (status_sync) {
-            struct record *r;
-
-            r = selector_current(&selector);
-            if (r != NULL)
-                status_set(STATUS_VERBOSE, r->pathname);
-            else
-                status_set(STATUS_VERBOSE, "No search results found");
-        }
 
         /* Split the display into the various areas. If an area is too
          * small, abandon any actions to happen in that area. */
+
+        rworkspace = shrink(rect(0, 0, surface->w, surface->h, scale), BORDER);
 
         split(rworkspace, from_bottom(STATUS_HEIGHT, SPACER), &rtmp, &rstatus);
         if (rtmp.h < 128 || rtmp.w < 0) {
