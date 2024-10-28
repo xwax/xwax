@@ -1782,8 +1782,11 @@ static int interface_main(void)
 
         rig_lock();
 
-        if (!handle_sdl_event(&event, &redraw, &surface))
-            goto finish;
+        do {
+            if (!handle_sdl_event(&event, &redraw, &surface))
+                goto finish;
+
+        } while (SDL_PollEvent(&event) > 0);
 
         draw(surface, redraw);
     }
