@@ -1402,6 +1402,81 @@ static void draw_library(SDL_Surface *surface, const struct rect *rect,
     }
 }
 
+static SDL_Rect to_sdl_rect(struct rect ours)
+{
+    return (SDL_Rect) {
+        .x = ours.x,
+        .y = ours.y,
+        .w = ours.w,
+        .h = ours.h,
+    };
+}
+
+/*
+ * Draw the interface, using a bitmask to optimise which areas
+ */
+
+static void draw(SDL_Surface *surface, unsigned int redraw)
+{
+    SDL_Rect areas[3], *damaged = areas;
+    struct rect rworkspace, rplayers, rlibrary, rstatus, rtmp;
+
+    /* Split the display into the various areas. If an area is too
+     * small, abandon any actions to happen in that area. */
+
+    rworkspace = shrink(rect(0, 0, surface->w, surface->h, scale), BORDER);
+
+    split(rworkspace, from_bottom(STATUS_HEIGHT, SPACER), &rtmp, &rstatus);
+    if (rtmp.h < 128 || rtmp.w < 0) {
+        rtmp = rworkspace;
+        redraw &= ~REDRAW_STATUS;
+    }
+
+    split(rtmp, from_top(PLAYER_HEIGHT, SPACER), &rplayers, &rlibrary);
+    if (rlibrary.h < LIBRARY_MIN_HEIGHT || rlibrary.w < LIBRARY_MIN_WIDTH) {
+        rplayers = rtmp;
+        redraw &= ~REDRAW_LIBRARY;
+    }
+
+    if (rplayers.h < 0 || rplayers.w < 0)
+        redraw &= ~REDRAW_DECKS;
+
+    if (!redraw)
+        return;
+
+    LOCK(surface);
+
+    if (redraw & REDRAW_BACKGROUND) {
+        SDL_Rect whole = {0, 0, surface->w, surface->h};
+        SDL_FillRect(surface, &whole, palette(surface, &background_col));
+    }
+
+    if (redraw & REDRAW_LIBRARY) {
+        draw_library(surface, &rlibrary, &selector);
+        *damaged++ = to_sdl_rect(rlibrary);
+    }
+
+    if (redraw & REDRAW_STATUS) {
+        draw_status(surface, &rstatus);
+        *damaged++ = to_sdl_rect(rstatus);
+    }
+
+    if (redraw & REDRAW_DECKS) {
+        draw_decks(surface, &rplayers, deck, ndeck, meter_scale);
+        *damaged++ = to_sdl_rect(rplayers);
+    }
+
+    UNLOCK(surface);
+
+    /* These calls cannot be checked for errors, because
+     * errors happen when the window has been resized */
+
+    if (redraw & REDRAW_BACKGROUND)
+        (void)SDL_UpdateWindowSurface(window);
+    else
+        (void)SDL_UpdateWindowSurfaceRects(window, areas, damaged - areas);
+}
+
 /*
  * Text "input" from SDL is a unicode string
  */
@@ -1604,16 +1679,6 @@ static void defer_selector_redraw(struct observer *o, void *x)
     push_event(EVENT_SELECTOR);
 }
 
-static SDL_Rect to_sdl_rect(struct rect ours)
-{
-    return (SDL_Rect) {
-        .x = ours.x,
-        .y = ours.y,
-        .w = ours.w,
-        .h = ours.h,
-    };
-}
-
 static void sync_status_from_selector(void)
 {
     const char *text = "No search results found";
@@ -1697,8 +1762,6 @@ static int interface_main(void)
     SDL_TimerID timer;
     SDL_Surface *surface;
 
-    struct rect rworkspace, rplayers, rlibrary, rstatus, rtmp;
-
     surface = set_size();
     if (!surface)
         return -1;
@@ -1711,7 +1774,6 @@ static int interface_main(void)
 
     for (;;) {
         unsigned int redraw = 0;
-        SDL_Rect areas[3], *damaged = areas;
 
         rig_unlock();
 
@@ -1723,62 +1785,8 @@ static int interface_main(void)
         if (!handle_sdl_event(&event, &redraw, &surface))
             goto finish;
 
-        /* Split the display into the various areas. If an area is too
-         * small, abandon any actions to happen in that area. */
-
-        rworkspace = shrink(rect(0, 0, surface->w, surface->h, scale), BORDER);
-
-        split(rworkspace, from_bottom(STATUS_HEIGHT, SPACER), &rtmp, &rstatus);
-        if (rtmp.h < 128 || rtmp.w < 0) {
-            rtmp = rworkspace;
-            redraw &= ~REDRAW_STATUS;
-        }
-
-        split(rtmp, from_top(PLAYER_HEIGHT, SPACER), &rplayers, &rlibrary);
-        if (rlibrary.h < LIBRARY_MIN_HEIGHT || rlibrary.w < LIBRARY_MIN_WIDTH) {
-            rplayers = rtmp;
-            redraw &= ~REDRAW_LIBRARY;
-        }
-
-        if (rplayers.h < 0 || rplayers.w < 0)
-            redraw &= ~REDRAW_DECKS;
-
-        if (!redraw)
-            continue;
-
-        LOCK(surface);
-
-        if (redraw & REDRAW_BACKGROUND) {
-            SDL_Rect whole = {0, 0, surface->w, surface->h};
-            SDL_FillRect(surface, &whole, palette(surface, &background_col));
-        }
-
-        if (redraw & REDRAW_LIBRARY) {
-            draw_library(surface, &rlibrary, &selector);
-            *damaged++ = to_sdl_rect(rlibrary);
-        }
-
-        if (redraw & REDRAW_STATUS) {
-            draw_status(surface, &rstatus);
-            *damaged++ = to_sdl_rect(rstatus);
-        }
-
-        if (redraw & REDRAW_DECKS) {
-            draw_decks(surface, &rplayers, deck, ndeck, meter_scale);
-            *damaged++ = to_sdl_rect(rplayers);
-        }
-
-        UNLOCK(surface);
-
-        /* These calls cannot be checked for errors, because
-         * errors happen when the window has been resized */
-
-        if (redraw & REDRAW_BACKGROUND)
-            (void)SDL_UpdateWindowSurface(window);
-        else
-            (void)SDL_UpdateWindowSurfaceRects(window, areas, damaged - areas);
-
-    } /* main loop */
+        draw(surface, redraw);
+    }
 
  finish:
     rig_unlock();
