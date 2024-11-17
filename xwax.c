@@ -88,7 +88,7 @@ static void usage(FILE *fd)
       DEFAULT_SCANNER);
 
     fprintf(fd, "Deck options:\n"
-      "  -t <name>      Timecode name\n"
+      "  --timecode <name>  Timecode name\n"
       "  -33            Use timecode at 33.3RPM (default)\n"
       "  -45            Use timecode at 45RPM\n"
       "  -c             Protect against certain operations while playing\n"
@@ -270,6 +270,7 @@ int main(int argc, const char *argv[])
         deprecated(&argv[0], "-a", "--alsa");
         deprecated(&argv[0], "-d", "--oss");
         deprecated(&argv[0], "-j", "--jack");
+        deprecated(&argv[0], "-t", "--timecode");
 
         if (!strcmp(argv[0], "-h")) {
             usage(stdout);
@@ -441,12 +442,12 @@ int main(int argc, const char *argv[])
             argv++;
             argc--;
 
-        } else if (!strcmp(argv[0], "-t")) {
+        } else if (!strcmp(argv[0], "--timecode")) {
 
             /* Set the timecode definition to use */
 
             if (argc < 2) {
-                fprintf(stderr, "-t requires a name as an argument.\n");
+                fprintf(stderr, "%s requires a name as an argument.\n", argv[0]);
                 return -1;
             }
 

@@ -21,7 +21,7 @@ below.
 .B \-l \fIpath\fR
 Scan the music library or playlist at the given path.
 .TP
-.B \-t \fIname\fR
+.B \-\-timecode \fIname\fR
 Use the named timecode for subsequent decks. See \-h for a list of
 valid timecodes. You will need the corresponding timecode signal on
 vinyl to control playback.
@@ -202,7 +202,7 @@ C-F3	C-F7	C-F11	Cycle between available timecodes
 .TE
 .P
 The "available timecodes" are those which have been the subject of any
-.B \-t
+.B \-\-timecode
 flag on the command line.
 .P
 Audio display controls:
@@ -243,19 +243,19 @@ xwax \-l ~/music \-\-alsa hw:0 \-\-alsa hw:1
 2-deck setup using a different timecode on each deck:
 .sp
 .RS
-xwax \-l ~/music \-t serato_2a \-\-alsa hw:0 \-t mixvibes_v2 \-\-alsa hw:1
+xwax \-l ~/music \-\-timecode serato_2a \-\-alsa hw:0 \-\-timecode mixvibes_v2 \-\-alsa hw:1
 .RE
 .P
 As above, but with the second deck at 45 RPM:
 .sp
 .RS
-xwax \-l ~/music \-t serato_2a \-\-alsa hw:0 \-t mixvibes_v2 \-45 \-\-alsa hw:1
+xwax \-l ~/music \-\-timecode serato_2a \-\-alsa hw:0 \-\-timecode mixvibes_v2 \-45 \-\-alsa hw:1
 .RE
 .P
 Default to the same timecode, but allow switching at runtime:
 .sp
 .RS
-xwax \-l ~/music \-t serato_2a \-t mixvibes_v2 \-\-alsa hw:0 \-\-alsa hw:1
+xwax \-l ~/music \-\-timecode serato_2a \-\-timecode mixvibes_v2 \-\-alsa hw:0 \-\-alsa hw:1
 .RE
 .P
 3-deck setup with the third deck at a higher sample rate:
