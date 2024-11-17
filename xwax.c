@@ -75,7 +75,7 @@ static void usage(FILE *fd)
     fprintf(fd, "Usage: xwax [<options>]\n\n");
 
     fprintf(fd, "Program-wide options:\n"
-      "  -k             Lock real-time memory into RAM\n"
+      "  --lock-ram     Lock real-time memory into RAM\n"
       "  --rtprio <n>   Real-time priority (0 for no priority, default %d)\n"
       "  --geometry <s>  Set display geometry (see man page)\n"
       "  --no-decor     Request a window with no decorations\n"
@@ -271,6 +271,7 @@ int main(int argc, const char *argv[])
         deprecated(&argv[0], "-d", "--oss");
         deprecated(&argv[0], "-g", "--geometry");
         deprecated(&argv[0], "-j", "--jack");
+        deprecated(&argv[0], "-k", "--lock-ram");
         deprecated(&argv[0], "-q", "--rtprio");
         deprecated(&argv[0], "-t", "--timecode");
 
