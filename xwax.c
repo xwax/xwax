@@ -77,7 +77,7 @@ static void usage(FILE *fd)
     fprintf(fd, "Program-wide options:\n"
       "  -k             Lock real-time memory into RAM\n"
       "  -q <n>         Real-time priority (0 for no priority, default %d)\n"
-      "  -g <s>         Set display geometry (see man page)\n"
+      "  --geometry <s>  Set display geometry (see man page)\n"
       "  --no-decor     Request a window with no decorations\n"
       "  -h             Display this message to stdout and exit\n\n",
       DEFAULT_PRIORITY);
@@ -269,6 +269,7 @@ int main(int argc, const char *argv[])
     while (argc > 0) {
         deprecated(&argv[0], "-a", "--alsa");
         deprecated(&argv[0], "-d", "--oss");
+        deprecated(&argv[0], "-g", "--geometry");
         deprecated(&argv[0], "-j", "--jack");
         deprecated(&argv[0], "-t", "--timecode");
 
@@ -532,10 +533,10 @@ int main(int argc, const char *argv[])
             argv += 2;
             argc -= 2;
 
-        } else if (!strcmp(argv[0], "-g")) {
+        } else if (!strcmp(argv[0], "--geometry")) {
 
             if (argc < 2) {
-                fprintf(stderr, "-g requires an argument.\n");
+                fprintf(stderr, "%s requires an argument.\n", argv[0]);
                 return -1;
             }
 

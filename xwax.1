@@ -78,7 +78,7 @@ to raise the kernel's memory limit to allow this.
 Change the real-time priority of the process. A priority of 0 gives
 the process no priority, and is used for testing only.
 .TP
-.B \-g [\fIn\fRx\fIn\fR][+\fIn\fR+\fIn\fR][/\fIf\fR]
+.B \-\-geometry [\fIn\fRx\fIn\fR][+\fIn\fR+\fIn\fR][/\fIf\fR]
 Change the geometry of the display in size, position and scale (zoom)
 respectively.
 The size and position is passed
@@ -90,7 +90,7 @@ See the
 Request to the window manager to create a 'frameless' window which
 does not have the regular controls such as title bars and buttons.
 This can be useful in conjunction with the
-.B \-g
+.B \-\-geometry
 flag for dedicated xwax installations.
 .TP
 .B \-h
@@ -291,7 +291,7 @@ xwax \-\-dicer hw:Dicer \-\-alsa hw:0 \-\-alsa hw:1
 Use a high resolution and enlarge the user interface:
 .sp
 .RS
-xwax -g 1920x1200/1.8 \-\-alsa hw:0
+xwax \-\-geometry 1920x1200/1.8 \-\-alsa hw:0
 .RE
 .SH HOMEPAGE
 http://xwax.org/
