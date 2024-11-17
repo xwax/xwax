@@ -89,8 +89,8 @@ static void usage(FILE *fd)
 
     fprintf(fd, "Deck options:\n"
       "  --timecode <name>  Timecode name\n"
-      "  -33            Use timecode at 33.3RPM (default)\n"
-      "  -45            Use timecode at 45RPM\n"
+      "  --33           Use timecode at 33.3RPM (default)\n"
+      "  --45           Use timecode at 45RPM\n"
       "  --[no-]protect   Protect against certain operations while playing\n"
       "  --line         Line level signal (default)\n"
       "  --phono        Tolerate cartridge level signal ('software pre-amp')\n"
@@ -266,6 +266,8 @@ int main(int argc, const char *argv[])
     argc--;
 
     while (argc > 0) {
+        deprecated(&argv[0], "-33", "--33");
+        deprecated(&argv[0], "-45", "--45");
         deprecated(&argv[0], "-a", "--alsa");
         deprecated(&argv[0], "-c", "--protect");
         deprecated(&argv[0], "-d", "--oss");
@@ -468,14 +470,14 @@ int main(int argc, const char *argv[])
             argv += 2;
             argc -= 2;
 
-        } else if (!strcmp(argv[0], "-33")) {
+        } else if (!strcmp(argv[0], "--33")) {
 
             speed = 1.0;
 
             argv++;
             argc--;
 
-        } else if (!strcmp(argv[0], "-45")) {
+        } else if (!strcmp(argv[0], "--45")) {
 
             speed = 1.35;
 
