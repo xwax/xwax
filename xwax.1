@@ -53,8 +53,10 @@ This reverses the effect of the
 .B \-\-phono
 option, and is the default.
 .TP
-.B \-i \fIpath\fR
-Use the given importer executable for subsequent decks.
+.B \-\-import \fIpath\fR
+Execute the given program to load tracks for playing. The program
+outputs a stream of signed, little-endian, 16-bit, 2 channel audio on
+standard output.
 .TP
 .B \-\-scan \fIpath\fR
 Execute the given program to scan music libraries. Applies to

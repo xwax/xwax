@@ -94,7 +94,7 @@ static void usage(FILE *fd)
       "  --[no-]protect   Protect against certain operations while playing\n"
       "  --line         Line level signal (default)\n"
       "  --phono        Tolerate cartridge level signal ('software pre-amp')\n"
-      "  -i <program>   Importer (default '%s')\n"
+      "  --import <program>  Track importer (default '%s')\n"
       "  --dummy        Build a dummy deck with no audio device\n\n",
       DEFAULT_IMPORTER);
 
@@ -272,6 +272,7 @@ int main(int argc, const char *argv[])
         deprecated(&argv[0], "-c", "--protect");
         deprecated(&argv[0], "-d", "--oss");
         deprecated(&argv[0], "-g", "--geometry");
+        deprecated(&argv[0], "-i", "--import");
         deprecated(&argv[0], "-j", "--jack");
         deprecated(&argv[0], "-k", "--lock-ram");
         deprecated(&argv[0], "-q", "--rtprio");
@@ -562,13 +563,13 @@ int main(int argc, const char *argv[])
             argv++;
             argc--;
 
-        } else if (!strcmp(argv[0], "-i")) {
+        } else if (!strcmp(argv[0], "--import")) {
 
             /* Importer script for subsequent decks */
 
             if (argc < 2) {
-                fprintf(stderr, "-i requires an executable path "
-                        "as an argument.\n");
+                fprintf(stderr, "%s requires an executable path "
+                        "as an argument.\n", argv[0]);
                 return -1;
             }
 
