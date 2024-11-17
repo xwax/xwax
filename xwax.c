@@ -138,6 +138,15 @@ static void usage(FILE *fd)
       "See the xwax(1) man page for full information and examples.\n");
 }
 
+static void deprecated(const char **arg, const char *old, const char *new)
+{
+    if (strcmp(*arg, old))
+        return;
+
+    fprintf(stderr, "'%s' is deprecated; using '%s'\n", old, new);
+    *arg = new;
+}
+
 static struct device* start_deck(const char *desc)
 {
     fprintf(stderr, "Initialising deck %zd (%s)...\n", ndeck, desc);
@@ -180,7 +189,7 @@ static int commit_deck(void)
     return 0;
 }
 
-int main(int argc, char *argv[])
+int main(int argc, const char *argv[])
 {
     int rc = -1, n, priority;
     const char *scanner, *geo;
