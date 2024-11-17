@@ -79,7 +79,7 @@ static void usage(FILE *fd)
       "  --rtprio <n>   Real-time priority (0 for no priority, default %d)\n"
       "  --geometry <s>  Set display geometry (see man page)\n"
       "  --no-decor     Request a window with no decorations\n"
-      "  -h             Display this message to stdout and exit\n\n",
+      "  -h, --help     Display this message to stdout and exit\n\n",
       DEFAULT_PRIORITY);
 
     fprintf(fd, "Music library options:\n"
@@ -275,7 +275,7 @@ int main(int argc, const char *argv[])
         deprecated(&argv[0], "-q", "--rtprio");
         deprecated(&argv[0], "-t", "--timecode");
 
-        if (!strcmp(argv[0], "-h")) {
+        if (!strcmp(argv[0], "-h") || !strcmp(argv[0], "--help")) {
             usage(stdout);
             return 0;
 
