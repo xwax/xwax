@@ -34,15 +34,10 @@ third revolutions per minute. This is the default.
 Set the reference playback speed for subsequent decks to 45
 revolutions per minute.
 .TP
-.B \-c
-Protect subsequent decks against certain operations during
-playback.
-.TP
-.B \-u
-Allow all operations on a deck during playback. This is the inverse
-of the
-.B \-c
-option, and is the default.
+.B \-\-[no\-]protect
+Protect against loading new tracks or resetting the start of the track
+if the deck is playing. Applies to subsequent decks, and the default is
+off.
 .TP
 .B \-\-phono
 Adjust the noise thresholds of subsequent decks to tolerate a

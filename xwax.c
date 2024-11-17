@@ -91,8 +91,7 @@ static void usage(FILE *fd)
       "  --timecode <name>  Timecode name\n"
       "  -33            Use timecode at 33.3RPM (default)\n"
       "  -45            Use timecode at 45RPM\n"
-      "  -c             Protect against certain operations while playing\n"
-      "  -u             Allow all operations when playing\n"
+      "  --[no-]protect   Protect against certain operations while playing\n"
       "  --line         Line level signal (default)\n"
       "  --phono        Tolerate cartridge level signal ('software pre-amp')\n"
       "  -i <program>   Importer (default '%s')\n"
@@ -268,12 +267,14 @@ int main(int argc, const char *argv[])
 
     while (argc > 0) {
         deprecated(&argv[0], "-a", "--alsa");
+        deprecated(&argv[0], "-c", "--protect");
         deprecated(&argv[0], "-d", "--oss");
         deprecated(&argv[0], "-g", "--geometry");
         deprecated(&argv[0], "-j", "--jack");
         deprecated(&argv[0], "-k", "--lock-ram");
         deprecated(&argv[0], "-q", "--rtprio");
         deprecated(&argv[0], "-t", "--timecode");
+        deprecated(&argv[0], "-u", "--no-protect");
 
         if (!strcmp(argv[0], "-h") || !strcmp(argv[0], "--help")) {
             usage(stdout);
@@ -477,14 +478,14 @@ int main(int argc, const char *argv[])
             argv++;
             argc--;
 
-        } else if (!strcmp(argv[0], "-c")) {
+        } else if (!strcmp(argv[0], "--protect")) {
 
             protect = true;
 
             argv++;
             argc--;
 
-        } else if (!strcmp(argv[0], "-u")) {
+        } else if (!strcmp(argv[0], "--no-protect")) {
 
             protect = false;
 
