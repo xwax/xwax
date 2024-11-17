@@ -83,8 +83,8 @@ static void usage(FILE *fd)
       DEFAULT_PRIORITY);
 
     fprintf(fd, "Music library options:\n"
-      "  -l <path>      Location to scan for audio tracks\n"
-      "  --scan <program>   Library scanner (default '%s')\n\n",
+      "  -l, --crate <path>  Location to scan for audio tracks\n"
+      "  --scan <program>    Library scanner (default '%s')\n\n",
       DEFAULT_SCANNER);
 
     fprintf(fd, "Deck options:\n"
@@ -592,12 +592,12 @@ int main(int argc, const char *argv[])
             argv += 2;
             argc -= 2;
 
-        } else if (!strcmp(argv[0], "-l")) {
+        } else if (!strcmp(argv[0], "-l") || !strcmp(argv[0], "--crate")) {
 
             /* Load in a music library */
 
             if (argc < 2) {
-                fprintf(stderr, "-l requires a pathname as an argument.\n");
+                fprintf(stderr, "%s requires a pathname as an argument.\n", argv[0]);
                 return -1;
             }
 

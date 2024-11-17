@@ -18,8 +18,9 @@ See the
 .B EXAMPLES
 below.
 .TP
-.B \-l \fIpath\fR
-Scan the music library or playlist at the given path.
+.B \-l, \-\-crate \fIpath\fR
+Scan for tracks or playlist at the given path. Tracks are grouped into
+a crate in the music library.
 .TP
 .B \-\-timecode \fIname\fR
 Use the named timecode for subsequent decks. See \-\-help for a list of
@@ -57,7 +58,7 @@ Use the given importer executable for subsequent decks.
 .TP
 .B \-\-scan \fIpath\fR
 Execute the given program to scan music libraries. Applies to
-subsequent use of the \-l flag.
+subsequent use of the \-\-crate flag.
 .TP
 .B \-\-dummy
 Create a deck which is not connected to any audio device, used
@@ -229,55 +230,55 @@ set.
 2-deck setup using one directory of music and OSS devices:
 .sp
 .RS
-xwax \-l ~/music \-\-oss /dev/dsp \-\-oss /dev/dsp1
+xwax \-\-crate ~/music \-\-oss /dev/dsp \-\-oss /dev/dsp1
 .RE
 .P
 As above, but using ALSA devices:
 .sp
 .RS
-xwax \-l ~/music \-\-alsa hw:0 \-\-alsa hw:1
+xwax \-\-crate ~/music \-\-alsa hw:0 \-\-alsa hw:1
 .RE
 .P
 2-deck setup using a different timecode on each deck:
 .sp
 .RS
-xwax \-l ~/music \-\-timecode serato_2a \-\-alsa hw:0 \-\-timecode mixvibes_v2 \-\-alsa hw:1
+xwax \-\-crate ~/music \-\-timecode serato_2a \-\-alsa hw:0 \-\-timecode mixvibes_v2 \-\-alsa hw:1
 .RE
 .P
 As above, but with the second deck at 45 RPM:
 .sp
 .RS
-xwax \-l ~/music \-\-timecode serato_2a \-\-alsa hw:0 \-\-timecode mixvibes_v2 \-45 \-\-alsa hw:1
+xwax \-\-crate ~/music \-\-timecode serato_2a \-\-alsa hw:0 \-\-timecode mixvibes_v2 \-45 \-\-alsa hw:1
 .RE
 .P
 Default to the same timecode, but allow switching at runtime:
 .sp
 .RS
-xwax \-l ~/music \-\-timecode serato_2a \-\-timecode mixvibes_v2 \-\-alsa hw:0 \-\-alsa hw:1
+xwax \-\-crate ~/music \-\-timecode serato_2a \-\-timecode mixvibes_v2 \-\-alsa hw:0 \-\-alsa hw:1
 .RE
 .P
 3-deck setup with the third deck at a higher sample rate:
 .sp
 .RS
-xwax \-l ~/music \-\-rate 48000 \-\-alsa hw:0 \-\-alsa hw:1 \-\-rate 96000 \-\-alsa hw:2
+xwax \-\-crate ~/music \-\-rate 48000 \-\-alsa hw:0 \-\-alsa hw:1 \-\-rate 96000 \-\-alsa hw:2
 .RE
 .P
 Using all three device types simultaneously, one deck on each:
 .sp
 .RS
-xwax \-l ~/music \-\-alsa hw:0 \-\-oss /dev/dsp1 \-j jack0
+xwax \-\-crate ~/music \-\-alsa hw:0 \-\-oss /dev/dsp1 \-j jack0
 .RE
 .P
 Scan multiple music libraries:
 .sp
 .RS
-xwax \-l ~/music \-l ~/sounds \-l ~/mixes \-\-alsa hw:0
+xwax \-\-crate ~/music \-\-crate ~/sounds \-\-crate ~/mixes \-\-alsa hw:0
 .RE
 .P
 Scan a second music library using a custom script:
 .sp
 .RS
-xwax \-l ~/music \-\-scan ./custom-scan \-l ~/sounds \-\-alsa hw:0
+xwax \-\-crate ~/music \-\-scan ./custom-scan \-\-crate ~/sounds \-\-alsa hw:0
 .RE
 .P
 Control two decks with Dicer hardware:
