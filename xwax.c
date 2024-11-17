@@ -84,7 +84,7 @@ static void usage(FILE *fd)
 
     fprintf(fd, "Music library options:\n"
       "  -l <path>      Location to scan for audio tracks\n"
-      "  -s <program>   Library scanner (default '%s')\n\n",
+      "  --scan <program>   Library scanner (default '%s')\n\n",
       DEFAULT_SCANNER);
 
     fprintf(fd, "Deck options:\n"
@@ -275,6 +275,7 @@ int main(int argc, const char *argv[])
         deprecated(&argv[0], "-j", "--jack");
         deprecated(&argv[0], "-k", "--lock-ram");
         deprecated(&argv[0], "-q", "--rtprio");
+        deprecated(&argv[0], "-s", "--scan");
         deprecated(&argv[0], "-t", "--timecode");
         deprecated(&argv[0], "-u", "--no-protect");
 #ifdef WITH_OSS
@@ -576,13 +577,13 @@ int main(int argc, const char *argv[])
             argv += 2;
             argc -= 2;
 
-        } else if (!strcmp(argv[0], "-s")) {
+        } else if (!strcmp(argv[0], "--scan")) {
 
             /* Scan script for subsequent libraries */
 
             if (argc < 2) {
-                fprintf(stderr, "-s requires an executable path "
-                        "as an argument.\n");
+                fprintf(stderr, "%s requires an executable path "
+                        "as an argument.\n", argv[0]);
                 return -1;
             }
 

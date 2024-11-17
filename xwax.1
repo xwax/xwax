@@ -55,8 +55,9 @@ option, and is the default.
 .B \-i \fIpath\fR
 Use the given importer executable for subsequent decks.
 .TP
-.B \-s \fIpath\fR
-Use the given scanner executable to scan subsequent music libraries.
+.B \-\-scan \fIpath\fR
+Execute the given program to scan music libraries. Applies to
+subsequent use of the \-l flag.
 .TP
 .B \-\-dummy
 Create a deck which is not connected to any audio device, used
@@ -276,7 +277,7 @@ xwax \-l ~/music \-l ~/sounds \-l ~/mixes \-\-alsa hw:0
 Scan a second music library using a custom script:
 .sp
 .RS
-xwax \-l ~/music \-i ./custom-scan \-l ~/sounds \-\-alsa hw:0
+xwax \-l ~/music \-\-scan ./custom-scan \-l ~/sounds \-\-alsa hw:0
 .RE
 .P
 Control two decks with Dicer hardware:
