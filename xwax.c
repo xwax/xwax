@@ -102,8 +102,8 @@ static void usage(FILE *fd)
     fprintf(fd, "OSS device options:\n"
       "  --oss <device> Build a deck connected to OSS audio device\n"
       "  --rate <hz>    Sample rate (default 48000Hz)\n"
-      "  -b <n>         Number of buffers (default %d)\n"
-      "  -f <n>         Buffer size to request (2^n bytes, default %d)\n\n",
+      "  --oss-buffers <n>  Number of buffers (default %d)\n"
+      "  --oss-fragment <n>  Buffer size to request (2^n bytes, default %d)\n\n",
       DEFAULT_OSS_BUFFERS, DEFAULT_OSS_FRAGMENT);
 #endif
 
@@ -275,13 +275,17 @@ int main(int argc, const char *argv[])
         deprecated(&argv[0], "-q", "--rtprio");
         deprecated(&argv[0], "-t", "--timecode");
         deprecated(&argv[0], "-u", "--no-protect");
+#ifdef WITH_OSS
+        deprecated(&argv[0], "-b", "--oss-buffers");
+        deprecated(&argv[0], "-f", "--oss-fragment");
+#endif
 
         if (!strcmp(argv[0], "-h") || !strcmp(argv[0], "--help")) {
             usage(stdout);
             return 0;
 
 #ifdef WITH_OSS
-        } else if (!strcmp(argv[0], "-f")) {
+        } else if (!strcmp(argv[0], "--oss-fragment")) {
 
             /* Set fragment size for subsequent devices */
 
@@ -308,18 +312,18 @@ int main(int argc, const char *argv[])
             argv += 2;
             argc -= 2;
 
-        } else if (!strcmp(argv[0], "-b")) {
+        } else if (!strcmp(argv[0], "--oss-buffers")) {
 
             /* Set number of buffers for subsequent devices */
 
             if (argc < 2) {
-                fprintf(stderr, "-b requires an integer argument.\n");
+                fprintf(stderr, "%s requires an integer argument.\n", argv[0]);
                 return -1;
             }
 
             oss_buffers = strtol(argv[1], &endptr, 10);
             if (*endptr != '\0') {
-                fprintf(stderr, "-b requires an integer argument.\n");
+                fprintf(stderr, "%s requires an integer argument.\n", argv[0]);
                 return -1;
             }
 

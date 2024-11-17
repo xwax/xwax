@@ -133,11 +133,13 @@ Create a deck which uses the given OSS device (eg. /dev/dsp).
 Set the sample rate for subsequent decks. The default for OSS devices
 is 48000Hz.
 .TP
-.B \-b \fIn\fR
-Set the number of OSS buffers for subsequent decks.
+.B \-\-oss\-buffers \fIn\fR
+Set the number of buffers used by the OSS device. Applies to
+subsequent decks.
 .TP
-.B \-f \fIn\fR
-Set the OSS buffer size (2^n bytes).
+.B \-\-oss\-fragment \fIn\fR
+Set the size of a buffer used by the OSS device. The actual buffer is
+2^n bytes. Applies to subsequent decks.
 .SH HARDWARE CONTROLLER OPTIONS
 .P
 The following options are available only when xwax is compiled
