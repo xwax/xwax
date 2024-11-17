@@ -101,7 +101,7 @@ static void usage(FILE *fd)
 
 #ifdef WITH_OSS
     fprintf(fd, "OSS device options:\n"
-      "  -d <device>    Build a deck connected to OSS audio device\n"
+      "  --oss <device> Build a deck connected to OSS audio device\n"
       "  --rate <hz>    Sample rate (default 48000Hz)\n"
       "  -b <n>         Number of buffers (default %d)\n"
       "  -f <n>         Buffer size to request (2^n bytes, default %d)\n\n",
@@ -110,7 +110,7 @@ static void usage(FILE *fd)
 
 #ifdef WITH_ALSA
     fprintf(fd, "ALSA device options:\n"
-      "  -a <device>    Build a deck connected to ALSA audio device\n"
+      "  --alsa <device>  Build a deck connected to ALSA audio device\n"
       "  --rate <hz>    Sample rate (default is automatic)\n"
       "  --buffer <n>   Buffer size (default %d samples)\n\n",
       DEFAULT_ALSA_BUFFER);
@@ -118,7 +118,7 @@ static void usage(FILE *fd)
 
 #ifdef WITH_JACK
     fprintf(fd, "JACK device options:\n"
-      "  -j <name>      Create a JACK deck with the given name\n\n");
+      "  --jack <name>  Create a JACK deck with the given name\n\n");
 #endif
 
 #ifdef WITH_ALSA
@@ -143,7 +143,7 @@ static void deprecated(const char **arg, const char *old, const char *new)
     if (strcmp(*arg, old))
         return;
 
-    fprintf(stderr, "'%s' is deprecated; using '%s'\n", old, new);
+    fprintf(stderr, "Command line flag '%s' is deprecated; using '%s'\n", old, new);
     *arg = new;
 }
 
@@ -267,6 +267,9 @@ int main(int argc, const char *argv[])
     argc--;
 
     while (argc > 0) {
+        deprecated(&argv[0], "-a", "--alsa");
+        deprecated(&argv[0], "-d", "--oss");
+        deprecated(&argv[0], "-j", "--jack");
 
         if (!strcmp(argv[0], "-h")) {
             usage(stdout);
@@ -371,8 +374,8 @@ int main(int argc, const char *argv[])
             argc -= 2;
 #endif
 
-        } else if (!strcmp(argv[0], "-d") || !strcmp(argv[0], "-a") ||
-		  !strcmp(argv[0], "-j"))
+        } else if (!strcmp(argv[0], "--oss") || !strcmp(argv[0], "--alsa") ||
+		  !strcmp(argv[0], "--jack"))
 	{
             int r;
             struct device *device;
@@ -392,10 +395,10 @@ int main(int argc, const char *argv[])
             /* Work out which device type we are using, and initialise
              * an appropriate device. */
 
-            switch(argv[0][1]) {
+            switch(argv[0][2]) {
 
 #ifdef WITH_OSS
-            case 'd':
+            case 'o':
                 r = oss_init(device, argv[1], rate ? rate : 48000,
                              oss_buffers, oss_fragment);
                 break;
@@ -411,8 +414,8 @@ int main(int argc, const char *argv[])
                 break;
 #endif
             default:
-                fprintf(stderr, "Device type is not supported by this "
-                        "distribution of xwax.\n");
+                fprintf(stderr, "Device '%s' is not supported by this "
+                        "distribution of xwax.\n", argv[0]);
                 return -1;
             }
 
