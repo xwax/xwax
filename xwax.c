@@ -75,11 +75,11 @@ static void usage(FILE *fd)
     fprintf(fd, "Usage: xwax [<options>]\n\n");
 
     fprintf(fd, "Program-wide options:\n"
-      "  --lock-ram     Lock real-time memory into RAM\n"
-      "  --rtprio <n>   Real-time priority (0 for no priority, default %d)\n"
-      "  --geometry <s>  Set display geometry (see man page)\n"
-      "  --no-decor     Request a window with no decorations\n"
-      "  -h, --help     Display this message to stdout and exit\n\n",
+      "  --lock-ram          Lock real-time memory into RAM\n"
+      "  --rtprio <n>        Real-time priority (0 for no priority, default %d)\n"
+      "  --geometry <s>      Set display geometry (see man page)\n"
+      "  --no-decor          Request a window with no decorations\n"
+      "  -h, --help          Display this message to stdout and exit\n\n",
       DEFAULT_PRIORITY);
 
     fprintf(fd, "Music library options:\n"
@@ -88,41 +88,41 @@ static void usage(FILE *fd)
       DEFAULT_SCANNER);
 
     fprintf(fd, "Deck options:\n"
-      "  --timecode <name>  Timecode name\n"
-      "  --33           Use timecode at 33.3RPM (default)\n"
-      "  --45           Use timecode at 45RPM\n"
-      "  --[no-]protect   Protect against certain operations while playing\n"
-      "  --line         Line level signal (default)\n"
-      "  --phono        Tolerate cartridge level signal ('software pre-amp')\n"
+      "  --timecode <name>   Timecode name\n"
+      "  --33                Use timecode at 33.3RPM (default)\n"
+      "  --45                Use timecode at 45RPM\n"
+      "  --[no-]protect      Protect against certain operations while playing\n"
+      "  --line              Line level signal (default)\n"
+      "  --phono             Tolerate cartridge level signal ('software pre-amp')\n"
       "  --import <program>  Track importer (default '%s')\n"
-      "  --dummy        Build a dummy deck with no audio device\n\n",
+      "  --dummy             Build a dummy deck with no audio device\n\n",
       DEFAULT_IMPORTER);
 
 #ifdef WITH_OSS
     fprintf(fd, "OSS device options:\n"
-      "  --oss <device> Build a deck connected to OSS audio device\n"
-      "  --rate <hz>    Sample rate (default 48000Hz)\n"
-      "  --oss-buffers <n>  Number of buffers (default %d)\n"
+      "  --oss <device>      Build a deck connected to OSS audio device\n"
+      "  --rate <hz>         Sample rate (default 48000Hz)\n"
+      "  --oss-buffers <n>   Number of buffers (default %d)\n"
       "  --oss-fragment <n>  Buffer size to request (2^n bytes, default %d)\n\n",
       DEFAULT_OSS_BUFFERS, DEFAULT_OSS_FRAGMENT);
 #endif
 
 #ifdef WITH_ALSA
     fprintf(fd, "ALSA device options:\n"
-      "  --alsa <device>  Build a deck connected to ALSA audio device\n"
-      "  --rate <hz>    Sample rate (default is automatic)\n"
-      "  --buffer <n>   Buffer size (default %d samples)\n\n",
+      "  --alsa <device>     Build a deck connected to ALSA audio device\n"
+      "  --rate <hz>         Sample rate (default is automatic)\n"
+      "  --buffer <n>        Buffer size (default %d samples)\n\n",
       DEFAULT_ALSA_BUFFER);
 #endif
 
 #ifdef WITH_JACK
     fprintf(fd, "JACK device options:\n"
-      "  --jack <name>  Create a JACK deck with the given name\n\n");
+      "  --jack <name>       Create a JACK deck with the given name\n\n");
 #endif
 
 #ifdef WITH_ALSA
     fprintf(fd, "MIDI control:\n"
-      "  --dicer <dev>   Novation Dicer\n\n");
+      "  --dicer <device>    Novation Dicer\n\n");
 #endif
 
     fprintf(fd,
