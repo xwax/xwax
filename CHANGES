@@ -1,3 +1,4 @@
+* Introduce long command line flags for readability
 * Migrate from SDL version 1 to version 2
 * Fix a bug which imported non-stereo files incorrectly
 
