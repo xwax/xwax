@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Mark Hills <mark@xwax.org>
+ * Copyright (C) 2025 Mark Hills <mark@xwax.org>
  *
  * This file is part of "xwax".
  *
@@ -30,7 +30,7 @@
 #include <stdlib.h>
 
 #define BANNER "xwax timecode generator " \
-    "(C) Copyright 2024 Mark Hills <mark@xwax.org>"
+    "(C) Copyright 2025 Mark Hills <mark@xwax.org>"
 
 #define RATE 44100
 #define RESOLUTION 4000
