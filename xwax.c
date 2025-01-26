@@ -514,7 +514,7 @@ int main(int argc, const char *argv[])
             argv++;
             argc--;
 
-        } else if (!strcmp(argv[0], "-k")) {
+        } else if (!strcmp(argv[0], "--lock-ram")) {
 
             use_mlock = true;
             track_use_mlock();
@@ -522,16 +522,16 @@ int main(int argc, const char *argv[])
             argv++;
             argc--;
 
-        } else if (!strcmp(argv[0], "-q")) {
+        } else if (!strcmp(argv[0], "--rtprio")) {
 
             if (argc < 2) {
-                fprintf(stderr, "-q requires an integer argument.\n");
+                fprintf(stderr, "--rtprio requires an integer argument.\n");
                 return -1;
             }
 
             priority = strtol(argv[1], &endptr, 10);
             if (*endptr != '\0') {
-                fprintf(stderr, "-q requires an integer argument.\n");
+                fprintf(stderr, "--rtprio requires an integer argument.\n");
                 return -1;
             }
 
