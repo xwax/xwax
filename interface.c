@@ -635,7 +635,7 @@ static void draw_bpm(SDL_Surface *surface, const struct rect *rect, double bpm,
     f -= floor(f);
     h = f * 360.0; /* degrees */
 
-    draw_token(surface, rect, buf, text_col, hsv(h, 1.0, 0.3), bg_col);
+    draw_token(surface, rect, buf, text_col, hsv(h, 1.0, 0.5), bg_col);
 }
 
 /*
