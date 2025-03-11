@@ -1813,7 +1813,7 @@ static void* launch(void *p)
  *   +10+10
  *   960x720+10+10
  *   /1.6
- *   1920x1200@1.6
+ *   1920x1200/1.6
  *
  * Return: -1 if string could not be actioned, otherwise 0
  */
