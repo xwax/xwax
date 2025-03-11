@@ -315,6 +315,9 @@ static TTF_Font* open_font(const char *name, int size) {
             font = TTF_OpenFont(buf, pt);
             if (!font)
                 fprintf(stderr, "Font error: %s\n", TTF_GetError());
+
+            TTF_SetFontHinting(font, TTF_HINTING_NONE);
+
             return font; /* or NULL */
         }
 
