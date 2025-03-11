@@ -51,29 +51,29 @@
 /* Font definitions */
 
 #define FONT "DejaVuSans.ttf"
-#define FONT_SIZE 10
-#define FONT_SPACE 15
+#define FONT_SIZE 16
+#define FONT_SPACE 24
 
 #define EM_FONT "DejaVuSans-Oblique.ttf"
 
 #define BIG_FONT "DejaVuSans-Bold.ttf"
-#define BIG_FONT_SIZE 14
-#define BIG_FONT_SPACE 19
+#define BIG_FONT_SIZE 22
+#define BIG_FONT_SPACE 30
 
 #define CLOCK_FONT FONT
-#define CLOCK_FONT_SIZE 32
+#define CLOCK_FONT_SIZE 52
 
 #define DECI_FONT FONT
-#define DECI_FONT_SIZE 20
+#define DECI_FONT_SIZE 32
 
 #define DETAIL_FONT "DejaVuSansMono-Bold.ttf"
-#define DETAIL_FONT_SIZE 9
-#define DETAIL_FONT_SPACE 12
+#define DETAIL_FONT_SIZE 15
+#define DETAIL_FONT_SPACE 19
 
 /* Screen size (pixels) */
 
-#define DEFAULT_WIDTH 960
-#define DEFAULT_HEIGHT 720
+#define DEFAULT_WIDTH 1280
+#define DEFAULT_HEIGHT 960
 
 /* Relationship between pixels and screen units */
 
@@ -81,17 +81,17 @@
 
 /* Dimensions in our own screen units */
 
-#define BORDER 12
-#define SPACER 8
-#define HALF_SPACER 4
+#define BORDER 18
+#define SPACER 14
+#define HALF_SPACER 7
 
-#define CURSOR_WIDTH 4
+#define CURSOR_WIDTH 6
 
-#define PLAYER_HEIGHT 213
-#define OVERVIEW_HEIGHT 16
+#define PLAYER_HEIGHT 340
+#define OVERVIEW_HEIGHT 26
 
-#define LIBRARY_MIN_WIDTH 64
-#define LIBRARY_MIN_HEIGHT 64
+#define LIBRARY_MIN_WIDTH 102
+#define LIBRARY_MIN_HEIGHT 102
 
 #define DEFAULT_METER_SCALE 8
 
@@ -100,18 +100,18 @@
 #define SEARCH_HEIGHT (FONT_SPACE)
 #define STATUS_HEIGHT (DETAIL_FONT_SPACE)
 
-#define BPM_WIDTH 32
-#define SORT_WIDTH 21
-#define RESULTS_ARTIST_WIDTH 200
+#define BPM_WIDTH 52
+#define SORT_WIDTH 33
+#define RESULTS_ARTIST_WIDTH 320
 
-#define TOKEN_SPACE 2
+#define TOKEN_SPACE 3
 
-#define CLOCKS_WIDTH 160
+#define CLOCKS_WIDTH 256
 
 #define SPINNER_SIZE (CLOCK_FONT_SIZE * 2 - 6)
 #define SCOPE_SIZE (CLOCK_FONT_SIZE * 2 - 6)
 
-#define SCROLLBAR_SIZE 10
+#define SCROLLBAR_SIZE 16
 
 #define METER_WARNING_TIME 20 /* time in seconds for "red waveform" warning */
 
