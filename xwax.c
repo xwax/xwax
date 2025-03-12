@@ -72,7 +72,7 @@ static struct timecode_def *timecode;
 
 static void usage(FILE *fd)
 {
-    fprintf(fd, "Usage: xwax [<options>]\n\n");
+    fprintf(fd, "Usage: xwax [<options>] [-- <path> ...]\n\n");
 
     fprintf(fd, "Program-wide options:\n"
       "  --lock-ram          Lock real-time memory into RAM\n"
@@ -634,10 +634,24 @@ int main(int argc, const char *argv[])
             argc -= 2;
 #endif
 
+        } else if (!strcmp(argv[0], "--")) {
+            argv++;
+            argc--;
+
+            break;
+
         } else {
             fprintf(stderr, "'%s' argument is unknown; try -h.\n", argv[0]);
             return -1;
         }
+    }
+
+    while (argc > 0) {
+        if (library_import(&library, scanner, argv[0]) == -1)
+            return -1;
+
+        argv++;
+        argc--;
     }
 
 #ifdef WITH_ALSA

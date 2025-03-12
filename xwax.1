@@ -4,7 +4,7 @@
 xwax \- Digital vinyl on Linux
 .SH SYNOPSIS
 .B xwax
-[\fIoptions\fR]
+[\fIoptions\fR] [-- \fIpath\fR ...]
 .SH DESCRIPTION
 .P
 xwax is vinyl emulation software for Linux. It allows DJs and
@@ -21,7 +21,10 @@ below.
 .TP
 .B \-l, \-\-crate \fIpath\fR
 Scan for tracks or playlist at the given path. Tracks are grouped into
-a crate in the music library.
+a crate in the music library. Paths can also be given at the end of the
+command, after a
+.B \-\-
+argument.
 .TP
 .B \-\-timecode \fIname\fR
 Use the named timecode for subsequent decks. See
@@ -280,6 +283,19 @@ Scan multiple music libraries:
 .sp
 .RS
 xwax \-\-crate ~/music \-\-crate ~/sounds \-\-crate ~/mixes \-\-alsa hw:0
+.RE
+.P
+A shorter form of the above which can also be easier to script:
+.sp
+.RS
+xwax \-\-alsa hw:0 -- ~/music ~/sounds ~/mixes
+.RE
+.P
+Load all subdirectories and put each one in its own crate, with support
+from the shell wildcard operator:
+.sp
+.RS
+xwax \-\-alsa hw:0 -- ~/music/*
 .RE
 .P
 Scan a second music library using a custom script:
