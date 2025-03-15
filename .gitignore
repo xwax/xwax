@@ -13,6 +13,7 @@ tests/library
 tests/midi
 tests/observer
 tests/scan-bpm
+tests/status
 tests/timecoder
 tests/track
 tests/ttf
