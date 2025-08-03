@@ -182,7 +182,7 @@ static void pcm_close(struct alsa_pcm *alsa)
 
 
 static ssize_t pcm_pollfds(struct alsa_pcm *alsa, struct pollfd *pe,
-			   size_t z)
+                           size_t z)
 {
     int r, count;
 

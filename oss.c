@@ -157,7 +157,7 @@ static struct device_ops oss_ops = {
 
 
 int oss_init(struct device *dv, const char *filename, unsigned int rate,
-	     unsigned short buffers, unsigned short fragment)
+             unsigned short buffers, unsigned short fragment)
 {
     int p, fd;
     struct oss *oss;
