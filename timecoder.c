@@ -229,7 +229,7 @@ static int build_lookup(struct timecode_def *def)
             def->bits, def->resolution, def->desc);
 
     if (lut_init(&def->lut, def->length) == -1)
-	return -1;
+        return -1;
 
     current = def->seed;
 
@@ -461,23 +461,23 @@ static void process_bitstream(struct timecoder *tc, signed int m)
      * the vinyl, regardless of the direction. */
 
     if (tc->forwards) {
-	tc->timecode = fwd(tc->timecode, tc->def);
-	tc->bitstream = (tc->bitstream >> 1)
-	    + (b << (tc->def->bits - 1));
+        tc->timecode = fwd(tc->timecode, tc->def);
+        tc->bitstream = (tc->bitstream >> 1)
+            + (b << (tc->def->bits - 1));
 
     } else {
-	bits_t mask;
+        bits_t mask;
 
-	mask = ((1 << tc->def->bits) - 1);
-	tc->timecode = rev(tc->timecode, tc->def);
-	tc->bitstream = ((tc->bitstream << 1) & mask) + b;
+        mask = ((1 << tc->def->bits) - 1);
+        tc->timecode = rev(tc->timecode, tc->def);
+        tc->bitstream = ((tc->bitstream << 1) & mask) + b;
     }
 
     if (tc->timecode == tc->bitstream)
-	tc->valid_counter++;
+        tc->valid_counter++;
     else {
-	tc->timecode = tc->bitstream;
-	tc->valid_counter = 0;
+        tc->timecode = tc->bitstream;
+        tc->valid_counter = 0;
     }
 
     /* Take note of the last time we read a valid timecode */
@@ -492,8 +492,8 @@ static void process_bitstream(struct timecoder *tc, signed int m)
     debug("%+6d zero, %+6d (ref %+6d)\t= %d%c (%5d)",
           tc->primary.zero,
           m, tc->ref_level,
-	  b, tc->valid_counter == 0 ? 'x' : ' ',
-	  tc->valid_counter);
+          b, tc->valid_counter == 0 ? 'x' : ' ',
+          tc->valid_counter);
 }
 
 /*
@@ -504,7 +504,7 @@ static void process_bitstream(struct timecoder *tc, signed int m)
  */
 
 static void process_sample(struct timecoder *tc,
-			   signed int primary, signed int secondary)
+                           signed int primary, signed int secondary)
 {
     detect_zero_crossing(&tc->primary, primary, tc->zero_alpha, tc->threshold);
     detect_zero_crossing(&tc->secondary, secondary, tc->zero_alpha, tc->threshold);
@@ -522,7 +522,7 @@ static void process_sample(struct timecoder *tc,
         }
 
         if (tc->def->flags & SWITCH_PHASE)
-	    forwards = !forwards;
+            forwards = !forwards;
 
         if (forwards != tc->forwards) { /* direction has changed */
             tc->forwards = forwards;
@@ -534,14 +534,14 @@ static void process_sample(struct timecoder *tc,
      * counters */
 
     if (!tc->primary.swapped && !tc->secondary.swapped)
-	pitch_dt_observation(&tc->pitch, 0.0);
+        pitch_dt_observation(&tc->pitch, 0.0);
     else {
-	double dx;
+        double dx;
 
-	dx = 1.0 / tc->def->resolution / 4;
-	if (!tc->forwards)
-	    dx = -dx;
-	pitch_dt_observation(&tc->pitch, dx);
+        dx = 1.0 / tc->def->resolution / 4;
+        if (!tc->forwards)
+            dx = -dx;
+        pitch_dt_observation(&tc->pitch, dx);
     }
 
     /* If we have crossed the primary channel in the right polarity,
@@ -554,7 +554,7 @@ static void process_sample(struct timecoder *tc,
 
         /* scale to avoid clipping */
         m = abs(primary / 2 - tc->primary.zero / 2);
-	process_bitstream(tc, m);
+        process_bitstream(tc, m);
     }
 
     tc->timecode_ticker++;
@@ -601,7 +601,7 @@ void timecoder_cycle_definition(struct timecoder *tc)
 void timecoder_submit(struct timecoder *tc, signed short *pcm, size_t npcm)
 {
     while (npcm--) {
-	signed int left, right, primary, secondary;
+        signed int left, right, primary, secondary;
 
         left = pcm[0] << 16;
         right = pcm[1] << 16;
@@ -614,7 +614,7 @@ void timecoder_submit(struct timecoder *tc, signed short *pcm, size_t npcm)
             secondary = left;
         }
 
-	process_sample(tc, primary, secondary);
+        process_sample(tc, primary, secondary);
         update_monitor(tc, left, right);
 
         pcm += TIMECODER_CHANNELS;
