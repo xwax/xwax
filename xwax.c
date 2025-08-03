@@ -388,8 +388,8 @@ int main(int argc, const char *argv[])
 #endif
 
         } else if (!strcmp(argv[0], "--oss") || !strcmp(argv[0], "--alsa") ||
-		  !strcmp(argv[0], "--jack"))
-	{
+                  !strcmp(argv[0], "--jack"))
+        {
             int r;
             struct device *device;
 
