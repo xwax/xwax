@@ -12,6 +12,7 @@ tests/external
 tests/library
 tests/midi
 tests/observer
+tests/status
 tests/scan-bpm
 tests/timecoder
 tests/track
