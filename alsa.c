@@ -36,7 +36,7 @@ struct alsa_pcm {
     struct pollfd *pe;
     size_t pe_count; /* number of pollfd entries */
 
-    int rate;
+    unsigned int rate;
 };
 
 
@@ -63,31 +63,25 @@ static bool chk(const char *s, int r)
 }
 
 
-/* "rate" of zero means automatically select an appropriate rate */
-
-static int pcm_open(struct alsa_pcm *alsa, const char *device_name,
-                    snd_pcm_stream_t stream, unsigned int rate, int buffer)
+static int set_hw(snd_pcm_t *pcm, snd_pcm_stream_t stream,
+                  unsigned int *rate, int buffer)
 {
     int r, dir;
     snd_pcm_hw_params_t *hw_params;
     snd_pcm_uframes_t frames;
 
-    r = snd_pcm_open(&alsa->pcm, device_name, stream, SND_PCM_NONBLOCK);
-    if (!chk("open", r))
-        return -1;
-
     snd_pcm_hw_params_alloca(&hw_params);
 
-    r = snd_pcm_hw_params_any(alsa->pcm, hw_params);
+    r = snd_pcm_hw_params_any(pcm, hw_params);
     if (!chk("hw_params_any", r))
         return -1;
 
-    r = snd_pcm_hw_params_set_access(alsa->pcm, hw_params,
+    r = snd_pcm_hw_params_set_access(pcm, hw_params,
                                      SND_PCM_ACCESS_MMAP_INTERLEAVED);
     if (!chk("hw_params_set_access", r))
         return -1;
 
-    r = snd_pcm_hw_params_set_format(alsa->pcm, hw_params, SND_PCM_FORMAT_S16);
+    r = snd_pcm_hw_params_set_format(pcm, hw_params, SND_PCM_FORMAT_S16);
     if (!chk("hw_params_set_format", r)) {
         fprintf(stderr, "16-bit signed format is not available. "
                 "You may need to use a 'plughw' device.\n");
@@ -99,15 +93,15 @@ static int pcm_open(struct alsa_pcm *alsa, const char *device_name,
      * This is even if a 'plug' device is used, which effectively lets
      * the user unknowingly select any sample rate. */
 
-    r = snd_pcm_hw_params_set_rate_resample(alsa->pcm, hw_params, 0);
+    r = snd_pcm_hw_params_set_rate_resample(pcm, hw_params, 0);
     if (!chk("hw_params_set_rate_resample", r))
         return -1;
 
-    if (rate) {
-        r = snd_pcm_hw_params_set_rate(alsa->pcm, hw_params, rate, 0);
+    if (*rate) {
+        r = snd_pcm_hw_params_set_rate(pcm, hw_params, *rate, 0);
         if (!chk("hw_params_set_rate", r)) {
             fprintf(stderr, "Sample rate of %dHz is not implemented by the hardware.\n",
-                    rate);
+                    *rate);
             return -1;
         }
 
@@ -118,18 +112,16 @@ static int pcm_open(struct alsa_pcm *alsa, const char *device_name,
          * a fixed sample rate anyway. */
 
         dir = -1;
-        rate = 48000;
+        *rate = 48000;
 
-        r = snd_pcm_hw_params_set_rate_near(alsa->pcm, hw_params, &rate, &dir);
+        r = snd_pcm_hw_params_set_rate_near(pcm, hw_params, rate, &dir);
         if (!chk("hw_params_set_rate_near", r))
             return -1;
 
         /* "rate" is set on return */
     }
 
-    alsa->rate = rate;
-
-    r = snd_pcm_hw_params_set_channels(alsa->pcm, hw_params, DEVICE_CHANNELS);
+    r = snd_pcm_hw_params_set_channels(pcm, hw_params, DEVICE_CHANNELS);
     if (!chk("hw_params_set_channels", r)) {
         fprintf(stderr, "%d channel audio not available on this device.\n",
                 DEVICE_CHANNELS);
@@ -140,21 +132,21 @@ static int pcm_open(struct alsa_pcm *alsa, const char *device_name,
      * likely to be the primary application running, so assume we want
      * the hardware to be giving us immediate wakeups */
 
-    r = snd_pcm_hw_params_set_period_size_first(alsa->pcm, hw_params, &frames, &dir);
+    r = snd_pcm_hw_params_set_period_size_first(pcm, hw_params, &frames, &dir);
     if (!chk("hw_params_set_buffer_time_near", r))
         return -1;
 
     switch (stream) {
     case SND_PCM_STREAM_CAPTURE:
         /* Maximum buffer to minimise drops */
-        r = snd_pcm_hw_params_set_buffer_size_last(alsa->pcm, hw_params, &frames);
+        r = snd_pcm_hw_params_set_buffer_size_last(pcm, hw_params, &frames);
         if (!chk("hw_params_set_buffer_size_last", r))
             return -1;
         break;
 
     case SND_PCM_STREAM_PLAYBACK:
         /* Smallest possible buffer to keep latencies low */
-        r = snd_pcm_hw_params_set_buffer_size(alsa->pcm, hw_params, buffer);
+        r = snd_pcm_hw_params_set_buffer_size(pcm, hw_params, buffer);
         if (!chk("hw_params_set_buffer_size", r)) {
             fprintf(stderr, "Buffer of %u samples is probably too small; try increasing it with --buffer\n",
                     buffer);
@@ -166,8 +158,29 @@ static int pcm_open(struct alsa_pcm *alsa, const char *device_name,
         abort();
     }
 
-    r = snd_pcm_hw_params(alsa->pcm, hw_params);
+    r = snd_pcm_hw_params(pcm, hw_params);
     if (!chk("hw_params", r))
+        return -1;
+
+    return 0;
+}
+
+
+/* "rate" of zero means automatically select an appropriate rate.
+ * "buffer" size in frames */
+
+static int pcm_open(struct alsa_pcm *alsa, const char *device_name,
+                    snd_pcm_stream_t stream, unsigned int rate, int buffer)
+{
+    int r;
+
+    r = snd_pcm_open(&alsa->pcm, device_name, stream, SND_PCM_NONBLOCK);
+    if (!chk("open", r))
+        return -1;
+
+    alsa->rate = rate;
+
+    if (set_hw(alsa->pcm, stream, &alsa->rate, buffer) < 0)
         return -1;
 
     return 0;
