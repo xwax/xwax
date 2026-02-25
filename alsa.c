@@ -52,18 +52,24 @@ static void alsa_error(const char *msg, int r)
 }
 
 
-static bool chk(const char *s, int r)
+static bool _check(const char *s, int r)
 {
-    if (r < 0) {
-        alsa_error(s, r);
-        return false;
-    } else {
-        return true;
-    }
+    alsa_error(s, r);
+    return true;
 }
 
 
-static int set_hw(snd_pcm_t *pcm, snd_pcm_stream_t stream,
+/* Macro complexity is undesirable, but paying the price here makes
+ * repeated handling of ALSA errors clear and concise */
+
+#define CHECK(name, r) \
+    for (bool _x = false; r < 0 && (_x || _check(name, r)); _x = true)  \
+        if (_x) \
+            return false; \
+        else /* custom failure code run before return */
+
+
+static bool set_hw(snd_pcm_t *pcm, snd_pcm_stream_t stream,
                   unsigned int *rate, int buffer)
 {
     int r, dir;
@@ -73,19 +79,16 @@ static int set_hw(snd_pcm_t *pcm, snd_pcm_stream_t stream,
     snd_pcm_hw_params_alloca(&hw_params);
 
     r = snd_pcm_hw_params_any(pcm, hw_params);
-    if (!chk("hw_params_any", r))
-        return -1;
+    CHECK("hw_params_any", r);
 
     r = snd_pcm_hw_params_set_access(pcm, hw_params,
                                      SND_PCM_ACCESS_MMAP_INTERLEAVED);
-    if (!chk("hw_params_set_access", r))
-        return -1;
+    CHECK("hw_params_set_access", r);
 
     r = snd_pcm_hw_params_set_format(pcm, hw_params, SND_PCM_FORMAT_S16);
-    if (!chk("hw_params_set_format", r)) {
+    CHECK("hw_params_set_format", r) {
         fprintf(stderr, "16-bit signed format is not available. "
                 "You may need to use a 'plughw' device.\n");
-        return -1;
     }
 
     /* Prevent accidentally introducing excess resamplers. There is
@@ -94,15 +97,13 @@ static int set_hw(snd_pcm_t *pcm, snd_pcm_stream_t stream,
      * the user unknowingly select any sample rate. */
 
     r = snd_pcm_hw_params_set_rate_resample(pcm, hw_params, 0);
-    if (!chk("hw_params_set_rate_resample", r))
-        return -1;
+    CHECK("hw_params_set_rate_resample", r);
 
     if (*rate) {
         r = snd_pcm_hw_params_set_rate(pcm, hw_params, *rate, 0);
-        if (!chk("hw_params_set_rate", r)) {
+        CHECK("hw_params_set_rate", r) {
             fprintf(stderr, "Sample rate of %dHz is not implemented by the hardware.\n",
                     *rate);
-            return -1;
         }
 
     } else {
@@ -115,17 +116,15 @@ static int set_hw(snd_pcm_t *pcm, snd_pcm_stream_t stream,
         *rate = 48000;
 
         r = snd_pcm_hw_params_set_rate_near(pcm, hw_params, rate, &dir);
-        if (!chk("hw_params_set_rate_near", r))
-            return -1;
+        CHECK("hw_params_set_rate_near", r);
 
         /* "rate" is set on return */
     }
 
     r = snd_pcm_hw_params_set_channels(pcm, hw_params, DEVICE_CHANNELS);
-    if (!chk("hw_params_set_channels", r)) {
+    CHECK("hw_params_set_channels", r) {
         fprintf(stderr, "%d channel audio not available on this device.\n",
                 DEVICE_CHANNELS);
-        return -1;
     }
 
     /* This is fundamentally a latency-sensitive application that is
@@ -133,24 +132,21 @@ static int set_hw(snd_pcm_t *pcm, snd_pcm_stream_t stream,
      * the hardware to be giving us immediate wakeups */
 
     r = snd_pcm_hw_params_set_period_size_first(pcm, hw_params, &frames, &dir);
-    if (!chk("hw_params_set_buffer_time_near", r))
-        return -1;
+    CHECK("hw_params_set_buffer_time_near", r);
 
     switch (stream) {
     case SND_PCM_STREAM_CAPTURE:
         /* Maximum buffer to minimise drops */
         r = snd_pcm_hw_params_set_buffer_size_last(pcm, hw_params, &frames);
-        if (!chk("hw_params_set_buffer_size_last", r))
-            return -1;
+        CHECK("hw_params_set_buffer_size_last", r);
         break;
 
     case SND_PCM_STREAM_PLAYBACK:
         /* Smallest possible buffer to keep latencies low */
         r = snd_pcm_hw_params_set_buffer_size(pcm, hw_params, buffer);
-        if (!chk("hw_params_set_buffer_size", r)) {
+        CHECK("hw_params_set_buffer_size", r) {
             fprintf(stderr, "Buffer of %u samples is probably too small; try increasing it with --buffer\n",
                     buffer);
-            return -1;
         }
         break;
 
@@ -159,10 +155,9 @@ static int set_hw(snd_pcm_t *pcm, snd_pcm_stream_t stream,
     }
 
     r = snd_pcm_hw_params(pcm, hw_params);
-    if (!chk("hw_params", r))
-        return -1;
+    CHECK("hw_params", r);
 
-    return 0;
+    return true;
 }
 
 
@@ -175,12 +170,14 @@ static int pcm_open(struct alsa_pcm *alsa, const char *device_name,
     int r;
 
     r = snd_pcm_open(&alsa->pcm, device_name, stream, SND_PCM_NONBLOCK);
-    if (!chk("open", r))
+    if (r < 0) {
+        alsa_error("open", r);
         return -1;
+    }
 
     alsa->rate = rate;
 
-    if (set_hw(alsa->pcm, stream, &alsa->rate, buffer) < 0)
+    if (!set_hw(alsa->pcm, stream, &alsa->rate, buffer))
         return -1;
 
     return 0;
