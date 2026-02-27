@@ -70,6 +70,15 @@ static bool _check(const char *s, int r)
         else /* custom failure code run before return */
 
 
+/*
+ * Set ALSA "hardware" parameters
+ *
+ * These control buffer sizes and other things in the chain
+ * beyond this application.
+ *
+ * A "buffer" of 0 uses the device's maximum.
+ */
+
 static bool set_hw(snd_pcm_t *pcm, snd_pcm_stream_t stream,
                    unsigned int *rate,
                    snd_pcm_uframes_t buffer)
@@ -129,32 +138,26 @@ static bool set_hw(snd_pcm_t *pcm, snd_pcm_stream_t stream,
                 DEVICE_CHANNELS);
     }
 
+    /* Declare buffer size first, attempting to ensure it is not
+     * constrained by the period size */
+
+    if (!buffer) {
+        r = snd_pcm_hw_params_set_buffer_size_last(pcm, hw_params, &frames);
+        CHECK("hw_params_set_buffer_size_last", r);
+    } else {
+        r = snd_pcm_hw_params_set_buffer_size(pcm, hw_params, buffer);
+        CHECK("hw_params_set_buffer_size", r) {
+            fprintf(stderr, "Buffer of %lu samples is probably too small; try increasing it with --buffer\n",
+                    buffer);
+        }
+    }
+
     /* This is fundamentally a latency-sensitive application that is
      * likely to be the primary application running, so assume we want
      * the hardware to be giving us immediate wakeups */
 
     r = snd_pcm_hw_params_set_period_size_first(pcm, hw_params, &frames, &dir);
     CHECK("hw_params_set_buffer_time_near", r);
-
-    switch (stream) {
-    case SND_PCM_STREAM_CAPTURE:
-        /* Maximum buffer to minimise drops */
-        r = snd_pcm_hw_params_set_buffer_size_last(pcm, hw_params, &frames);
-        CHECK("hw_params_set_buffer_size_last", r);
-        break;
-
-    case SND_PCM_STREAM_PLAYBACK:
-        /* Smallest possible buffer to keep latencies low */
-        r = snd_pcm_hw_params_set_buffer_size(pcm, hw_params, buffer);
-        CHECK("hw_params_set_buffer_size", r) {
-            fprintf(stderr, "Buffer of %lu samples is probably too small; try increasing it with --buffer\n",
-                    buffer);
-        }
-        break;
-
-    default:
-        abort();
-    }
 
     r = snd_pcm_hw_params(pcm, hw_params);
     CHECK("hw_params", r);
@@ -524,7 +527,7 @@ int alsa_init(struct device *dv, const char *device_name,
     alsa->written = 0;
 
     if (pcm_open(&alsa->capture, device_name, SND_PCM_STREAM_CAPTURE,
-                rate, buffer) < 0)
+                rate, 0) < 0)
     {
         fputs("Failed to open device for capture.\n", stderr);
         goto fail;
