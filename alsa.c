@@ -17,6 +17,7 @@
  *
  */
 
+#include <limits.h>
 #include <poll.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -162,6 +163,46 @@ static bool set_hw(snd_pcm_t *pcm, snd_pcm_stream_t stream,
 }
 
 
+/*
+ * Set ALSA's "software" parameters
+ *
+ * These control when ALSA invokes certain actions, and there are no
+ * reasonable defaults documented.
+ */
+
+static bool set_sw(snd_pcm_t *pcm)
+{
+    int r;
+    snd_pcm_sw_params_t *sw;
+
+    snd_pcm_sw_params_alloca(&sw);
+
+    r = snd_pcm_sw_params_current(pcm, sw);
+    CHECK("sw_params_current", r);
+
+    /*
+     * Using the start threshold would be preferred but appears to be
+     * ignored when mmap is used.
+     *
+     * Since the behaviour is not documented, be explicit and make
+     * later calls to snd_pcm_start()
+     *
+     * https://lore.kernel.org/alsa-devel/dbcc61b6-a5be-b2c3-381c-63d5a8a9a843@xwax.org/T/#u
+     */
+
+    r = snd_pcm_sw_params_set_start_threshold(pcm, sw, LONG_MAX);
+    CHECK("sw_params_set_start_threshold", r);
+
+    r = snd_pcm_sw_params_set_avail_min(pcm, sw, 1);
+    CHECK("sw_params_set_avail_min", r);
+
+    r = snd_pcm_sw_params(pcm, sw);
+    CHECK("sw_params", r);
+
+    return true;
+}
+
+
 /* "rate" of zero means automatically select an appropriate rate.
  * "buffer" size in frames */
 
@@ -179,6 +220,9 @@ static int pcm_open(struct alsa_pcm *alsa, const char *device_name,
     alsa->rate = rate;
 
     if (!set_hw(alsa->pcm, stream, &alsa->rate, buffer))
+        return -1;
+
+    if (!set_sw(alsa->pcm))
         return -1;
 
     return 0;
