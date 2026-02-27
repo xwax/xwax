@@ -335,14 +335,9 @@ static signed short *buffer(const snd_pcm_channel_area_t *area,
 static int playback(struct device *dv)
 {
     int r;
-    snd_pcm_state_t state;
     snd_pcm_uframes_t frames, offset;
     const snd_pcm_channel_area_t *area;
     struct alsa *alsa = (struct alsa*)dv->local;
-
-    state = snd_pcm_state(alsa->capture.pcm);
-    if (state == SND_PCM_STATE_XRUN)
-        return -EPIPE;
 
     frames = snd_pcm_avail_update(alsa->playback.pcm);
     if (frames < 0)
@@ -383,14 +378,9 @@ static int playback(struct device *dv)
 static int capture(struct device *dv)
 {
     int r;
-    snd_pcm_state_t state;
     snd_pcm_uframes_t frames, offset;
     const snd_pcm_channel_area_t *area;
     struct alsa *alsa = (struct alsa*)dv->local;
-
-    state = snd_pcm_state(alsa->capture.pcm);
-    if (state == SND_PCM_STATE_XRUN)
-        return -EPIPE;
 
     frames = snd_pcm_avail(alsa->capture.pcm);
     if (frames < 0)
