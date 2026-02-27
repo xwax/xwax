@@ -27,11 +27,7 @@
 #include "alsa.h"
 
 
-/* This structure doesn't have corresponding functions to be an
- * abstraction of the ALSA calls; it is merely a container for these
- * variables. */
-
-struct alsa_pcm {
+struct flow {
     snd_pcm_t *pcm;
 
     struct pollfd *pe;
@@ -42,7 +38,7 @@ struct alsa_pcm {
 
 
 struct alsa {
-    struct alsa_pcm capture, playback;
+    struct flow capture, playback;
     snd_pcm_uframes_t buffer, written;
 };
 
@@ -208,65 +204,60 @@ static bool set_sw(snd_pcm_t *pcm)
 /* "rate" of zero means automatically select an appropriate rate.
  * "buffer" size in frames */
 
-static int pcm_open(struct alsa_pcm *alsa, const char *name,
-                    snd_pcm_stream_t stream, unsigned int rate, int buffer)
+static int flow_open(struct flow *flow, const char *name,
+                     snd_pcm_stream_t stream,
+                     unsigned int rate,
+                     int buffer)
 {
     int r;
 
-    r = snd_pcm_open(&alsa->pcm, name, stream, SND_PCM_NONBLOCK);
+    r = snd_pcm_open(&flow->pcm, name, stream, SND_PCM_NONBLOCK);
     if (r < 0) {
         alsa_error("open", r);
         return -1;
     }
 
-    alsa->rate = rate;
+    flow->rate = rate;
 
-    if (!set_hw(alsa->pcm, stream, &alsa->rate, buffer))
+    if (!set_hw(flow->pcm, stream, &flow->rate, buffer))
         return -1;
 
-    if (!set_sw(alsa->pcm))
+    if (!set_sw(flow->pcm))
         return -1;
 
     return 0;
 }
 
 
-static void pcm_close(struct alsa_pcm *alsa)
-{
-    if (snd_pcm_close(alsa->pcm) < 0)
-        abort();
-}
-
-
-static ssize_t pcm_pollfds(struct alsa_pcm *alsa, struct pollfd *pe,
+static ssize_t flow_pollfds(struct flow *flow, struct pollfd *pe,
                            size_t z)
 {
     int r, count;
 
-    count = snd_pcm_poll_descriptors_count(alsa->pcm);
+    count = snd_pcm_poll_descriptors_count(flow->pcm);
     if (count > z)
         return -1;
 
     if (count == 0)
-        alsa->pe = NULL;
+        flow->pe = NULL;
     else {
-        r = snd_pcm_poll_descriptors(alsa->pcm, pe, count);
+        r = snd_pcm_poll_descriptors(flow->pcm, pe, count);
         if (r < 0) {
             alsa_error("poll_descriptors", r);
             return -1;
         }
-        alsa->pe = pe;
+        flow->pe = pe;
     }
 
-    alsa->pe_count = count;
+    flow->pe_count = count;
     return count;
 }
 
 
-static int pcm_revents(struct alsa_pcm *alsa, unsigned short *revents) {
+static int flow_revents(struct flow *flow, unsigned short *revents) {
     int r;
 
-    r = snd_pcm_poll_descriptors_revents(alsa->pcm, alsa->pe, alsa->pe_count,
+    r = snd_pcm_poll_descriptors_revents(flow->pcm, flow->pe, flow->pe_count,
                                          revents);
     if (r < 0) {
         alsa_error("poll_descriptors_revents", r);
@@ -299,7 +290,7 @@ static ssize_t pollfds(struct device *dv, struct pollfd *pe, size_t z)
 
     total = 0;
 
-    r = pcm_pollfds(&alsa->capture, pe, z);
+    r = flow_pollfds(&alsa->capture, pe, z);
     if (r < 0)
         return -1;
 
@@ -307,7 +298,7 @@ static ssize_t pollfds(struct device *dv, struct pollfd *pe, size_t z)
     z -= r;
     total += r;
 
-    r = pcm_pollfds(&alsa->playback, pe, z);
+    r = flow_pollfds(&alsa->playback, pe, z);
     if (r < 0)
         return -1;
 
@@ -415,7 +406,7 @@ static int handle(struct device *dv)
 
     /* Check input buffer for timecode capture */
 
-    r = pcm_revents(&alsa->capture, &revents);
+    r = flow_revents(&alsa->capture, &revents);
     if (r < 0)
         return -1;
 
@@ -447,7 +438,7 @@ static int handle(struct device *dv)
 
     /* Check the output buffer for playback */
 
-    r = pcm_revents(&alsa->playback, &revents);
+    r = flow_revents(&alsa->playback, &revents);
     if (r < 0)
         return -1;
 
@@ -494,8 +485,12 @@ static void clear(struct device *dv)
 {
     struct alsa *alsa = (struct alsa*)dv->local;
 
-    pcm_close(&alsa->capture);
-    pcm_close(&alsa->playback);
+    if (snd_pcm_close(alsa->capture.pcm) < 0)
+        abort();
+
+    if (snd_pcm_close(alsa->playback.pcm) < 0)
+        abort();
+
     free(dv->local);
 }
 
@@ -525,14 +520,14 @@ int alsa_init(struct device *dv, const char *name,
     alsa->buffer = buffer;
     alsa->written = 0;
 
-    if (pcm_open(&alsa->capture, name, SND_PCM_STREAM_CAPTURE,
+    if (flow_open(&alsa->capture, name, SND_PCM_STREAM_CAPTURE,
                  rate, 0) < 0)
     {
         fputs("Failed to open device for capture.\n", stderr);
         goto fail;
     }
 
-    if (pcm_open(&alsa->playback, name, SND_PCM_STREAM_PLAYBACK,
+    if (flow_open(&alsa->playback, name, SND_PCM_STREAM_PLAYBACK,
                 rate, buffer) < 0)
     {
         fputs("Failed to open device for playback.\n", stderr);
@@ -545,7 +540,8 @@ int alsa_init(struct device *dv, const char *name,
     return 0;
 
  fail_capture:
-    pcm_close(&alsa->capture);
+    if (snd_pcm_close(alsa->capture.pcm) < 0)
+        abort();
  fail:
     free(alsa);
     return -1;
