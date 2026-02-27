@@ -339,9 +339,8 @@ static int playback(struct device *dv)
     if (r < 0)
         return r;
 
-    assert(frames > 0);  /* otherwise we were woken unnecessarily */
-
-    device_collect(dv, buffer(&area[0], offset), frames);
+    if (frames > 0)
+        device_collect(dv, buffer(&area[0], offset), frames);
 
     r = snd_pcm_mmap_commit(alsa->playback.pcm, offset, frames);
     if (r < 0)
@@ -382,9 +381,8 @@ static int capture(struct device *dv)
     if (r < 0)
         return r;
 
-    assert(frames > 0);  /* otherwise we were woken unnecessarily */
-
-    device_submit(dv, buffer(&area[0], offset), frames);
+    if (frames > 0)
+        device_submit(dv, buffer(&area[0], offset), frames);
 
     r = snd_pcm_mmap_commit(alsa->capture.pcm, offset, frames);
     if (r < 0)
