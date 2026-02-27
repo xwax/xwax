@@ -26,7 +26,6 @@
 
 #include "alsa.h"
 
-
 struct flow {
     snd_pcm_t *pcm;
 
@@ -36,18 +35,15 @@ struct flow {
     unsigned int rate;
 };
 
-
 struct alsa {
     struct flow capture, playback;
     snd_pcm_uframes_t buffer, written;
 };
 
-
 static void alsa_error(const char *msg, int r)
 {
     fprintf(stderr, "ALSA %s: %s\n", msg, snd_strerror(r));
 }
-
 
 static bool _check(const char *s, int r)
 {
@@ -55,16 +51,18 @@ static bool _check(const char *s, int r)
     return true;
 }
 
-
-/* Macro complexity is undesirable, but paying the price here makes
- * repeated handling of ALSA errors clear and concise */
+/*
+ * Pass back errors from ALSA functions
+ *
+ * Macro complexity is undesirable, but paying the price here makes
+ * repeated handling of these clear and concise.
+ */
 
 #define CHECK(name, r) \
     for (bool _x = false; r < 0 && (_x || _check(name, r)); _x = true)  \
         if (_x) \
             return false; \
         else /* custom failure code run before return */
-
 
 /*
  * Set ALSA "hardware" parameters
@@ -147,9 +145,8 @@ static bool set_hw(snd_pcm_t *pcm, snd_pcm_stream_t stream,
         }
     }
 
-    /* This is fundamentally a latency-sensitive application that is
-     * likely to be the primary application running, so assume we want
-     * the hardware to be giving us immediate wakeups */
+    /* Use the smallest period size for a latency-sensitive
+     * application that is the primary one on the system */
 
     r = snd_pcm_hw_params_set_period_size_first(pcm, hw, &frames, &dir);
     CHECK("hw_params_set_buffer_time_near", r);
@@ -159,7 +156,6 @@ static bool set_hw(snd_pcm_t *pcm, snd_pcm_stream_t stream,
 
     return true;
 }
-
 
 /*
  * Set ALSA's "software" parameters
@@ -200,9 +196,12 @@ static bool set_sw(snd_pcm_t *pcm)
     return true;
 }
 
-
-/* "rate" of zero means automatically select an appropriate rate.
- * "buffer" size in frames */
+/*
+ * Open capture or playback
+ *
+ * "rate" of zero means automatically select an appropriate rate.
+ * "buffer" size in frames
+ */
 
 static int flow_open(struct flow *flow, const char *name,
                      snd_pcm_stream_t stream,
@@ -228,7 +227,6 @@ static int flow_open(struct flow *flow, const char *name,
     return 0;
 }
 
-
 static ssize_t flow_pollfds(struct flow *flow, struct pollfd *pe,
                            size_t z)
 {
@@ -253,7 +251,6 @@ static ssize_t flow_pollfds(struct flow *flow, struct pollfd *pe,
     return count;
 }
 
-
 static int flow_revents(struct flow *flow, unsigned short *revents) {
     int r;
 
@@ -267,9 +264,9 @@ static int flow_revents(struct flow *flow, unsigned short *revents) {
     return 0;
 }
 
-
-
-/* Start the audio device capture and playback */
+/*
+ * When the realtime thread should begin processing
+ */
 
 static void start(struct device *dv)
 {
@@ -279,9 +276,9 @@ static void start(struct device *dv)
         abort();
 }
 
-
-/* Register this device's interest in a set of pollfd file
- * descriptors */
+/*
+ * Populate the file descriptors to monitor
+ */
 
 static ssize_t pollfds(struct device *dv, struct pollfd *pe, size_t z)
 {
@@ -307,13 +304,15 @@ static ssize_t pollfds(struct device *dv, struct pollfd *pe, size_t z)
     return total;
 }
 
-
-/* Access the interleaved area presented by the ALSA library.  The
- * device is opened SND_PCM_FORMAT_S16 which is in the local endianess
- * and therefore is "signed short" */
+/*
+ * Access the interleaved area presented by the ALSA library
+ *
+ * The device is opened SND_PCM_FORMAT_S16 which is in the local
+ * endianess and therefore is "signed short"
+ */
 
 static signed short *buffer(const snd_pcm_channel_area_t *area,
-                          snd_pcm_uframes_t offset)
+                            snd_pcm_uframes_t offset)
 {
     assert(area->first % 8 == 0);
     assert(area->step == 32);  /* 2 channel 16-bit interleaved */
@@ -321,9 +320,9 @@ static signed short *buffer(const snd_pcm_channel_area_t *area,
     return area->addr + area->first / 8 + offset * area->step / 8;
 }
 
-
-/* Collect audio from the player and push it into the device's buffer,
- * for playback */
+/*
+ * Process audio for playback and post it to the hardware buffer
+ */
 
 static int playback(struct device *dv)
 {
@@ -364,9 +363,9 @@ static int playback(struct device *dv)
     return 0;
 }
 
-
-/* Pull audio from the device's buffer for capture, and pass it
- * through to the timecoder */
+/*
+ * Read frames of audio from the hardware and pass to the timecoder
+ */
 
 static int capture(struct device *dv)
 {
@@ -394,9 +393,9 @@ static int capture(struct device *dv)
     return 0;
 }
 
-
-/* After poll() has returned, instruct a device to do all it can at
- * the present time. Return zero if success, otherwise -1 */
+/*
+ * After poll(), do everything which can be done at the present time
+ */
 
 static int handle(struct device *dv)
 {
@@ -470,16 +469,12 @@ static int handle(struct device *dv)
     return 0;
 }
 
-
 static unsigned int sample_rate(struct device *dv)
 {
     struct alsa *alsa = (struct alsa*)dv->local;
 
     return alsa->capture.rate;
 }
-
-
-/* Close ALSA device and clear any allocations */
 
 static void clear(struct device *dv)
 {
@@ -494,7 +489,6 @@ static void clear(struct device *dv)
     free(dv->local);
 }
 
-
 static struct device_ops alsa_ops = {
     .pollfds = pollfds,
     .handle = handle,
@@ -503,8 +497,14 @@ static struct device_ops alsa_ops = {
     .clear = clear
 };
 
-
-/* Open ALSA device. Do not operate on audio until device_start() */
+/*
+ * Open an ALSA device
+ *
+ * ALSA distinguishes separate devices for capture and playback
+ * but this code assumes they are the same.
+ *
+ * No audio flows until the start() is called.
+ */
 
 int alsa_init(struct device *dv, const char *name,
               unsigned int rate, unsigned int buffer)
@@ -547,9 +547,10 @@ int alsa_init(struct device *dv, const char *name,
     return -1;
 }
 
-
-/* ALSA caches information when devices are open. Provide a call
- * to clear these caches so that valgrind output is clean. */
+/*
+ * ALSA caches information when devices are open. Provide a call
+ * to clear these caches so that valgrind output is clean.
+ */
 
 void alsa_clear_config_cache(void)
 {
