@@ -70,7 +70,8 @@ static bool _check(const char *s, int r)
 
 
 static bool set_hw(snd_pcm_t *pcm, snd_pcm_stream_t stream,
-                  unsigned int *rate, int buffer)
+                   unsigned int *rate,
+                   snd_pcm_uframes_t buffer)
 {
     int r, dir;
     snd_pcm_hw_params_t *hw_params;
@@ -145,7 +146,7 @@ static bool set_hw(snd_pcm_t *pcm, snd_pcm_stream_t stream,
         /* Smallest possible buffer to keep latencies low */
         r = snd_pcm_hw_params_set_buffer_size(pcm, hw_params, buffer);
         CHECK("hw_params_set_buffer_size", r) {
-            fprintf(stderr, "Buffer of %u samples is probably too small; try increasing it with --buffer\n",
+            fprintf(stderr, "Buffer of %lu samples is probably too small; try increasing it with --buffer\n",
                     buffer);
         }
         break;
