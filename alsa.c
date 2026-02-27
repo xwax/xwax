@@ -208,12 +208,12 @@ static bool set_sw(snd_pcm_t *pcm)
 /* "rate" of zero means automatically select an appropriate rate.
  * "buffer" size in frames */
 
-static int pcm_open(struct alsa_pcm *alsa, const char *device_name,
+static int pcm_open(struct alsa_pcm *alsa, const char *name,
                     snd_pcm_stream_t stream, unsigned int rate, int buffer)
 {
     int r;
 
-    r = snd_pcm_open(&alsa->pcm, device_name, stream, SND_PCM_NONBLOCK);
+    r = snd_pcm_open(&alsa->pcm, name, stream, SND_PCM_NONBLOCK);
     if (r < 0) {
         alsa_error("open", r);
         return -1;
@@ -511,7 +511,7 @@ static struct device_ops alsa_ops = {
 
 /* Open ALSA device. Do not operate on audio until device_start() */
 
-int alsa_init(struct device *dv, const char *device_name,
+int alsa_init(struct device *dv, const char *name,
               unsigned int rate, unsigned int buffer)
 {
     struct alsa *alsa;
@@ -525,14 +525,14 @@ int alsa_init(struct device *dv, const char *device_name,
     alsa->buffer = buffer;
     alsa->written = 0;
 
-    if (pcm_open(&alsa->capture, device_name, SND_PCM_STREAM_CAPTURE,
-                rate, 0) < 0)
+    if (pcm_open(&alsa->capture, name, SND_PCM_STREAM_CAPTURE,
+                 rate, 0) < 0)
     {
         fputs("Failed to open device for capture.\n", stderr);
         goto fail;
     }
 
-    if (pcm_open(&alsa->playback, device_name, SND_PCM_STREAM_PLAYBACK,
+    if (pcm_open(&alsa->playback, name, SND_PCM_STREAM_PLAYBACK,
                 rate, buffer) < 0)
     {
         fputs("Failed to open device for playback.\n", stderr);
