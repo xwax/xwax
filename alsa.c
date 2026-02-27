@@ -84,19 +84,18 @@ static bool set_hw(snd_pcm_t *pcm, snd_pcm_stream_t stream,
                    snd_pcm_uframes_t buffer)
 {
     int r, dir;
-    snd_pcm_hw_params_t *hw_params;
+    snd_pcm_hw_params_t *hw;
     snd_pcm_uframes_t frames;
 
-    snd_pcm_hw_params_alloca(&hw_params);
+    snd_pcm_hw_params_alloca(&hw);
 
-    r = snd_pcm_hw_params_any(pcm, hw_params);
+    r = snd_pcm_hw_params_any(pcm, hw);
     CHECK("hw_params_any", r);
 
-    r = snd_pcm_hw_params_set_access(pcm, hw_params,
-                                     SND_PCM_ACCESS_MMAP_INTERLEAVED);
+    r = snd_pcm_hw_params_set_access(pcm, hw, SND_PCM_ACCESS_MMAP_INTERLEAVED);
     CHECK("hw_params_set_access", r);
 
-    r = snd_pcm_hw_params_set_format(pcm, hw_params, SND_PCM_FORMAT_S16);
+    r = snd_pcm_hw_params_set_format(pcm, hw, SND_PCM_FORMAT_S16);
     CHECK("hw_params_set_format", r) {
         fprintf(stderr, "16-bit signed format is not available. "
                 "You may need to use a 'plughw' device.\n");
@@ -107,11 +106,11 @@ static bool set_hw(snd_pcm_t *pcm, snd_pcm_stream_t stream,
      * This is even if a 'plug' device is used, which effectively lets
      * the user unknowingly select any sample rate. */
 
-    r = snd_pcm_hw_params_set_rate_resample(pcm, hw_params, 0);
+    r = snd_pcm_hw_params_set_rate_resample(pcm, hw, 0);
     CHECK("hw_params_set_rate_resample", r);
 
     if (*rate) {
-        r = snd_pcm_hw_params_set_rate(pcm, hw_params, *rate, 0);
+        r = snd_pcm_hw_params_set_rate(pcm, hw, *rate, 0);
         CHECK("hw_params_set_rate", r) {
             fprintf(stderr, "Sample rate of %dHz is not implemented by the hardware.\n",
                     *rate);
@@ -126,13 +125,13 @@ static bool set_hw(snd_pcm_t *pcm, snd_pcm_stream_t stream,
         dir = -1;
         *rate = 48000;
 
-        r = snd_pcm_hw_params_set_rate_near(pcm, hw_params, rate, &dir);
+        r = snd_pcm_hw_params_set_rate_near(pcm, hw, rate, &dir);
         CHECK("hw_params_set_rate_near", r);
 
         /* "rate" is set on return */
     }
 
-    r = snd_pcm_hw_params_set_channels(pcm, hw_params, DEVICE_CHANNELS);
+    r = snd_pcm_hw_params_set_channels(pcm, hw, DEVICE_CHANNELS);
     CHECK("hw_params_set_channels", r) {
         fprintf(stderr, "%d channel audio not available on this device.\n",
                 DEVICE_CHANNELS);
@@ -142,10 +141,10 @@ static bool set_hw(snd_pcm_t *pcm, snd_pcm_stream_t stream,
      * constrained by the period size */
 
     if (!buffer) {
-        r = snd_pcm_hw_params_set_buffer_size_last(pcm, hw_params, &frames);
+        r = snd_pcm_hw_params_set_buffer_size_last(pcm, hw, &frames);
         CHECK("hw_params_set_buffer_size_last", r);
     } else {
-        r = snd_pcm_hw_params_set_buffer_size(pcm, hw_params, buffer);
+        r = snd_pcm_hw_params_set_buffer_size(pcm, hw, buffer);
         CHECK("hw_params_set_buffer_size", r) {
             fprintf(stderr, "Buffer of %lu samples is probably too small; try increasing it with --buffer\n",
                     buffer);
@@ -156,10 +155,10 @@ static bool set_hw(snd_pcm_t *pcm, snd_pcm_stream_t stream,
      * likely to be the primary application running, so assume we want
      * the hardware to be giving us immediate wakeups */
 
-    r = snd_pcm_hw_params_set_period_size_first(pcm, hw_params, &frames, &dir);
+    r = snd_pcm_hw_params_set_period_size_first(pcm, hw, &frames, &dir);
     CHECK("hw_params_set_buffer_time_near", r);
 
-    r = snd_pcm_hw_params(pcm, hw_params);
+    r = snd_pcm_hw_params(pcm, hw);
     CHECK("hw_params", r);
 
     return true;
