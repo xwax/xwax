@@ -43,7 +43,7 @@ struct alsa_pcm {
 
 struct alsa {
     struct alsa_pcm capture, playback;
-    bool playing;
+    snd_pcm_uframes_t buffer, written;
 };
 
 
@@ -360,15 +360,17 @@ static int playback(struct device *dv)
     if (r < 0)
         return r;
 
-    /* If this is the initial write, assume the buffer gets filled to
-     * the maximum and it's time to consume the buffer */
+    /* The start threshold is switched off; maintain our
+     * own count of when to tell the hardware to start */
 
-    if (!alsa->playing) {
-        r = snd_pcm_start(alsa->playback.pcm);
-        if (r < 0)
-            return r;
+    if (alsa->written < alsa->buffer) {
+        alsa->written += frames;
 
-        alsa->playing = true;
+        if (alsa->written >= alsa->buffer) {
+            r = snd_pcm_start(alsa->playback.pcm);
+            if (r < 0)
+                return r;
+        }
     }
 
     return 0;
@@ -470,7 +472,7 @@ static int handle(struct device *dv)
                     return -1;
                 }
 
-                alsa->playing = false;
+                alsa->written = 0;
 
                 /* POLLOUT events will be generated now, and we
                  * explicitly start the device when writing */
@@ -528,7 +530,8 @@ int alsa_init(struct device *dv, const char *device_name,
         return -1;
     }
 
-    alsa->playing = false;
+    alsa->buffer = buffer;
+    alsa->written = 0;
 
     if (pcm_open(&alsa->capture, device_name, SND_PCM_STREAM_CAPTURE,
                 rate, buffer) < 0)
