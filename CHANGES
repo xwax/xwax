@@ -1,5 +1,6 @@
 * Make it easier to script crates/directories of music
 * Introduce long command line flags for readability
+* Increase the default size of the display elements
 * Migrate from SDL version 1 to version 2
 * Fix a bug which imported non-stereo files incorrectly
 * Resolve potential for ALSA bugs with some hardware
