@@ -75,6 +75,7 @@ struct timecoder {
     /* Scope display */
 
     unsigned char *scope; /* x-y array */
+    size_t scope_len; /* in bytes */
     int scope_size, scope_counter;
 };
 

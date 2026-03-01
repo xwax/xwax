@@ -680,6 +680,15 @@ int main(int argc, const char *argv[])
     if (interface_start(&library, geo, decor) == -1)
         goto out_rt;
 
+    for (n = 0; n < ndeck; n++) {
+        struct timecoder *tc = &deck[n].timecoder;
+
+        if (use_mlock && mlock(tc->scope, tc->scope_len) == -1) {
+            perror("mlock");
+            goto out_interface;
+        }
+    }
+
     if (rig_main() == -1)
         goto out_interface;
 

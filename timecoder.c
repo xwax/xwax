@@ -363,12 +363,13 @@ int timecoder_scope(struct timecoder *tc, int size)
 {
     assert(!tc->scope);
     tc->scope_size = size;
-    tc->scope = malloc(SQ(tc->scope_size));
+    tc->scope_len = SQ(tc->scope_size);
+    tc->scope = malloc(tc->scope_len);
     if (tc->scope == NULL) {
         perror("malloc");
         return -1;
     }
-    memset(tc->scope, 0, SQ(tc->scope_size));
+    memset(tc->scope, 0, tc->scope_len);
     tc->scope_counter = 0;
     return 0;
 }
