@@ -76,7 +76,7 @@ struct timecoder {
 
     unsigned char *scope; /* x-y array */
     size_t scope_len; /* in bytes */
-    int scope_size, scope_counter;
+    unsigned short scope_size, scope_counter;
 };
 
 struct timecode_def* timecoder_find_definition(const char *name);
@@ -86,7 +86,7 @@ void timecoder_init(struct timecoder *tc, struct timecode_def *def,
                     double speed, unsigned int sample_rate, bool phono);
 void timecoder_clear(struct timecoder *tc);
 
-int timecoder_scope(struct timecoder *tc, int size);
+int timecoder_scope(struct timecoder *tc, unsigned short size);
 
 void timecoder_cycle_definition(struct timecoder *tc);
 void timecoder_submit(struct timecoder *tc, signed short *pcm, size_t npcm);

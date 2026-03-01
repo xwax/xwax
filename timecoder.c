@@ -359,18 +359,27 @@ void timecoder_clear(struct timecoder *tc)
  * Return: -1 if not enough memory could be allocated, otherwise 0
  */
 
-int timecoder_scope(struct timecoder *tc, int size)
+int timecoder_scope(struct timecoder *tc, unsigned short size)
 {
-    assert(!tc->scope);
-    tc->scope_size = size;
-    tc->scope_len = SQ(tc->scope_size);
-    tc->scope = malloc(tc->scope_len);
-    if (tc->scope == NULL) {
+    size_t len;
+    void *x;
+
+    len = SQ(size) * sizeof(*tc->scope);
+
+    x = malloc(len);
+    if (!x) {
         perror("malloc");
         return -1;
     }
-    memset(tc->scope, 0, tc->scope_len);
+
+    memset(x, 0, len);
+
+    tc->scope_len = len;
+    tc->scope_size = size;
     tc->scope_counter = 0;
+    assert(!tc->scope);
+    tc->scope = x;  /* beware calling this from another thread */
+
     return 0;
 }
 

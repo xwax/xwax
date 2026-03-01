@@ -706,18 +706,23 @@ static void draw_clock(SDL_Surface *surface, const struct rect *rect, int t,
 static void draw_scope(SDL_Surface *surface, const struct rect *rect,
                        struct timecoder *tc)
 {
-    int r, c, v, mid;
+    int r, c, v;
+    unsigned short size, mid;
     Uint8 *p;
 
-    mid = tc->scope_size / 2;
+    assert(rect->w == tc->scope_size);
+    assert(rect->h == tc->scope_size);
+    size = rect->w;
 
-    for (r = 0; r < tc->scope_size; r++) {
-        for (c = 0; c < tc->scope_size; c++) {
+    mid = size / 2;
+
+    for (r = 0; r < size; r++) {
+        for (c = 0; c < size; c++) {
             p = surface->pixels
                 + (rect->y + r) * surface->pitch
                 + (rect->x + c) * surface->format->BytesPerPixel;
 
-            v = tc->scope[r * tc->scope_size + c];
+            v = tc->scope[r * size + c];
 
             if ((r == mid || c == mid) && v < 64)
                 v = 64;
