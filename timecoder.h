@@ -72,10 +72,10 @@ struct timecoder {
     unsigned int valid_counter, /* number of successful error checks */
         timecode_ticker; /* samples since valid timecode was read */
 
-    /* Feedback */
+    /* Scope display */
 
-    unsigned char *mon; /* x-y array */
-    int mon_size, mon_counter;
+    unsigned char *scope; /* x-y array */
+    int scope_size, scope_counter;
 };
 
 struct timecode_def* timecoder_find_definition(const char *name);
@@ -85,7 +85,7 @@ void timecoder_init(struct timecoder *tc, struct timecode_def *def,
                     double speed, unsigned int sample_rate, bool phono);
 void timecoder_clear(struct timecoder *tc);
 
-int timecoder_monitor(struct timecoder *tc, int size);
+int timecoder_scope(struct timecoder *tc, int size);
 
 void timecoder_cycle_definition(struct timecoder *tc);
 void timecoder_submit(struct timecoder *tc, signed short *pcm, size_t npcm);

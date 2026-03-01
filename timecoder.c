@@ -52,7 +52,7 @@
 
 #define VALID_BITS 24
 
-#define MONITOR_DECAY_EVERY 512 /* in samples */
+#define SCOPE_DECAY_EVERY 512 /* in samples */
 
 #define SQ(x) ((x)*(x))
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof(*x))
@@ -337,7 +337,7 @@ void timecoder_init(struct timecoder *tc, struct timecode_def *def,
     tc->valid_counter = 0;
     tc->timecode_ticker = 0;
 
-    tc->mon = NULL;
+    tc->scope = NULL;
 }
 
 /*
@@ -346,31 +346,30 @@ void timecoder_init(struct timecoder *tc, struct timecode_def *def,
 
 void timecoder_clear(struct timecoder *tc)
 {
-    if (tc->mon)
-        free(tc->mon);
+    if (tc->scope)
+        free(tc->scope);
 }
 
 /*
  * Request a raster display of the incoming audio
  *
- * The monitor (otherwise known as 'scope' in the interface) is an x-y
- * display of the post-calibrated incoming audio. It requires additional
- * memory.
+ * The 'scope' (like an oscilloscope) is an x-y display of the
+ * post-calibrated incoming audio. It requires additional memory.
  *
  * Return: -1 if not enough memory could be allocated, otherwise 0
  */
 
-int timecoder_monitor(struct timecoder *tc, int size)
+int timecoder_scope(struct timecoder *tc, int size)
 {
-    assert(tc->mon == NULL);
-    tc->mon_size = size;
-    tc->mon = malloc(SQ(tc->mon_size));
-    if (tc->mon == NULL) {
+    assert(!tc->scope);
+    tc->scope_size = size;
+    tc->scope = malloc(SQ(tc->scope_size));
+    if (tc->scope == NULL) {
         perror("malloc");
         return -1;
     }
-    memset(tc->mon, 0, SQ(tc->mon_size));
-    tc->mon_counter = 0;
+    memset(tc->scope, 0, SQ(tc->scope_size));
+    tc->scope_counter = 0;
     return 0;
 }
 
@@ -399,27 +398,27 @@ static void detect_zero_crossing(struct timecoder_channel *ch,
 }
 
 /*
- * Plot the given sample value in the x-y monitor
+ * Visualise the given sample value in the x-y scope
  */
 
-static void update_monitor(struct timecoder *tc, signed int x, signed int y)
+static void update_scope(struct timecoder *tc, signed int x, signed int y)
 {
     int px, py, size, ref;
 
-    if (!tc->mon)
+    if (!tc->scope)
         return;
 
-    size = tc->mon_size;
+    size = tc->scope_size;
     ref = tc->ref_level;
 
     /* Decay the pixels already in the montior */
 
-    if (++tc->mon_counter % MONITOR_DECAY_EVERY == 0) {
+    if (++tc->scope_counter % SCOPE_DECAY_EVERY == 0) {
         int p;
 
         for (p = 0; p < SQ(size); p++) {
-            if (tc->mon[p])
-                tc->mon[p] = tc->mon[p] * 7 / 8;
+            if (tc->scope[p])
+                tc->scope[p] = tc->scope[p] * 7 / 8;
         }
     }
 
@@ -432,7 +431,7 @@ static void update_monitor(struct timecoder *tc, signed int x, signed int y)
     if (px < 0 || px >= size || py < 0 || py >= size)
         return;
 
-    tc->mon[py * size + px] = 0xff; /* white */
+    tc->scope[py * size + px] = 0xff; /* white */
 }
 
 /*
@@ -606,7 +605,7 @@ void timecoder_submit(struct timecoder *tc, signed short *pcm, size_t npcm)
         }
 
         process_sample(tc, primary, secondary);
-        update_monitor(tc, left, right);
+        update_scope(tc, left, right);
 
         pcm += TIMECODER_CHANNELS;
     }

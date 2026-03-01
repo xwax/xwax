@@ -709,15 +709,15 @@ static void draw_scope(SDL_Surface *surface, const struct rect *rect,
     int r, c, v, mid;
     Uint8 *p;
 
-    mid = tc->mon_size / 2;
+    mid = tc->scope_size / 2;
 
-    for (r = 0; r < tc->mon_size; r++) {
-        for (c = 0; c < tc->mon_size; c++) {
+    for (r = 0; r < tc->scope_size; r++) {
+        for (c = 0; c < tc->scope_size; c++) {
             p = surface->pixels
                 + (rect->y + r) * surface->pitch
                 + (rect->x + c) * surface->format->BytesPerPixel;
 
-            v = tc->mon[r * tc->mon_size + c];
+            v = tc->scope[r * tc->scope_size + c];
 
             if ((r == mid || c == mid) && v < 64)
                 v = 64;
@@ -1970,14 +1970,14 @@ int interface_start(struct library *lib, const char *geo, bool decor)
     }
 
     /*
-     * Timecode monitors
+     * Visual display of timecode input audio
      */
 
     if (init_spinner(zoom(SPINNER_SIZE)) == -1)
         goto fail_sdl;
 
     for (n = 0; n < ndeck; n++) {
-        if (timecoder_monitor(&deck[n].timecoder, zoom(SCOPE_SIZE)) == -1)
+        if (timecoder_scope(&deck[n].timecoder, zoom(SCOPE_SIZE)) == -1)
             not_implemented();
     }
 
