@@ -3,7 +3,11 @@
 * Increase the default size of the display elements
 * Migrate from SDL version 1 to version 2
 * Fix a bug which imported non-stereo files incorrectly
+* Fix a bug which could cause a crash on quit
+* Remove a possible disruption to realtime audio on low memory
 * Resolve potential for ALSA bugs with some hardware
+
+Acknowledgements: Jan Claußen, Juan P C, Christopher Obbard
 
 v1.9 (2023-05-12)
 -----------------
