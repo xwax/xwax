@@ -1886,11 +1886,6 @@ static int parse_geometry(const char *s,
 
 static void cleanup()
 {
-    size_t n;
-
-    for (n = 0; n < ndeck; n++)
-        timecoder_monitor_clear(&deck[n].timecoder);
-
     clear_spinner();
     ignore(&on_status);
     ignore(&on_selector);
@@ -1982,7 +1977,7 @@ int interface_start(struct library *lib, const char *geo, bool decor)
         goto fail_sdl;
 
     for (n = 0; n < ndeck; n++) {
-        if (timecoder_monitor_init(&deck[n].timecoder, zoom(SCOPE_SIZE)) == -1)
+        if (timecoder_monitor(&deck[n].timecoder, zoom(SCOPE_SIZE)) == -1)
             not_implemented();
     }
 

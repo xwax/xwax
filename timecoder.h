@@ -85,8 +85,7 @@ void timecoder_init(struct timecoder *tc, struct timecode_def *def,
                     double speed, unsigned int sample_rate, bool phono);
 void timecoder_clear(struct timecoder *tc);
 
-int timecoder_monitor_init(struct timecoder *tc, int size);
-void timecoder_monitor_clear(struct timecoder *tc);
+int timecoder_monitor(struct timecoder *tc, int size);
 
 void timecoder_cycle_definition(struct timecoder *tc);
 void timecoder_submit(struct timecoder *tc, signed short *pcm, size_t npcm);

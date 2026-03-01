@@ -346,19 +346,21 @@ void timecoder_init(struct timecoder *tc, struct timecode_def *def,
 
 void timecoder_clear(struct timecoder *tc)
 {
-    assert(tc->mon == NULL);
+    if (tc->mon)
+        free(tc->mon);
 }
 
 /*
- * Initialise a raster display of the incoming audio
+ * Request a raster display of the incoming audio
  *
  * The monitor (otherwise known as 'scope' in the interface) is an x-y
- * display of the post-calibrated incoming audio.
+ * display of the post-calibrated incoming audio. It requires additional
+ * memory.
  *
  * Return: -1 if not enough memory could be allocated, otherwise 0
  */
 
-int timecoder_monitor_init(struct timecoder *tc, int size)
+int timecoder_monitor(struct timecoder *tc, int size)
 {
     assert(tc->mon == NULL);
     tc->mon_size = size;
@@ -370,17 +372,6 @@ int timecoder_monitor_init(struct timecoder *tc, int size)
     memset(tc->mon, 0, SQ(tc->mon_size));
     tc->mon_counter = 0;
     return 0;
-}
-
-/*
- * Clear the monitor on the given timecoder
- */
-
-void timecoder_monitor_clear(struct timecoder *tc)
-{
-    assert(tc->mon != NULL);
-    free(tc->mon);
-    tc->mon = NULL;
 }
 
 /*
