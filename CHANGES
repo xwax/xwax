@@ -1,3 +1,6 @@
+v1.10 (2026-05-03)
+------------------
+
 * Make it easier to script crates/directories of music
 * Introduce long command line flags for readability
 * Increase the default size of the display elements
